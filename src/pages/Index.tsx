@@ -1,11 +1,153 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Wrench, Shield, User, Car } from "lucide-react";
+import { toast } from "sonner";
+import AdminDashboard from "@/components/AdminDashboard";
+import MechanicDashboard from "@/components/MechanicDashboard";
 
 const Index = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userType, setUserType] = useState('');
+  const [currentUser, setCurrentUser] = useState('');
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: '',
+    userType: ''
+  });
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validação simples para demonstração
+    const validUsers = {
+      'admin@oficina.com': { type: 'admin', name: 'Administrador' },
+      'mecanico@oficina.com': { type: 'mechanic', name: 'João Silva' }
+    };
+
+    const user = validUsers[loginData.email as keyof typeof validUsers];
+    
+    if (user && loginData.password === '123456' && loginData.userType === user.type) {
+      setIsLoggedIn(true);
+      setUserType(user.type);
+      setCurrentUser(user.name);
+      toast.success(`Bem-vindo, ${user.name}!`);
+    } else {
+      toast.error('Credenciais inválidas. Tente admin@oficina.com ou mecanico@oficina.com com senha 123456');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserType('');
+    setCurrentUser('');
+    setLoginData({ email: '', password: '', userType: '' });
+    toast.success('Logout realizado com sucesso!');
+  };
+
+  if (isLoggedIn) {
+    return userType === 'admin' ? (
+      <AdminDashboard currentUser={currentUser} onLogout={handleLogout} />
+    ) : (
+      <MechanicDashboard currentUser={currentUser} onLogout={handleLogout} />
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center pb-2">
+            <div className="flex justify-center mb-4">
+              <div className="bg-blue-600 p-3 rounded-full">
+                <Car className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold text-slate-800">
+              Sistema de Checklist
+            </CardTitle>
+            <CardDescription className="text-slate-600">
+              Gestão profissional para oficinas
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="userType" className="text-slate-700 font-medium">
+                  Perfil de Acesso
+                </Label>
+                <Select value={loginData.userType} onValueChange={(value) => 
+                  setLoginData(prev => ({...prev, userType: value}))
+                }>
+                  <SelectTrigger className="bg-white border-slate-300">
+                    <SelectValue placeholder="Selecione seu perfil" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-red-600" />
+                        Administrador
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="mechanic">
+                      <div className="flex items-center gap-2">
+                        <Wrench className="h-4 w-4 text-blue-600" />
+                        Mecânico
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-slate-700 font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={loginData.email}
+                  onChange={(e) => setLoginData(prev => ({...prev, email: e.target.value}))}
+                  className="bg-white border-slate-300"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-700 font-medium">
+                  Senha
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={loginData.password}
+                  onChange={(e) => setLoginData(prev => ({...prev, password: e.target.value}))}
+                  className="bg-white border-slate-300"
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2">
+                Entrar no Sistema
+              </Button>
+            </form>
+
+            <div className="mt-6 p-4 bg-slate-50 rounded-lg border">
+              <p className="text-xs text-slate-600 font-medium mb-2">Contas de Demonstração:</p>
+              <div className="space-y-1 text-xs text-slate-500">
+                <p><strong>Admin:</strong> admin@oficina.com | 123456</p>
+                <p><strong>Mecânico:</strong> mecanico@oficina.com | 123456</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
