@@ -58,19 +58,19 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+        <Card className="shadow-2xl border-border bg-card backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
-              <div className="bg-blue-600 p-3 rounded-full">
-                <Car className="h-8 w-8 text-white" />
+              <div className="bg-primary p-3 rounded-full">
+                <Car className="h-8 w-8 text-primary-foreground" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-800">
-              MecSys
+            <CardTitle className="text-2xl font-bold text-primary">
+              MECSYS
             </CardTitle>
-            <CardDescription className="text-slate-600">
+            <CardDescription className="text-muted-foreground">
               Sistema de Checklist Digital
             </CardDescription>
           </CardHeader>
@@ -78,25 +78,25 @@ const Index = () => {
           <CardContent className="space-y-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="userType" className="text-slate-700 font-medium">
+                <Label htmlFor="userType" className="text-foreground font-medium">
                   Perfil de Acesso
                 </Label>
                 <Select value={loginData.userType} onValueChange={(value) => 
                   setLoginData(prev => ({...prev, userType: value}))
                 }>
-                  <SelectTrigger className="bg-white border-slate-300">
+                  <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue placeholder="Selecione seu perfil" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="admin" className="text-foreground hover:bg-accent">
                       <div className="flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-red-600" />
+                        <Shield className="h-4 w-4 text-primary" />
                         Administrador
                       </div>
                     </SelectItem>
-                    <SelectItem value="mechanic">
+                    <SelectItem value="mechanic" className="text-foreground hover:bg-accent">
                       <div className="flex items-center gap-2">
-                        <Wrench className="h-4 w-4 text-blue-600" />
+                        <Wrench className="h-4 w-4 text-primary" />
                         Mecânico
                       </div>
                     </SelectItem>
@@ -105,7 +105,7 @@ const Index = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-slate-700 font-medium">
+                <Label htmlFor="username" className="text-foreground font-medium">
                   Usuário
                 </Label>
                 <Input
@@ -114,13 +114,13 @@ const Index = () => {
                   placeholder="Digite seu usuário"
                   value={loginData.username}
                   onChange={(e) => setLoginData(prev => ({...prev, username: e.target.value}))}
-                  className="bg-white border-slate-300"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700 font-medium">
+                <Label htmlFor="password" className="text-foreground font-medium">
                   Senha
                 </Label>
                 <Input
@@ -129,21 +129,21 @@ const Index = () => {
                   placeholder="••••••••"
                   value={loginData.password}
                   onChange={(e) => setLoginData(prev => ({...prev, password: e.target.value}))}
-                  className="bg-white border-slate-300"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
 
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2">
                 Entrar no Sistema
               </Button>
             </form>
 
-            <div className="mt-6 p-4 bg-slate-50 rounded-lg border">
+            <div className="mt-6 p-4 bg-muted rounded-lg border border-border">
               <div className="text-center space-y-1">
-                <p className="text-sm font-semibold text-slate-800">MecSys</p>
-                <p className="text-xs text-slate-600">Desenvolvido por Aliffer</p>
-                <p className="text-xs text-slate-500">© 2025 - Todos os direitos reservados</p>
+                <p className="text-sm font-semibold text-primary">MecSys</p>
+                <p className="text-xs text-muted-foreground">Desenvolvido por Aliffer</p>
+                <p className="text-xs text-muted-foreground">© 2025 - Todos os direitos reservados</p>
               </div>
             </div>
           </CardContent>
