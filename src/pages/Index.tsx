@@ -15,7 +15,7 @@ const Index = () => {
   const [userType, setUserType] = useState('');
   const [currentUser, setCurrentUser] = useState('');
   const [loginData, setLoginData] = useState({
-    email: '',
+    username: '',
     password: '',
     userType: ''
   });
@@ -25,11 +25,11 @@ const Index = () => {
     
     // Validação simples para demonstração
     const validUsers = {
-      'admin@oficina.com': { type: 'admin', name: 'Administrador' },
-      'mecanico@oficina.com': { type: 'mechanic', name: 'João Silva' }
+      'admin': { type: 'admin', name: 'Administrador' },
+      'mecanico': { type: 'mechanic', name: 'João Silva' }
     };
 
-    const user = validUsers[loginData.email as keyof typeof validUsers];
+    const user = validUsers[loginData.username as keyof typeof validUsers];
     
     if (user && loginData.password === '123456' && loginData.userType === user.type) {
       setIsLoggedIn(true);
@@ -37,7 +37,7 @@ const Index = () => {
       setCurrentUser(user.name);
       toast.success(`Bem-vindo, ${user.name}!`);
     } else {
-      toast.error('Credenciais inválidas. Tente admin@oficina.com ou mecanico@oficina.com com senha 123456');
+      toast.error('Credenciais inválidas. Tente "admin" ou "mecanico" com senha 123456');
     }
   };
 
@@ -45,7 +45,7 @@ const Index = () => {
     setIsLoggedIn(false);
     setUserType('');
     setCurrentUser('');
-    setLoginData({ email: '', password: '', userType: '' });
+    setLoginData({ username: '', password: '', userType: '' });
     toast.success('Logout realizado com sucesso!');
   };
 
@@ -105,15 +105,15 @@ const Index = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 font-medium">
-                  Email
+                <Label htmlFor="username" className="text-slate-700 font-medium">
+                  Usuário
                 </Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={loginData.email}
-                  onChange={(e) => setLoginData(prev => ({...prev, email: e.target.value}))}
+                  id="username"
+                  type="text"
+                  placeholder="Digite seu usuário"
+                  value={loginData.username}
+                  onChange={(e) => setLoginData(prev => ({...prev, username: e.target.value}))}
                   className="bg-white border-slate-300"
                   required
                 />
@@ -142,8 +142,8 @@ const Index = () => {
             <div className="mt-6 p-4 bg-slate-50 rounded-lg border">
               <p className="text-xs text-slate-600 font-medium mb-2">Contas de Demonstração:</p>
               <div className="space-y-1 text-xs text-slate-500">
-                <p><strong>Admin:</strong> admin@oficina.com | 123456</p>
-                <p><strong>Mecânico:</strong> mecanico@oficina.com | 123456</p>
+                <p><strong>Admin:</strong> admin | 123456</p>
+                <p><strong>Mecânico:</strong> mecanico | 123456</p>
               </div>
             </div>
           </CardContent>
