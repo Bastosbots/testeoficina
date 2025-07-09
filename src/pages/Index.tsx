@@ -68,10 +68,10 @@ const Index = () => {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-slate-800">
-              Sistema de Checklist
+              MecSys
             </CardTitle>
             <CardDescription className="text-slate-600">
-              Gestão profissional para oficinas
+              Sistema de Checklist Digital
             </CardDescription>
           </CardHeader>
           
@@ -140,10 +140,10 @@ const Index = () => {
             </form>
 
             <div className="mt-6 p-4 bg-slate-50 rounded-lg border">
-              <p className="text-xs text-slate-600 font-medium mb-2">Contas de Demonstração:</p>
-              <div className="space-y-1 text-xs text-slate-500">
-                <p><strong>Admin:</strong> admin | 123456</p>
-                <p><strong>Mecânico:</strong> mecanico | 123456</p>
+              <div className="text-center space-y-1">
+                <p className="text-sm font-semibold text-slate-800">MecSys</p>
+                <p className="text-xs text-slate-600">Desenvolvido por Aliffer</p>
+                <p className="text-xs text-slate-500">© 2025 - Todos os direitos reservados</p>
               </div>
             </div>
           </CardContent>
