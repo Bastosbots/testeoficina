@@ -69,13 +69,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (username: string, password: string) => {
     try {
       // Buscar o perfil pelo username para obter o email
-      const { data: profileData, error: profileError } = await supabase
+      const profileQuery = await supabase
         .from('profiles')
         .select('id')
         .eq('username', username)
         .single();
 
-      if (profileError || !profileData) {
+      if (profileQuery.error || !profileQuery.data) {
         return { error: { message: 'Usuário não encontrado' } };
       }
 
