@@ -67,30 +67,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signIn = async (username: string, password: string) => {
-    // Primeiro, buscar o email do usuário pelo username
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', username)
-      .single();
+    try {
+      // Buscar o perfil pelo username para obter o email
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .single();
 
-    if (profileError || !profileData) {
-      return { error: { message: 'Usuário não encontrado' } };
+      if (profileError || !profileData) {
+        return { error: { message: 'Usuário não encontrado' } };
+      }
+
+      // Como não temos acesso ao email diretamente, vamos tentar fazer login
+      // usando o username como email temporário que criamos durante o registro
+      const tempEmail = `${username}@mecsys.local`;
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: tempEmail,
+        password,
+      });
+
+      return { error };
+    } catch (err) {
+      return { error: { message: 'Erro interno do servidor' } };
     }
-
-    // Buscar o email do usuário na tabela auth
-    const { data: { user: authUser }, error: userError } = await supabase.auth.admin.getUserById(profileData.id);
-    
-    if (userError || !authUser) {
-      return { error: { message: 'Erro ao buscar dados do usuário' } };
-    }
-
-    // Fazer login com email e senha
-    const { error } = await supabase.auth.signInWithPassword({
-      email: authUser.email!,
-      password,
-    });
-    return { error };
   };
 
   const signUp = async (username: string, password: string, fullName: string, role: string) => {
