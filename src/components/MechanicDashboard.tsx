@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, Plus, FileText, Car, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useVehicles } from "@/hooks/useVehicles";
+import { useChecklists } from "@/hooks/useChecklists";
 import ChecklistForm from "@/components/ChecklistForm";
 
 interface MechanicDashboardProps {
@@ -13,57 +16,32 @@ interface MechanicDashboardProps {
 }
 
 const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) => {
+  const { signOut } = useAuth();
+  const { data: vehicles = [] } = useVehicles();
+  const { data: checklists = [] } = useChecklists();
   const [activeView, setActiveView] = useState<'dashboard' | 'new-checklist'>('dashboard');
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
 
-  // Dados mockados dos checklists pendentes
-  const pendingChecklists = [
-    {
-      id: 1,
-      vehicle: 'Honda Civic',
-      plate: 'ABC-1234',
-      customer: 'Maria Silva',
-      serviceOrder: 'OS-001',
-      priority: 'Alta',
-      scheduledTime: '09:00'
-    },
-    {
-      id: 2,
-      vehicle: 'Toyota Corolla',
-      plate: 'XYZ-5678',
-      customer: 'João Santos',
-      serviceOrder: 'OS-002',
-      priority: 'Média',
-      scheduledTime: '14:30'
-    }
-  ];
-
-  const recentChecklists = [
-    {
-      id: 1,
-      vehicle: 'Ford Focus - DEF-9012',
-      date: '2024-01-13',
-      status: 'Concluído',
-      items: 5
-    },
-    {
-      id: 2,
-      vehicle: 'Chevrolet Onix - GHI-3456',
-      date: '2024-01-12',
-      status: 'Concluído',
-      items: 7
-    }
-  ];
+  // Filtrar veículos pendentes
+  const pendingVehicles = vehicles.filter(v => v.status === 'Pendente');
+  
+  // Filtrar checklists concluídos
+  const completedChecklists = checklists.filter(c => c.completed_at);
 
   const handleStartChecklist = (vehicle: any) => {
     setSelectedVehicle(vehicle);
     setActiveView('new-checklist');
-    toast.success(`Iniciando checklist para ${vehicle.vehicle} - ${vehicle.plate}`);
+    toast.success(`Iniciando checklist para ${vehicle.vehicle_name} - ${vehicle.plate}`);
   };
 
   const handleBackToDashboard = () => {
     setActiveView('dashboard');
     setSelectedVehicle(null);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success('Logout realizado com sucesso!');
   };
 
   if (activeView === 'new-checklist') {
@@ -81,23 +59,23 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
+      <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Painel do Mecânico</h1>
-            <p className="text-slate-600">Bem-vindo, {currentUser}</p>
+            <h1 className="text-2xl font-bold text-foreground">Painel do Mecânico</h1>
+            <p className="text-muted-foreground">Bem-vindo, {currentUser}</p>
           </div>
           <div className="flex items-center gap-4">
             <Button 
               onClick={() => setActiveView('new-checklist')}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
               Novo Checklist
             </Button>
-            <Button variant="outline" onClick={onLogout} className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
@@ -111,71 +89,70 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendentes Hoje</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
+              <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{pendingChecklists.length}</div>
+              <div className="text-2xl font-bold text-primary">{pendingVehicles.length}</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
-              <FileText className="h-4 w-4 text-green-600" />
+              <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{recentChecklists.length}</div>
+              <div className="text-2xl font-bold text-primary">{completedChecklists.length}</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Eficiência</CardTitle>
-              <Car className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-sm font-medium">Total Veículos</CardTitle>
+              <Car className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">98%</div>
+              <div className="text-2xl font-bold text-primary">{vehicles.length}</div>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Checklists Pendentes */}
+          {/* Veículos Pendentes */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-orange-600" />
-                Checklists Pendentes
+                <Clock className="h-5 w-5 text-primary" />
+                Veículos Pendentes
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingChecklists.map((item) => (
-                  <div key={item.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                {pendingVehicles.map((vehicle) => (
+                  <div key={vehicle.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-                          <Car className="h-4 w-4 text-blue-600" />
-                          {item.vehicle} - {item.plate}
+                        <h3 className="font-semibold text-foreground flex items-center gap-2">
+                          <Car className="h-4 w-4 text-primary" />
+                          {vehicle.vehicle_name} - {vehicle.plate}
                         </h3>
-                        <p className="text-sm text-slate-600">Cliente: {item.customer}</p>
+                        <p className="text-sm text-muted-foreground">Cliente: {vehicle.customer_name}</p>
                       </div>
-                      <Badge 
-                        variant={item.priority === 'Alta' ? 'destructive' : 'secondary'}
-                      >
-                        {item.priority}
+                      <Badge variant={vehicle.priority === 'Alta' ? 'destructive' : 'secondary'}>
+                        {vehicle.priority}
                       </Badge>
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-slate-600">
-                        <p><strong>OS:</strong> {item.serviceOrder}</p>
-                        <p><strong>Horário:</strong> {item.scheduledTime}</p>
+                      <div className="text-sm text-muted-foreground">
+                        <p><strong>OS:</strong> {vehicle.service_order}</p>
+                        {vehicle.scheduled_time && (
+                          <p><strong>Horário:</strong> {vehicle.scheduled_time}</p>
+                        )}
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => handleStartChecklist(item)}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => handleStartChecklist(vehicle)}
                       >
                         Iniciar
                       </Button>
@@ -183,10 +160,10 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                   </div>
                 ))}
                 
-                {pendingChecklists.length === 0 && (
-                  <div className="text-center py-8 text-slate-500">
+                {pendingVehicles.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
                     <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhum checklist pendente no momento.</p>
+                    <p>Nenhum veículo pendente no momento.</p>
                   </div>
                 )}
               </div>
@@ -197,33 +174,33 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-green-600" />
+                <FileText className="h-5 w-5 text-primary" />
                 Concluídos Recentemente
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentChecklists.map((item) => (
-                  <div key={item.id} className="border rounded-lg p-4">
+                {completedChecklists.slice(0, 5).map((checklist) => (
+                  <div key={checklist.id} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-                        <Car className="h-4 w-4 text-blue-600" />
-                        {item.vehicle}
+                      <h3 className="font-semibold text-foreground flex items-center gap-2">
+                        <Car className="h-4 w-4 text-primary" />
+                        {checklist.vehicles?.vehicle_name} - {checklist.vehicles?.plate}
                       </h3>
-                      <Badge variant="default" className="bg-green-100 text-green-800">
-                        {item.status}
+                      <Badge variant="default" className="bg-primary/10 text-primary border-primary/20">
+                        Concluído
                       </Badge>
                     </div>
                     
-                    <div className="text-sm text-slate-600">
-                      <p><strong>Data:</strong> {new Date(item.date).toLocaleDateString('pt-BR')}</p>
-                      <p><strong>Itens verificados:</strong> {item.items}</p>
+                    <div className="text-sm text-muted-foreground">
+                      <p><strong>Data:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}</p>
+                      <p><strong>Cliente:</strong> {checklist.vehicles?.customer_name}</p>
                     </div>
                   </div>
                 ))}
                 
-                {recentChecklists.length === 0 && (
-                  <div className="text-center py-8 text-slate-500">
+                {completedChecklists.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
                     <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Nenhum checklist concluído ainda.</p>
                   </div>

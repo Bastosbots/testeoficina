@@ -14,7 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      checklist_items: {
+        Row: {
+          category: string
+          checked: boolean | null
+          checklist_id: string
+          created_at: string | null
+          id: string
+          item_name: string
+          observation: string | null
+        }
+        Insert: {
+          category: string
+          checked?: boolean | null
+          checklist_id: string
+          created_at?: string | null
+          id?: string
+          item_name: string
+          observation?: string | null
+        }
+        Update: {
+          category?: string
+          checked?: boolean | null
+          checklist_id?: string
+          created_at?: string | null
+          id?: string
+          item_name?: string
+          observation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklists: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          general_observations: string | null
+          id: string
+          mechanic_id: string
+          updated_at: string | null
+          vehicle_id: string
+          video_url: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          general_observations?: string | null
+          id?: string
+          mechanic_id: string
+          updated_at?: string | null
+          vehicle_id: string
+          video_url?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          general_observations?: string | null
+          id?: string
+          mechanic_id?: string
+          updated_at?: string | null
+          vehicle_id?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklists_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklists_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          created_at: string | null
+          customer_name: string
+          id: string
+          plate: string
+          priority: string
+          scheduled_time: string | null
+          service_order: string
+          status: string
+          updated_at: string | null
+          vehicle_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_name: string
+          id?: string
+          plate: string
+          priority?: string
+          scheduled_time?: string | null
+          service_order: string
+          status?: string
+          updated_at?: string | null
+          vehicle_name: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_name?: string
+          id?: string
+          plate?: string
+          priority?: string
+          scheduled_time?: string | null
+          service_order?: string
+          status?: string
+          updated_at?: string | null
+          vehicle_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

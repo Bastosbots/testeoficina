@@ -13,10 +13,12 @@ import {
   Download,
   Filter,
   Search,
-  Calendar,
   Eye
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useChecklists } from "@/hooks/useChecklists";
+import { useVehicles } from "@/hooks/useVehicles";
 
 interface AdminDashboardProps {
   currentUser: string;
@@ -24,86 +26,66 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const { signOut } = useAuth();
+  const { data: checklists = [] } = useChecklists();
+  const { data: vehicles = [] } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterMechanic, setFilterMechanic] = useState('');
 
-  // Dados mockados para demonstração
-  const checklists = [
-    {
-      id: 1,
-      vehicle: 'Honda Civic - ABC-1234',
-      mechanic: 'João Silva',
-      date: '2024-01-15',
-      status: 'Concluído',
-      items: ['Óleo', 'Freios', 'Pneus'],
-      observations: 'Veículo em bom estado geral',
-      hasVideo: true
-    },
-    {
-      id: 2,
-      vehicle: 'Toyota Corolla - XYZ-5678',
-      mechanic: 'Maria Santos',
-      date: '2024-01-14',
-      status: 'Pendente',
-      items: ['Bateria', 'Suspensão'],
-      observations: 'Necessita troca de bateria',
-      hasVideo: false
-    },
-    {
-      id: 3,
-      vehicle: 'Ford Focus - DEF-9012',
-      mechanic: 'João Silva',
-      date: '2024-01-13',
-      status: 'Concluído',
-      items: ['Óleo', 'Filtros', 'Velas'],
-      observations: 'Manutenção preventiva realizada',
-      hasVideo: true
-    }
-  ];
-
   const stats = {
     totalChecklists: checklists.length,
-    completed: checklists.filter(c => c.status === 'Concluído').length,
-    pending: checklists.filter(c => c.status === 'Pendente').length,
-    mechanics: 2
+    completed: checklists.filter(c => c.completed_at).length,
+    pending: checklists.filter(c => !c.completed_at).length,
+    totalVehicles: vehicles.length
   };
 
-  const handleGeneratePDF = (checklistId: number) => {
-    toast.success(`PDF do checklist #${checklistId} gerado com sucesso!`);
-    // Aqui seria implementada a geração real do PDF
+  const handleGeneratePDF = (checklistId: string) => {
+    toast.success(`PDF do checklist gerado com sucesso!`);
+    // Implementar geração de PDF
   };
 
   const handleExportAll = () => {
     toast.success('Exportação de todos os checklists iniciada!');
-    // Aqui seria implementada a exportação completa
+    // Implementar exportação
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success('Logout realizado com sucesso!');
   };
 
   const filteredChecklists = checklists.filter(checklist => {
-    const matchesSearch = checklist.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         checklist.mechanic.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDate = !filterDate || checklist.date === filterDate;
-    const matchesMechanic = !filterMechanic || checklist.mechanic === filterMechanic;
+    const vehicleName = checklist.vehicles?.vehicle_name || '';
+    const mechanicName = checklist.profiles?.full_name || '';
+    const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mechanicName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
+    const matchesMechanic = !filterMechanic || mechanicName === filterMechanic;
     
     return matchesSearch && matchesDate && matchesMechanic;
   });
 
+  // Obter mecânicos únicos para o filtro
+  const uniqueMechanics = Array.from(new Set(
+    checklists.map(c => c.profiles?.full_name).filter(Boolean)
+  ));
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
+      <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Painel Administrativo</h1>
-            <p className="text-slate-600">Bem-vindo, {currentUser}</p>
+            <h1 className="text-2xl font-bold text-foreground">Painel Administrativo</h1>
+            <p className="text-muted-foreground">Bem-vindo, {currentUser}</p>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={handleExportAll} className="flex items-center gap-2">
               <Download className="h-4 w-4" />
               Exportar Todos
             </Button>
-            <Button variant="outline" onClick={onLogout} className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
@@ -127,30 +109,30 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
-              <FileText className="h-4 w-4 text-green-600" />
+              <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+              <div className="text-2xl font-bold text-primary">{stats.completed}</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <FileText className="h-4 w-4 text-orange-600" />
+              <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
+              <div className="text-2xl font-bold text-primary">{stats.pending}</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mecânicos Ativos</CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-sm font-medium">Total Veículos</CardTitle>
+              <Car className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.mechanics}</div>
+              <div className="text-2xl font-bold text-primary">{stats.totalVehicles}</div>
             </CardContent>
           </Card>
         </div>
@@ -188,8 +170,9 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Todos os mecânicos</SelectItem>
-                  <SelectItem value="João Silva">João Silva</SelectItem>
-                  <SelectItem value="Maria Santos">Maria Santos</SelectItem>
+                  {uniqueMechanics.map((mechanic) => (
+                    <SelectItem key={mechanic} value={mechanic}>{mechanic}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -204,37 +187,39 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
           <CardContent>
             <div className="space-y-4">
               {filteredChecklists.map((checklist) => (
-                <div key={checklist.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <Car className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-slate-800">{checklist.vehicle}</h3>
-                        <Badge variant={checklist.status === 'Concluído' ? 'default' : 'secondary'}>
-                          {checklist.status}
+                        <Car className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold text-foreground">
+                          {checklist.vehicles?.vehicle_name} - {checklist.vehicles?.plate}
+                        </h3>
+                        <Badge variant={checklist.completed_at ? 'default' : 'secondary'}>
+                          {checklist.completed_at ? 'Concluído' : 'Pendente'}
                         </Badge>
-                        {checklist.hasVideo && (
-                          <Badge variant="outline" className="text-purple-600 border-purple-200">
+                        {checklist.video_url && (
+                          <Badge variant="outline" className="text-primary border-primary/20">
                             Com Vídeo
                           </Badge>
                         )}
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                         <div>
-                          <strong>Mecânico:</strong> {checklist.mechanic}
+                          <strong>Mecânico:</strong> {checklist.profiles?.full_name}
                         </div>
                         <div>
-                          <strong>Data:</strong> {new Date(checklist.date).toLocaleDateString('pt-BR')}
+                          <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
                         </div>
                         <div>
-                          <strong>Itens:</strong> {checklist.items.join(', ')}
+                          <strong>Cliente:</strong> {checklist.vehicles?.customer_name}
                         </div>
                       </div>
                       
-                      {checklist.observations && (
-                        <div className="mt-2 text-sm text-slate-600">
-                          <strong>Observações:</strong> {checklist.observations}
+                      {checklist.general_observations && (
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          <strong>Observações:</strong> {checklist.general_observations}
                         </div>
                       )}
                     </div>
@@ -243,7 +228,7 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toast.info(`Visualizando checklist #${checklist.id}`)}
+                        onClick={() => toast.info(`Visualizando checklist`)}
                         className="flex items-center gap-1"
                       >
                         <Eye className="h-4 w-4" />
@@ -253,7 +238,7 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
                         variant="default"
                         size="sm"
                         onClick={() => handleGeneratePDF(checklist.id)}
-                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700"
+                        className="flex items-center gap-1"
                       >
                         <Download className="h-4 w-4" />
                         PDF
@@ -264,7 +249,7 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
               ))}
               
               {filteredChecklists.length === 0 && (
-                <div className="text-center py-8 text-slate-500">
+                <div className="text-center py-8 text-muted-foreground">
                   <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhum checklist encontrado com os filtros aplicados.</p>
                 </div>
