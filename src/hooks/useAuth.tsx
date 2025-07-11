@@ -69,13 +69,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (username: string, password: string) => {
     try {
       // Buscar o perfil pelo username para obter o email
-      const profileQuery = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('username', username)
-        .single();
+        .maybeSingle();
 
-      if (profileQuery.error || !profileQuery.data) {
+      if (error || !data) {
         return { error: { message: 'Usuário não encontrado' } };
       }
 
@@ -83,12 +83,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // usando o username como email temporário que criamos durante o registro
       const tempEmail = `${username}@mecsys.local`;
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: tempEmail,
         password,
       });
 
-      return { error };
+      return { error: signInError };
     } catch (err) {
       return { error: { message: 'Erro interno do servidor' } };
     }
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .from('profiles')
       .select('username')
       .eq('username', username)
-      .single();
+      .maybeSingle();
 
     if (existingUser) {
       return { error: { message: 'Nome de usuário já existe' } };
