@@ -18,12 +18,12 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const [signInData, setSignInData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
 
   const [signUpData, setSignUpData] = useState({
-    email: '',
+    username: '',
     password: '',
     fullName: '',
     role: 'mechanic'
@@ -33,7 +33,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(signInData.email, signInData.password);
+    const { error } = await signIn(signInData.username, signInData.password);
     
     if (error) {
       toast.error('Erro ao fazer login: ' + error.message);
@@ -49,7 +49,7 @@ const Auth = () => {
     setLoading(true);
 
     const { error } = await signUp(
-      signUpData.email, 
+      signUpData.username, 
       signUpData.password, 
       signUpData.fullName, 
       signUpData.role
@@ -58,7 +58,7 @@ const Auth = () => {
     if (error) {
       toast.error('Erro ao criar conta: ' + error.message);
     } else {
-      toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
+      toast.success('Conta criada com sucesso!');
       setActiveTab('signin');
     }
     setLoading(false);
@@ -92,13 +92,13 @@ const Auth = () => {
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-username">Usuário</Label>
                     <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={signInData.email}
-                      onChange={(e) => setSignInData(prev => ({...prev, email: e.target.value}))}
+                      id="signin-username"
+                      type="text"
+                      placeholder="Seu nome de usuário"
+                      value={signInData.username}
+                      onChange={(e) => setSignInData(prev => ({...prev, username: e.target.value}))}
                       required
                     />
                   </div>
@@ -136,6 +136,18 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="signup-username">Usuário</Label>
+                    <Input
+                      id="signup-username"
+                      type="text"
+                      placeholder="Nome de usuário"
+                      value={signUpData.username}
+                      onChange={(e) => setSignUpData(prev => ({...prev, username: e.target.value}))}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="signup-role">Perfil</Label>
                     <Select value={signUpData.role} onValueChange={(value) => 
                       setSignUpData(prev => ({...prev, role: value}))
@@ -158,18 +170,6 @@ const Auth = () => {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={signUpData.email}
-                      onChange={(e) => setSignUpData(prev => ({...prev, email: e.target.value}))}
-                      required
-                    />
                   </div>
 
                   <div className="space-y-2">

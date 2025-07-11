@@ -8,8 +8,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: any | null;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: any }>;
+  signIn: (username: string, password: string) => Promise<{ error: any }>;
+  signUp: (username: string, password: string, fullName: string, role: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -66,23 +66,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
+    // Primeiro, buscar o email do usuário pelo username
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .single();
+
+    if (profileError || !profileData) {
+      return { error: { message: 'Usuário não encontrado' } };
+    }
+
+    // Buscar o email do usuário na tabela auth
+    const { data: { user: authUser }, error: userError } = await supabase.auth.admin.getUserById(profileData.id);
+    
+    if (userError || !authUser) {
+      return { error: { message: 'Erro ao buscar dados do usuário' } };
+    }
+
+    // Fazer login com email e senha
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: authUser.email!,
       password,
     });
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: string) => {
+  const signUp = async (username: string, password: string, fullName: string, role: string) => {
+    // Verificar se o username já existe
+    const { data: existingUser } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username)
+      .single();
+
+    if (existingUser) {
+      return { error: { message: 'Nome de usuário já existe' } };
+    }
+
+    // Criar um email temporário baseado no username
+    const tempEmail = `${username}@mecsys.local`;
+
     const { error } = await supabase.auth.signUp({
-      email,
+      email: tempEmail,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
         data: {
           full_name: fullName,
-          role: role
+          role: role,
+          username: username
         }
       }
     });
