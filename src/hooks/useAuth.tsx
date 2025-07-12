@@ -68,28 +68,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (username: string, password: string) => {
     try {
-      // Buscar o perfil pelo username para obter o email
-      const { data, error } = await supabase
+      console.log('Tentando fazer login com username:', username);
+      
+      // Buscar o perfil pelo username para verificar se existe
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, username')
         .eq('username', username)
         .maybeSingle();
 
-      if (error || !data) {
+      console.log('Resultado da busca do perfil:', { profileData, profileError });
+
+      if (profileError) {
+        console.error('Erro ao buscar perfil:', profileError);
+        return { error: { message: 'Erro interno do servidor' } };
+      }
+
+      if (!profileData) {
+        console.log('Usuário não encontrado na tabela profiles');
         return { error: { message: 'Usuário não encontrado' } };
       }
 
-      // Como não temos acesso ao email diretamente, vamos tentar fazer login
-      // usando o username como email temporário que criamos durante o registro
+      // Usar o email temporário baseado no username para fazer login
       const tempEmail = `${username}@mecsys.local`;
+      console.log('Tentando login com email temporário:', tempEmail);
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: tempEmail,
         password,
       });
 
+      console.log('Resultado do signIn:', { signInError });
+
       return { error: signInError };
     } catch (err) {
+      console.error('Erro durante o signIn:', err);
       return { error: { message: 'Erro interno do servidor' } };
     }
   };
