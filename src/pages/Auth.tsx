@@ -90,14 +90,6 @@ const Auth = () => {
                 <p className="text-xs text-muted-foreground">© 2025 - Todos os direitos reservados</p>
               </div>
             </div>
-
-            <div className="mt-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
-              <div className="text-center space-y-1">
-                <p className="text-sm font-medium text-primary">Conta Padrão</p>
-                <p className="text-xs text-muted-foreground">Usuário: <strong>admin</strong></p>
-                <p className="text-xs text-muted-foreground">Senha: <strong>admin</strong></p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

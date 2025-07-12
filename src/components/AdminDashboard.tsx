@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,13 +13,15 @@ import {
   Download,
   Filter,
   Search,
-  Eye
+  Eye,
+  Link
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useVehicles } from "@/hooks/useVehicles";
 import UserManagement from "@/components/UserManagement";
+import InviteTokenManager from "@/components/InviteTokenManager";
 
 interface AdminDashboardProps {
   currentUser: string;
@@ -141,9 +142,10 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="checklists" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="checklists">Checklists</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="invites">Convites</TabsTrigger>
           </TabsList>
           
           <TabsContent value="checklists" className="space-y-6">
@@ -271,6 +273,10 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
           
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+          
+          <TabsContent value="invites">
+            <InviteTokenManager />
           </TabsContent>
         </Tabs>
       </div>
