@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
+import Signup from "@/pages/Signup";
 import Register from "@/pages/Register";
 import NotFound from "@/pages/NotFound";
 
@@ -19,6 +20,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="/register/:token" element={<Register />} />
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />

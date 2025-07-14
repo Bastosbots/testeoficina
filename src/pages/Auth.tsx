@@ -83,6 +83,16 @@ const Auth = () => {
               </Button>
             </form>
 
+            <div className="mt-4 text-center">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate('/signup')}
+              >
+                Criar Nova Conta
+              </Button>
+            </div>
+
             <div className="mt-6 p-4 bg-muted rounded-lg border border-border">
               <div className="text-center space-y-1">
                 <p className="text-sm font-semibold text-primary">MecSys</p>
