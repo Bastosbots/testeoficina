@@ -39,7 +39,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Visualizar Checklist</h1>
               <p className="text-muted-foreground">
-                {checklist.vehicles?.vehicle_name} - {checklist.vehicles?.plate}
+                {checklist.vehicle_name} - {checklist.plate}
               </p>
             </div>
           </div>
@@ -61,13 +61,13 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-foreground">Progresso do Checklist</span>
                   <span className="text-sm text-muted-foreground">
-                    {checkedItems}/{totalItems} itens ({Math.round((checkedItems / totalItems) * 100)}%)
+                    {checkedItems}/{totalItems} itens ({totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0}%)
                   </span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-3">
                   <div 
                     className="bg-primary h-3 rounded-full transition-all duration-300" 
-                    style={{ width: `${(checkedItems / totalItems) * 100}%` }}
+                    style={{ width: `${totalItems > 0 ? (checkedItems / totalItems) * 100 : 0}%` }}
                   />
                 </div>
               </CardContent>
@@ -147,19 +147,25 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
               <CardContent className="space-y-3">
                 <div>
                   <span className="text-sm font-medium text-muted-foreground">Veículo</span>
-                  <p className="font-semibold">{checklist.vehicles?.vehicle_name}</p>
+                  <p className="font-semibold">{checklist.vehicle_name}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-muted-foreground">Placa</span>
-                  <p className="font-semibold">{checklist.vehicles?.plate}</p>
+                  <p className="font-semibold">{checklist.plate}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-muted-foreground">Cliente</span>
-                  <p className="font-semibold">{checklist.vehicles?.customer_name}</p>
+                  <p className="font-semibold">{checklist.customer_name}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-muted-foreground">Ordem de Serviço</span>
-                  <p className="font-semibold">{checklist.vehicles?.service_order}</p>
+                  <p className="font-semibold">{checklist.service_order}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground">Prioridade</span>
+                  <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
+                    {checklist.priority}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
@@ -178,7 +184,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
                     <User className="h-4 w-4" />
                     Mecânico
                   </span>
-                  <p className="font-semibold">{checklist.profiles?.full_name}</p>
+                  <p className="font-semibold">{checklist.profiles?.full_name || 'Usuário'}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">

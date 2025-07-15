@@ -11,7 +11,6 @@ export const useChecklists = () => {
         .from('checklists')
         .select(`
           *,
-          vehicles:vehicle_id (*),
           profiles:mechanic_id (*)
         `)
         .order('created_at', { ascending: false });

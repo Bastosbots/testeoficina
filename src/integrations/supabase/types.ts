@@ -56,31 +56,43 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          customer_name: string
           general_observations: string | null
           id: string
           mechanic_id: string
+          plate: string
+          priority: string | null
+          service_order: string
           updated_at: string | null
-          vehicle_id: string
+          vehicle_name: string
           video_url: string | null
         }
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          customer_name: string
           general_observations?: string | null
           id?: string
           mechanic_id: string
+          plate: string
+          priority?: string | null
+          service_order: string
           updated_at?: string | null
-          vehicle_id: string
+          vehicle_name: string
           video_url?: string | null
         }
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          customer_name?: string
           general_observations?: string | null
           id?: string
           mechanic_id?: string
+          plate?: string
+          priority?: string | null
+          service_order?: string
           updated_at?: string | null
-          vehicle_id?: string
+          vehicle_name?: string
           video_url?: string | null
         }
         Relationships: [
@@ -89,13 +101,6 @@ export type Database = {
             columns: ["mechanic_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "checklists_vehicle_id_fkey"
-            columns: ["vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]

@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, 
   Car, 
   Save, 
-  Upload, 
   CheckCircle, 
   AlertCircle,
   Video,
@@ -21,20 +21,25 @@ import { toast } from "sonner";
 import { useCreateChecklist } from "@/hooks/useChecklists";
 import { useAuth } from "@/hooks/useAuth";
 
-interface ChecklistFormProps {
-  vehicle: any;
-  mechanic: string;
+interface CreateChecklistFormProps {
   onBack: () => void;
   onComplete: () => void;
 }
 
-const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormProps) => {
+const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) => {
   const { user } = useAuth();
   const createChecklistMutation = useCreateChecklist();
   
+  const [vehicleData, setVehicleData] = useState({
+    vehicleName: '',
+    plate: '',
+    customerName: '',
+    serviceOrder: '',
+    priority: 'Média'
+  });
+
   const [formData, setFormData] = useState({
     generalObservations: '',
-    videoFile: null as File | null,
     videoUrl: '',
   });
 
@@ -69,21 +74,15 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
     ));
   };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit
-        toast.error('Arquivo muito grande. Limite de 50MB.');
-        return;
-      }
-      setFormData(prev => ({ ...prev, videoFile: file }));
-      toast.success('Vídeo selecionado com sucesso!');
-    }
-  };
-
   const handleSave = async () => {
     if (!user) {
       toast.error('Usuário não autenticado!');
+      return;
+    }
+
+    // Validar dados do veículo
+    if (!vehicleData.vehicleName || !vehicleData.plate || !vehicleData.customerName || !vehicleData.serviceOrder) {
+      toast.error('Preencha todos os dados obrigatórios do veículo!');
       return;
     }
 
@@ -96,8 +95,12 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
 
     try {
       const checklistData = {
-        vehicle_id: vehicle.id,
         mechanic_id: user.id,
+        vehicle_name: vehicleData.vehicleName,
+        plate: vehicleData.plate,
+        customer_name: vehicleData.customerName,
+        service_order: vehicleData.serviceOrder,
+        priority: vehicleData.priority,
         general_observations: formData.generalObservations || null,
         video_url: formData.videoUrl || null,
         completed_at: new Date().toISOString()
@@ -142,9 +145,9 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Checklist de Inspeção</h1>
+              <h1 className="text-2xl font-bold text-foreground">Criar Novo Checklist</h1>
               <p className="text-muted-foreground">
-                {vehicle?.vehicle_name} - {vehicle?.plate} | Mecânico: {mechanic}
+                Inspeção antes do início do serviço
               </p>
             </div>
           </div>
@@ -244,36 +247,69 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
             </Card>
           </div>
 
-          {/* Sidebar - Vehicle Info & Additional Data */}
+          {/* Sidebar - Vehicle Data & Additional Info */}
           <div className="space-y-6">
-            {/* Vehicle Information */}
+            {/* Vehicle Information Form */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Car className="h-5 w-5 text-primary" />
-                  Informações do Veículo
+                  Dados do Veículo
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Veículo</Label>
-                  <p className="font-semibold">{vehicle?.vehicle_name}</p>
+                  <Label htmlFor="vehicle-name">Nome do Veículo *</Label>
+                  <Input
+                    id="vehicle-name"
+                    value={vehicleData.vehicleName}
+                    onChange={(e) => setVehicleData(prev => ({ ...prev, vehicleName: e.target.value }))}
+                    placeholder="Ex: Honda Civic 2020"
+                    required
+                  />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Placa</Label>
-                  <p className="font-semibold">{vehicle?.plate}</p>
+                  <Label htmlFor="plate">Placa *</Label>
+                  <Input
+                    id="plate"
+                    value={vehicleData.plate}
+                    onChange={(e) => setVehicleData(prev => ({ ...prev, plate: e.target.value.toUpperCase() }))}
+                    placeholder="ABC-1234"
+                    required
+                  />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Cliente</Label>
-                  <p className="font-semibold">{vehicle?.customer_name}</p>
+                  <Label htmlFor="customer-name">Nome do Cliente *</Label>
+                  <Input
+                    id="customer-name"
+                    value={vehicleData.customerName}
+                    onChange={(e) => setVehicleData(prev => ({ ...prev, customerName: e.target.value }))}
+                    placeholder="João da Silva"
+                    required
+                  />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Ordem de Serviço</Label>
-                  <p className="font-semibold">{vehicle?.service_order}</p>
+                  <Label htmlFor="service-order">Ordem de Serviço *</Label>
+                  <Input
+                    id="service-order"
+                    value={vehicleData.serviceOrder}
+                    onChange={(e) => setVehicleData(prev => ({ ...prev, serviceOrder: e.target.value }))}
+                    placeholder="OS-001"
+                    required
+                  />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Data/Hora</Label>
-                  <p className="font-semibold">{new Date().toLocaleString('pt-BR')}</p>
+                  <Label htmlFor="priority">Prioridade</Label>
+                  <Select value={vehicleData.priority} onValueChange={(value) => setVehicleData(prev => ({ ...prev, priority: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Baixa">Baixa</SelectItem>
+                      <SelectItem value="Média">Média</SelectItem>
+                      <SelectItem value="Alta">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -294,7 +330,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
               </CardContent>
             </Card>
 
-            {/* Video Upload */}
+            {/* Video URL */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -302,29 +338,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
                   Vídeo (Opcional)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="video-upload" className="text-sm font-medium">
-                    Upload de Vídeo (máx. 50MB)
-                  </Label>
-                  <div className="mt-2">
-                    <Input
-                      id="video-upload"
-                      type="file"
-                      accept="video/*"
-                      onChange={handleVideoUpload}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                    />
-                  </div>
-                  {formData.videoFile && (
-                    <p className="text-sm text-green-600 mt-2">
-                      ✓ {formData.videoFile.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className="text-center text-muted-foreground">ou</div>
-
+              <CardContent>
                 <div>
                   <Label htmlFor="video-url" className="text-sm font-medium">
                     Link do Vídeo (YouTube, Google Drive, etc.)
@@ -347,4 +361,4 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
   );
 };
 
-export default ChecklistForm;
+export default CreateChecklistForm;
