@@ -216,7 +216,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      save_checklist_items: {
+        Args: { p_checklist_id: string; p_items: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

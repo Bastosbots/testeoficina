@@ -18,6 +18,8 @@ import {
   FileText
 } from "lucide-react";
 import { toast } from "sonner";
+import { useCreateChecklist } from "@/hooks/useChecklists";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChecklistFormProps {
   vehicle: any;
@@ -27,11 +29,13 @@ interface ChecklistFormProps {
 }
 
 const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormProps) => {
+  const { user } = useAuth();
+  const createChecklistMutation = useCreateChecklist();
+  
   const [formData, setFormData] = useState({
     generalObservations: '',
     videoFile: null as File | null,
     videoUrl: '',
-    completedAt: new Date().toISOString()
   });
 
   const [checklistItems] = useState([
@@ -77,7 +81,12 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!user) {
+      toast.error('Usuário não autenticado!');
+      return;
+    }
+
     const checkedItems = items.filter(item => item.checked);
     
     if (checkedItems.length === 0) {
@@ -85,17 +94,33 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
       return;
     }
 
-    // Simular salvamento
-    console.log('Salvando checklist:', {
-      vehicle,
-      mechanic,
-      items: checkedItems,
-      generalObservations: formData.generalObservations,
-      hasVideo: !!(formData.videoFile || formData.videoUrl),
-      completedAt: formData.completedAt
-    });
+    try {
+      const checklistData = {
+        vehicle_id: vehicle.id,
+        mechanic_id: user.id,
+        general_observations: formData.generalObservations || null,
+        video_url: formData.videoUrl || null,
+        completed_at: new Date().toISOString()
+      };
 
-    onComplete();
+      const itemsData = checkedItems.map(item => ({
+        name: item.name,
+        category: item.category,
+        checked: item.checked,
+        observation: item.observation || null
+      }));
+
+      console.log('Saving checklist:', { checklistData, itemsData });
+
+      await createChecklistMutation.mutateAsync({
+        checklistData,
+        items: itemsData
+      });
+
+      onComplete();
+    } catch (error) {
+      console.error('Error saving checklist:', error);
+    }
   };
 
   const getStatusColor = (checked: boolean) => {
@@ -107,9 +132,9 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
   const progress = (checkedCount / totalItems) * 100;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
+      <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
@@ -117,20 +142,24 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
               Voltar
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">Checklist de Inspeção</h1>
-              <p className="text-slate-600">
-                {vehicle?.vehicle} - {vehicle?.plate} | Mecânico: {mechanic}
+              <h1 className="text-2xl font-bold text-foreground">Checklist de Inspeção</h1>
+              <p className="text-muted-foreground">
+                {vehicle?.vehicle_name} - {vehicle?.plate} | Mecânico: {mechanic}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm text-slate-600">Progresso</p>
-              <p className="font-semibold text-blue-600">{checkedCount}/{totalItems} itens</p>
+              <p className="text-sm text-muted-foreground">Progresso</p>
+              <p className="font-semibold text-primary">{checkedCount}/{totalItems} itens</p>
             </div>
-            <Button onClick={handleSave} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+            <Button 
+              onClick={handleSave} 
+              className="flex items-center gap-2"
+              disabled={createChecklistMutation.isPending}
+            >
               <Save className="h-4 w-4" />
-              Salvar Checklist
+              {createChecklistMutation.isPending ? 'Salvando...' : 'Salvar Checklist'}
             </Button>
           </div>
         </div>
@@ -141,12 +170,12 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-700">Progresso do Checklist</span>
-              <span className="text-sm text-slate-600">{Math.round(progress)}%</span>
+              <span className="text-sm font-medium text-foreground">Progresso do Checklist</span>
+              <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                className="bg-primary h-2 rounded-full transition-all duration-300" 
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -166,9 +195,9 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
               <CardContent>
                 {categories.map(category => (
                   <div key={category} className="mb-6">
-                    <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                       <Badge variant="outline">{category}</Badge>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-muted-foreground">
                         ({items.filter(item => item.category === category && item.checked).length}/
                         {items.filter(item => item.category === category).length})
                       </span>
@@ -176,7 +205,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
                     
                     <div className="space-y-4">
                       {items.filter(item => item.category === category).map(item => (
-                        <div key={item.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                        <div key={item.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                           <div className="flex items-start gap-3">
                             <Checkbox
                               id={item.id}
@@ -193,7 +222,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
                                   {item.checked ? (
                                     <CheckCircle className="h-4 w-4 text-green-600" />
                                   ) : (
-                                    <AlertCircle className="h-4 w-4 text-slate-400" />
+                                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
                                   )}
                                 </div>
                               </label>
@@ -221,29 +250,29 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5 text-blue-600" />
+                  <Car className="h-5 w-5 text-primary" />
                   Informações do Veículo
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Veículo</Label>
-                  <p className="font-semibold">{vehicle?.vehicle}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Veículo</Label>
+                  <p className="font-semibold">{vehicle?.vehicle_name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Placa</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Placa</Label>
                   <p className="font-semibold">{vehicle?.plate}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Cliente</Label>
-                  <p className="font-semibold">{vehicle?.customer}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Cliente</Label>
+                  <p className="font-semibold">{vehicle?.customer_name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Ordem de Serviço</Label>
-                  <p className="font-semibold">{vehicle?.serviceOrder}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Ordem de Serviço</Label>
+                  <p className="font-semibold">{vehicle?.service_order}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Data/Hora</Label>
+                  <Label className="text-sm font-medium text-muted-foreground">Data/Hora</Label>
                   <p className="font-semibold">{new Date().toLocaleString('pt-BR')}</p>
                 </div>
               </CardContent>
@@ -269,7 +298,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5 text-purple-600" />
+                  <Video className="h-5 w-5 text-primary" />
                   Vídeo (Opcional)
                 </CardTitle>
               </CardHeader>
@@ -284,7 +313,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
                       type="file"
                       accept="video/*"
                       onChange={handleVideoUpload}
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                     />
                   </div>
                   {formData.videoFile && (
@@ -294,7 +323,7 @@ const ChecklistForm = ({ vehicle, mechanic, onBack, onComplete }: ChecklistFormP
                   )}
                 </div>
 
-                <div className="text-center text-slate-500">ou</div>
+                <div className="text-center text-muted-foreground">ou</div>
 
                 <div>
                   <Label htmlFor="video-url" className="text-sm font-medium">

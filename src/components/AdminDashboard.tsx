@@ -15,14 +15,16 @@ import {
   Filter,
   Search,
   Eye,
-  Link
+  Edit,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useChecklists } from "@/hooks/useChecklists";
+import { useChecklists, useDeleteChecklist } from "@/hooks/useChecklists";
 import { useVehicles } from "@/hooks/useVehicles";
 import UserManagement from "@/components/UserManagement";
 import InviteTokenManager from "@/components/InviteTokenManager";
+import ChecklistViewer from "@/components/ChecklistViewer";
 
 interface AdminDashboardProps {
   currentUser: string;
@@ -33,9 +35,12 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const { signOut } = useAuth();
   const { data: checklists = [] } = useChecklists();
   const { data: vehicles = [] } = useVehicles();
+  const deleteChecklistMutation = useDeleteChecklist();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterMechanic, setFilterMechanic] = useState('all');
+  const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
+  const [activeView, setActiveView] = useState<'dashboard' | 'view-checklist'>('dashboard');
 
   console.log('AdminDashboard renderizado para:', currentUser);
 
@@ -44,6 +49,26 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
     completed: checklists.filter(c => c.completed_at).length,
     pending: checklists.filter(c => !c.completed_at).length,
     totalVehicles: vehicles.length
+  };
+
+  const handleViewChecklist = (checklist: any) => {
+    setSelectedChecklist(checklist);
+    setActiveView('view-checklist');
+  };
+
+  const handleDeleteChecklist = async (checklistId: string) => {
+    if (window.confirm('Tem certeza que deseja deletar este checklist? Esta ação não pode ser desfeita.')) {
+      try {
+        await deleteChecklistMutation.mutateAsync(checklistId);
+      } catch (error) {
+        console.error('Error deleting checklist:', error);
+      }
+    }
+  };
+
+  const handleBackToDashboard = () => {
+    setActiveView('dashboard');
+    setSelectedChecklist(null);
   };
 
   const handleGeneratePDF = (checklistId: string) => {
@@ -80,6 +105,15 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const uniqueMechanics = Array.from(new Set(
     checklists.map(c => c.profiles?.full_name).filter(Boolean)
   ));
+
+  if (activeView === 'view-checklist') {
+    return (
+      <ChecklistViewer 
+        checklist={selectedChecklist}
+        onBack={handleBackToDashboard}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -247,7 +281,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => toast.info(`Visualizando checklist`)}
+                            onClick={() => handleViewChecklist(checklist)}
                             className="flex items-center gap-1"
                           >
                             <Eye className="h-4 w-4" />
@@ -261,6 +295,16 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                           >
                             <Download className="h-4 w-4" />
                             PDF
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteChecklist(checklist.id)}
+                            className="flex items-center gap-1"
+                            disabled={deleteChecklistMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Deletar
                           </Button>
                         </div>
                       </div>
