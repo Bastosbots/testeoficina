@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
 import AdminDashboard from "@/components/AdminDashboard";
 import MechanicDashboard from "@/components/MechanicDashboard";
 import Auth from "./Auth";
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
+
+  console.log('Index component - loading:', loading, 'user:', user, 'profile:', profile);
 
   if (loading) {
     return (
@@ -21,8 +22,11 @@ const Index = () => {
   }
 
   if (!user || !profile) {
+    console.log('Redirecting to Auth - no user or profile');
     return <Auth />;
   }
+
+  console.log('User role:', profile.role);
 
   const handleLogout = async () => {
     // This will be handled by the auth context

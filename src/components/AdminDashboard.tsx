@@ -28,13 +28,15 @@ interface AdminDashboardProps {
   onLogout: () => void;
 }
 
-const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
+const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const { signOut } = useAuth();
   const { data: checklists = [] } = useChecklists();
   const { data: vehicles = [] } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterMechanic, setFilterMechanic] = useState('');
+
+  console.log('AdminDashboard renderizado para:', currentUser);
 
   const stats = {
     totalChecklists: checklists.length,
@@ -54,8 +56,12 @@ const AdminDashboard = ({ currentUser, onLogout }: AdminDashboardProps) => {
   };
 
   const handleLogout = async () => {
-    await signOut();
-    toast.success('Logout realizado com sucesso!');
+    try {
+      await signOut();
+      toast.success('Logout realizado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao fazer logout');
+    }
   };
 
   const filteredChecklists = checklists.filter(checklist => {
