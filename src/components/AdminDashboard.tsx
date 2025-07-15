@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const { data: vehicles = [] } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  const [filterMechanic, setFilterMechanic] = useState('');
+  const [filterMechanic, setFilterMechanic] = useState('all');
 
   console.log('AdminDashboard renderizado para:', currentUser);
 
@@ -70,7 +71,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
     const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          mechanicName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
-    const matchesMechanic = !filterMechanic || mechanicName === filterMechanic;
+    const matchesMechanic = filterMechanic === 'all' || mechanicName === filterMechanic;
     
     return matchesSearch && matchesDate && matchesMechanic;
   });
@@ -187,7 +188,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                       <SelectValue placeholder="Filtrar por mecânico" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos os mecânicos</SelectItem>
+                      <SelectItem value="all">Todos os mecânicos</SelectItem>
                       {uniqueMechanics.map((mechanic) => (
                         <SelectItem key={mechanic} value={mechanic}>{mechanic}</SelectItem>
                       ))}
