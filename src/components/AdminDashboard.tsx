@@ -21,7 +21,6 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useChecklists, useDeleteChecklist } from "@/hooks/useChecklists";
-import { useVehicles } from "@/hooks/useVehicles";
 import UserManagement from "@/components/UserManagement";
 import InviteTokenManager from "@/components/InviteTokenManager";
 import ChecklistViewer from "@/components/ChecklistViewer";
@@ -34,7 +33,6 @@ interface AdminDashboardProps {
 const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const { signOut } = useAuth();
   const { data: checklists = [] } = useChecklists();
-  const { data: vehicles = [] } = useVehicles();
   const deleteChecklistMutation = useDeleteChecklist();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
@@ -48,7 +46,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
     totalChecklists: checklists.length,
     completed: checklists.filter(c => c.completed_at).length,
     pending: checklists.filter(c => !c.completed_at).length,
-    totalVehicles: vehicles.length
+    totalVehicles: new Set(checklists.map(c => c.plate)).size // Count unique vehicles by plate
   };
 
   const handleViewChecklist = (checklist: any) => {
@@ -91,7 +89,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   };
 
   const filteredChecklists = checklists.filter(checklist => {
-    const vehicleName = checklist.vehicles?.vehicle_name || '';
+    const vehicleName = checklist.vehicle_name || '';
     const mechanicName = checklist.profiles?.full_name || '';
     const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          mechanicName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -172,7 +170,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Veículos</CardTitle>
+              <CardTitle className="text-sm font-medium">Veículos Únicos</CardTitle>
               <Car className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -246,7 +244,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                           <div className="flex items-center gap-3 mb-2">
                             <Car className="h-5 w-5 text-primary" />
                             <h3 className="font-semibold text-foreground">
-                              {checklist.vehicles?.vehicle_name} - {checklist.vehicles?.plate}
+                              {checklist.vehicle_name} - {checklist.plate}
                             </h3>
                             <Badge variant={checklist.completed_at ? 'default' : 'secondary'}>
                               {checklist.completed_at ? 'Concluído' : 'Pendente'}
@@ -266,7 +264,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                               <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
                             </div>
                             <div>
-                              <strong>Cliente:</strong> {checklist.vehicles?.customer_name}
+                              <strong>Cliente:</strong> {checklist.customer_name}
                             </div>
                           </div>
                           
