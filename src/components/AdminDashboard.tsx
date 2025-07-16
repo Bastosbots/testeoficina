@@ -25,6 +25,7 @@ import { useChecklists, useDeleteChecklist } from "@/hooks/useChecklists";
 import UserManagement from "@/components/UserManagement";
 import InviteTokenManager from "@/components/InviteTokenManager";
 import ChecklistViewer from "@/components/ChecklistViewer";
+import EditChecklistForm from "@/components/EditChecklistForm";
 
 interface AdminDashboardProps {
   currentUser: string;
@@ -38,22 +39,29 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterMechanic, setFilterMechanic] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
-  const [activeView, setActiveView] = useState<'dashboard' | 'view-checklist'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'view-checklist' | 'edit-checklist'>('dashboard');
 
   console.log('AdminDashboard renderizado para:', currentUser);
   console.log('Checklists carregados:', checklists);
 
   const stats = {
     totalChecklists: checklists.length,
-    completed: checklists.filter(c => c.completed_at).length,
-    pending: checklists.filter(c => !c.completed_at).length,
+    completed: checklists.filter(c => c.status === 'Concluído').length,
+    pending: checklists.filter(c => c.status === 'Pendente').length,
+    inProgress: checklists.filter(c => c.status === 'Em Andamento').length,
     totalVehicles: new Set(checklists.map(c => c.plate)).size
   };
 
   const handleViewChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
     setActiveView('view-checklist');
+  };
+
+  const handleEditChecklist = (checklist: any) => {
+    setSelectedChecklist(checklist);
+    setActiveView('edit-checklist');
   };
 
   const handleDeleteChecklist = async (checklistId: string) => {
@@ -69,6 +77,10 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const handleBackToDashboard = () => {
     setActiveView('dashboard');
     setSelectedChecklist(null);
+  };
+
+  const handleChecklistSaved = () => {
+    handleBackToDashboard();
   };
 
   const handleGeneratePDF = (checklistId: string) => {
@@ -99,8 +111,9 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                          checklist.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
     const matchesMechanic = filterMechanic === 'all' || mechanicName === filterMechanic;
+    const matchesStatus = filterStatus === 'all' || checklist.status === filterStatus;
     
-    return matchesSearch && matchesDate && matchesMechanic;
+    return matchesSearch && matchesDate && matchesMechanic && matchesStatus;
   });
 
   // Obter mecânicos únicos para o filtro
@@ -108,11 +121,36 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
     checklists.map(c => c.profiles?.full_name).filter(Boolean)
   ));
 
+  // Obter status únicos para o filtro
+  const uniqueStatuses = Array.from(new Set(
+    checklists.map(c => c.status).filter(Boolean)
+  ));
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Pendente': return 'bg-yellow-100 text-yellow-800';
+      case 'Em Andamento': return 'bg-blue-100 text-blue-800';
+      case 'Concluído': return 'bg-green-100 text-green-800';
+      case 'Cancelado': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (activeView === 'view-checklist') {
     return (
       <ChecklistViewer 
         checklist={selectedChecklist}
         onBack={handleBackToDashboard}
+      />
+    );
+  }
+
+  if (activeView === 'edit-checklist') {
+    return (
+      <EditChecklistForm
+        checklist={selectedChecklist}
+        onBack={handleBackToDashboard}
+        onSave={handleChecklistSaved}
       />
     );
   }
@@ -141,7 +179,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
 
       <div className="p-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Checklists</CardTitle>
@@ -155,20 +193,30 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+              <FileText className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.completed}</div>
+              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
+              <Clock className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-primary" />
+              <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.pending}</div>
+              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
             </CardContent>
           </Card>
           
@@ -201,7 +249,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -230,6 +278,18 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                       ))}
                     </SelectContent>
                   </Select>
+
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os status</SelectItem>
+                      {uniqueStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -253,8 +313,8 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                             <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
                               {checklist.priority}
                             </Badge>
-                            <Badge variant={checklist.completed_at ? 'default' : 'secondary'}>
-                              {checklist.completed_at ? 'Concluído' : 'Pendente'}
+                            <Badge className={getStatusColor(checklist.status || 'Pendente')}>
+                              {checklist.status || 'Pendente'}
                             </Badge>
                             {checklist.video_url && (
                               <Badge variant="outline" className="text-primary border-primary/20">
@@ -305,6 +365,15 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                           </Button>
                           <Button
                             variant="default"
+                            size="sm"
+                            onClick={() => handleEditChecklist(checklist)}
+                            className="flex items-center gap-1"
+                          >
+                            <Edit className="h-4 w-4" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleGeneratePDF(checklist.id)}
                             className="flex items-center gap-1"
