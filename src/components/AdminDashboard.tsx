@@ -16,7 +16,8 @@ import {
   Search,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Clock
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,12 +42,13 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const [activeView, setActiveView] = useState<'dashboard' | 'view-checklist'>('dashboard');
 
   console.log('AdminDashboard renderizado para:', currentUser);
+  console.log('Checklists carregados:', checklists);
 
   const stats = {
     totalChecklists: checklists.length,
     completed: checklists.filter(c => c.completed_at).length,
     pending: checklists.filter(c => !c.completed_at).length,
-    totalVehicles: new Set(checklists.map(c => c.plate)).size // Count unique vehicles by plate
+    totalVehicles: new Set(checklists.map(c => c.plate)).size
   };
 
   const handleViewChecklist = (checklist: any) => {
@@ -92,7 +94,9 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
     const vehicleName = checklist.vehicle_name || '';
     const mechanicName = checklist.profiles?.full_name || '';
     const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mechanicName.toLowerCase().includes(searchTerm.toLowerCase());
+                         mechanicName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         checklist.plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         checklist.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
     const matchesMechanic = filterMechanic === 'all' || mechanicName === filterMechanic;
     
@@ -161,7 +165,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+              <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{stats.pending}</div>
@@ -201,7 +205,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Buscar por veículo ou mecânico..."
+                      placeholder="Buscar por veículo, mecânico, placa ou cliente..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -246,6 +250,9 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                             <h3 className="font-semibold text-foreground">
                               {checklist.vehicle_name} - {checklist.plate}
                             </h3>
+                            <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
+                              {checklist.priority}
+                            </Badge>
                             <Badge variant={checklist.completed_at ? 'default' : 'secondary'}>
                               {checklist.completed_at ? 'Concluído' : 'Pendente'}
                             </Badge>
@@ -258,7 +265,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                             <div>
-                              <strong>Mecânico:</strong> {checklist.profiles?.full_name}
+                              <strong>Mecânico:</strong> {checklist.profiles?.full_name || 'Não informado'}
                             </div>
                             <div>
                               <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
@@ -266,6 +273,17 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                             <div>
                               <strong>Cliente:</strong> {checklist.customer_name}
                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-2">
+                            <div>
+                              <strong>OS:</strong> {checklist.service_order}
+                            </div>
+                            {checklist.completed_at && (
+                              <div>
+                                <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
+                              </div>
+                            )}
                           </div>
                           
                           {checklist.general_observations && (
@@ -313,6 +331,9 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                     <div className="text-center py-8 text-muted-foreground">
                       <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Nenhum checklist encontrado com os filtros aplicados.</p>
+                      {checklists.length === 0 && (
+                        <p className="mt-2">Nenhum checklist foi criado ainda.</p>
+                      )}
                     </div>
                   )}
                 </div>
