@@ -77,41 +77,51 @@ export const useUpdateChecklist = () => {
     mutationFn: async ({ id, updateData, items }: { id: string, updateData: any, items?: any[] }) => {
       console.log('Updating checklist:', { id, updateData, items });
       
-      // Atualizar o checklist
-      const { data, error } = await supabase
-        .from('checklists')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error updating checklist:', error);
+      try {
+        // Atualizar o checklist
+        const { data, error } = await supabase
+          .from('checklists')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error updating checklist:', error);
+          throw new Error(`Erro ao atualizar checklist: ${error.message}`);
+        }
+
+        console.log('Checklist updated successfully:', data);
+
+        // Atualizar os itens se fornecidos
+        if (items && Array.isArray(items) && items.length > 0) {
+          console.log('Updating checklist items:', items);
+          
+          const { error: itemsError } = await supabase.rpc('save_checklist_items', {
+            p_checklist_id: id,
+            p_items: items
+          });
+
+          if (itemsError) {
+            console.error('Error updating checklist items:', itemsError);
+            throw new Error(`Erro ao atualizar itens do checklist: ${itemsError.message}`);
+          }
+          
+          console.log('Checklist items updated successfully');
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Full update error:', error);
         throw error;
       }
-
-      // Atualizar os itens se fornecidos
-      if (items && items.length > 0) {
-        const { error: itemsError } = await supabase.rpc('save_checklist_items', {
-          p_checklist_id: id,
-          p_items: items
-        });
-
-        if (itemsError) {
-          console.error('Error updating checklist items:', itemsError);
-          throw itemsError;
-        }
-      }
-      
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
-      toast.success('Checklist atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
     },
     onError: (error: any) => {
-      console.error('Update error:', error);
-      toast.error('Erro ao atualizar checklist: ' + error.message);
+      console.error('Update mutation error:', error);
     },
   });
 };

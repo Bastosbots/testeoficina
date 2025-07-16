@@ -30,7 +30,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     customer_name: checklist.customer_name || '',
     service_order: checklist.service_order || '',
     priority: checklist.priority || 'Média',
-    status: (checklist as any).status || 'Pendente',
+    status: checklist.status || 'Pendente',
     general_observations: checklist.general_observations || '',
     video_url: checklist.video_url || '',
   });
@@ -39,6 +39,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
   useEffect(() => {
     if (Array.isArray(checklistItems) && checklistItems.length > 0) {
+      console.log('Loaded checklist items:', checklistItems);
       setItems(checklistItems);
     }
   }, [checklistItems]);
@@ -58,12 +59,18 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
   const handleSave = async () => {
     try {
+      console.log('Starting save process...');
+      console.log('Form data:', formData);
+      console.log('Items to save:', items);
+
       const itemsForUpdate = items.map(item => ({
         name: item.item_name,
         category: item.category,
-        checked: item.checked,
+        checked: item.checked || false,
         observation: item.observation || ''
       }));
+
+      console.log('Formatted items:', itemsForUpdate);
 
       await updateChecklistMutation.mutateAsync({
         id: checklist.id,
@@ -73,9 +80,9 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
       toast.success('Checklist atualizado com sucesso!');
       onSave();
-    } catch (error) {
-      console.error('Error updating checklist:', error);
-      toast.error('Erro ao atualizar checklist');
+    } catch (error: any) {
+      console.error('Error saving checklist:', error);
+      toast.error(error.message || 'Erro ao atualizar checklist');
     }
   };
 
@@ -94,10 +101,11 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
   // Agrupar itens por categoria
   const itemsByCategory = Array.isArray(items) ? items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
+    const category = item.category || 'Sem Categoria';
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[item.category].push(item);
+    acc[category].push(item);
     return acc;
   }, {} as Record<string, any[]>) : {};
 
@@ -260,7 +268,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                           <div key={item.id} className="border rounded-lg p-4 bg-card">
                             <div className="flex items-start gap-3">
                               <Checkbox
-                                checked={item.checked}
+                                checked={item.checked || false}
                                 onCheckedChange={(checked) => 
                                   handleItemChange(item.id, 'checked', checked)
                                 }
