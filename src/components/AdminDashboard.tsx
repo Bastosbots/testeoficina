@@ -48,9 +48,9 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
 
   const stats = {
     totalChecklists: checklists.length,
-    completed: checklists.filter(c => c.status === 'Concluído').length,
-    pending: checklists.filter(c => c.status === 'Pendente').length,
-    inProgress: checklists.filter(c => c.status === 'Em Andamento').length,
+    completed: checklists.filter(c => (c as any).status === 'Concluído').length,
+    pending: checklists.filter(c => (c as any).status === 'Pendente' || !(c as any).status).length,
+    inProgress: checklists.filter(c => (c as any).status === 'Em Andamento').length,
     totalVehicles: new Set(checklists.map(c => c.plate)).size
   };
 
@@ -105,13 +105,14 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   const filteredChecklists = checklists.filter(checklist => {
     const vehicleName = checklist.vehicle_name || '';
     const mechanicName = checklist.profiles?.full_name || '';
+    const checklistStatus = (checklist as any).status || 'Pendente';
     const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          mechanicName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          checklist.plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          checklist.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
     const matchesMechanic = filterMechanic === 'all' || mechanicName === filterMechanic;
-    const matchesStatus = filterStatus === 'all' || checklist.status === filterStatus;
+    const matchesStatus = filterStatus === 'all' || checklistStatus === filterStatus;
     
     return matchesSearch && matchesDate && matchesMechanic && matchesStatus;
   });
@@ -123,7 +124,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
 
   // Obter status únicos para o filtro
   const uniqueStatuses = Array.from(new Set(
-    checklists.map(c => c.status).filter(Boolean)
+    checklists.map(c => (c as any).status || 'Pendente').filter(Boolean)
   ));
 
   const getStatusColor = (status: string) => {
@@ -301,100 +302,103 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredChecklists.map((checklist) => (
-                    <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Car className="h-5 w-5 text-primary" />
-                            <h3 className="font-semibold text-foreground">
-                              {checklist.vehicle_name} - {checklist.plate}
-                            </h3>
-                            <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
-                              {checklist.priority}
-                            </Badge>
-                            <Badge className={getStatusColor(checklist.status || 'Pendente')}>
-                              {checklist.status || 'Pendente'}
-                            </Badge>
-                            {checklist.video_url && (
-                              <Badge variant="outline" className="text-primary border-primary/20">
-                                Com Vídeo
+                  {filteredChecklists.map((checklist) => {
+                    const checklistStatus = (checklist as any).status || 'Pendente';
+                    return (
+                      <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Car className="h-5 w-5 text-primary" />
+                              <h3 className="font-semibold text-foreground">
+                                {checklist.vehicle_name} - {checklist.plate}
+                              </h3>
+                              <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
+                                {checklist.priority}
                               </Badge>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                            <div>
-                              <strong>Mecânico:</strong> {checklist.profiles?.full_name || 'Não informado'}
+                              <Badge className={getStatusColor(checklistStatus)}>
+                                {checklistStatus}
+                              </Badge>
+                              {checklist.video_url && (
+                                <Badge variant="outline" className="text-primary border-primary/20">
+                                  Com Vídeo
+                                </Badge>
+                              )}
                             </div>
-                            <div>
-                              <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
-                            </div>
-                            <div>
-                              <strong>Cliente:</strong> {checklist.customer_name}
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-2">
-                            <div>
-                              <strong>OS:</strong> {checklist.service_order}
-                            </div>
-                            {checklist.completed_at && (
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                               <div>
-                                <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
+                                <strong>Mecânico:</strong> {checklist.profiles?.full_name || 'Não informado'}
+                              </div>
+                              <div>
+                                <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
+                              </div>
+                              <div>
+                                <strong>Cliente:</strong> {checklist.customer_name}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-2">
+                              <div>
+                                <strong>OS:</strong> {checklist.service_order}
+                              </div>
+                              {checklist.completed_at && (
+                                <div>
+                                  <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {checklist.general_observations && (
+                              <div className="mt-2 text-sm text-muted-foreground">
+                                <strong>Observações:</strong> {checklist.general_observations}
                               </div>
                             )}
                           </div>
                           
-                          {checklist.general_observations && (
-                            <div className="mt-2 text-sm text-muted-foreground">
-                              <strong>Observações:</strong> {checklist.general_observations}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2 ml-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewChecklist(checklist)}
-                            className="flex items-center gap-1"
-                          >
-                            <Eye className="h-4 w-4" />
-                            Ver
-                          </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleEditChecklist(checklist)}
-                            className="flex items-center gap-1"
-                          >
-                            <Edit className="h-4 w-4" />
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleGeneratePDF(checklist.id)}
-                            className="flex items-center gap-1"
-                          >
-                            <Download className="h-4 w-4" />
-                            PDF
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteChecklist(checklist.id)}
-                            className="flex items-center gap-1"
-                            disabled={deleteChecklistMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Deletar
-                          </Button>
+                          <div className="flex items-center gap-2 ml-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewChecklist(checklist)}
+                              className="flex items-center gap-1"
+                            >
+                              <Eye className="h-4 w-4" />
+                              Ver
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleEditChecklist(checklist)}
+                              className="flex items-center gap-1"
+                            >
+                              <Edit className="h-4 w-4" />
+                              Editar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleGeneratePDF(checklist.id)}
+                              className="flex items-center gap-1"
+                            >
+                              <Download className="h-4 w-4" />
+                              PDF
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteChecklist(checklist.id)}
+                              className="flex items-center gap-1"
+                              disabled={deleteChecklistMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Deletar
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   
                   {filteredChecklists.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">

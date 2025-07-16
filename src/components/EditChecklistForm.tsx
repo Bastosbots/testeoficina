@@ -30,7 +30,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     customer_name: checklist.customer_name || '',
     service_order: checklist.service_order || '',
     priority: checklist.priority || 'Média',
-    status: checklist.status || 'Pendente',
+    status: (checklist as any).status || 'Pendente',
     general_observations: checklist.general_observations || '',
     video_url: checklist.video_url || '',
   });
@@ -38,7 +38,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
   const [items, setItems] = useState<any[]>([]);
 
   useEffect(() => {
-    if (checklistItems.length > 0) {
+    if (Array.isArray(checklistItems) && checklistItems.length > 0) {
       setItems(checklistItems);
     }
   }, [checklistItems]);
@@ -93,13 +93,13 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
   const statusOptions = ['Pendente', 'Em Andamento', 'Concluído', 'Cancelado'];
 
   // Agrupar itens por categoria
-  const itemsByCategory = items.reduce((acc, item) => {
+  const itemsByCategory = Array.isArray(items) ? items.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, any[]>) : {};
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -244,50 +244,53 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
-                  <div key={category}>
-                    <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                      {category}
-                      <Badge variant="outline" className="text-xs">
-                        {categoryItems.filter(item => item.checked).length}/{categoryItems.length}
-                      </Badge>
-                    </h3>
-                    
-                    <div className="space-y-3">
-                      {categoryItems.map((item) => (
-                        <div key={item.id} className="border rounded-lg p-4 bg-card">
-                          <div className="flex items-start gap-3">
-                            <Checkbox
-                              checked={item.checked}
-                              onCheckedChange={(checked) => 
-                                handleItemChange(item.id, 'checked', checked)
-                              }
-                              className="mt-1"
-                            />
-                            <div className="flex-1 space-y-2">
-                              <div className="font-medium text-foreground">
-                                {item.item_name}
-                              </div>
-                              <Textarea
-                                value={item.observation || ''}
-                                onChange={(e) => 
-                                  handleItemChange(item.id, 'observation', e.target.value)
+                {Object.entries(itemsByCategory).map(([category, categoryItems]) => {
+                  const categoryItemsArray = Array.isArray(categoryItems) ? categoryItems : [];
+                  return (
+                    <div key={category}>
+                      <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                        {category}
+                        <Badge variant="outline" className="text-xs">
+                          {categoryItemsArray.filter(item => item.checked).length}/{categoryItemsArray.length}
+                        </Badge>
+                      </h3>
+                      
+                      <div className="space-y-3">
+                        {categoryItemsArray.map((item) => (
+                          <div key={item.id} className="border rounded-lg p-4 bg-card">
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                checked={item.checked}
+                                onCheckedChange={(checked) => 
+                                  handleItemChange(item.id, 'checked', checked)
                                 }
-                                placeholder="Observações sobre este item..."
-                                rows={2}
-                                className="text-sm"
+                                className="mt-1"
                               />
+                              <div className="flex-1 space-y-2">
+                                <div className="font-medium text-foreground">
+                                  {item.item_name}
+                                </div>
+                                <Textarea
+                                  value={item.observation || ''}
+                                  onChange={(e) => 
+                                    handleItemChange(item.id, 'observation', e.target.value)
+                                  }
+                                  placeholder="Observações sobre este item..."
+                                  rows={2}
+                                  className="text-sm"
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      
+                      {category !== Object.keys(itemsByCategory)[Object.keys(itemsByCategory).length - 1] && (
+                        <Separator className="mt-6" />
+                      )}
                     </div>
-                    
-                    {category !== Object.keys(itemsByCategory)[Object.keys(itemsByCategory).length - 1] && (
-                      <Separator className="mt-6" />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
 
                 {Object.keys(itemsByCategory).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
