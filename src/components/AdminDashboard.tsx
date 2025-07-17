@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,7 @@ const AdminDashboard = () => {
 
   if (checklistsLoading || budgetsLoading) {
     return (
-      <div className="lg:zoom-90 flex items-center justify-center min-h-screen">
+      <div className="lg:zoom-90 flex items-center justify-center min-h-screen bg-background">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -85,7 +84,7 @@ const AdminDashboard = () => {
       case 'Cancelado':
         return 'bg-red-500 text-white border-red-500';
       default:
-        return 'bg-gray-500 text-white border-gray-500';
+        return 'bg-muted text-muted-foreground border-muted';
     }
   };
 
@@ -98,7 +97,7 @@ const AdminDashboard = () => {
       case 'Baixa':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-muted';
     }
   };
 
@@ -127,8 +126,8 @@ const AdminDashboard = () => {
 
   if (showUserManagement) {
     return (
-      <div className="lg:zoom-90 min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b">
+      <div className="lg:zoom-90 min-h-screen bg-background">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <Button
@@ -152,8 +151,8 @@ const AdminDashboard = () => {
 
   if (showInviteTokens) {
     return (
-      <div className="lg:zoom-90 min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b">
+      <div className="lg:zoom-90 min-h-screen bg-background">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <Button
@@ -176,14 +175,14 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="lg:zoom-90 min-h-screen bg-gray-50">
+    <div className="lg:zoom-90 min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Painel Administrativo</h1>
-              <p className="text-sm text-gray-600">Visão geral completa do sistema</p>
+              <h1 className="text-2xl font-bold text-foreground">Painel Administrativo</h1>
+              <p className="text-sm text-muted-foreground">Visão geral completa do sistema</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button
@@ -264,7 +263,7 @@ const AdminDashboard = () => {
 
         {/* Navigation Tabs */}
         <div className="mb-6">
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
             <Button
               variant={activeView === 'checklists' ? 'default' : 'ghost'}
               size="sm"
@@ -329,7 +328,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Content Table */}
-            <div className="rounded-md border">
+            <div className="rounded-md border border-border">
               <Table>
                 <TableHeader>
                   <TableRow>
