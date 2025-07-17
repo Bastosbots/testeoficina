@@ -13,6 +13,7 @@ import Auth from "@/pages/Auth";
 import Signup from "@/pages/Signup";
 import Register from "@/pages/Register";
 import NotFound from "@/pages/NotFound";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ function App() {
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />
             </Routes>
+            <InstallPrompt />
           </div>
           <Toaster />
         </Router>
