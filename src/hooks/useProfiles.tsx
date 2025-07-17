@@ -51,20 +51,35 @@ export const useUpdateProfile = () => {
     mutationFn: async ({ id, ...updateData }: any) => {
       console.log('Updating profile with ID:', id, 'Data:', updateData);
       
+      // Primeiro vamos verificar se o perfil existe
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      
+      console.log('Existing profile check:', existingProfile, checkError);
+      
+      if (checkError) {
+        console.error('Error checking existing profile:', checkError);
+        throw checkError;
+      }
+      
+      if (!existingProfile) {
+        throw new Error('Perfil não encontrado');
+      }
+      
+      // Agora fazemos a atualização
       const { data, error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', id)
         .select()
-        .maybeSingle();
+        .single();
       
       if (error) {
         console.error('Update error:', error);
         throw error;
-      }
-      
-      if (!data) {
-        throw new Error('Perfil não encontrado ou não foi possível atualizar');
       }
       
       console.log('Profile updated successfully:', data);
