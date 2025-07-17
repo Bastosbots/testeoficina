@@ -5,20 +5,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Download, Smartphone, X } from 'lucide-react';
 import { useCapacitor } from '@/hooks/useCapacitor';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const InstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const { isInstalled, platform } = useCapacitor();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
       
-      // Show install prompt after 30 seconds if not installed
+      // Show install prompt after 30 seconds if not installed and on mobile
       setTimeout(() => {
-        if (!isInstalled) {
+        if (!isInstalled && isMobile) {
           setShowPrompt(true);
         }
       }, 30000);
@@ -29,7 +31,7 @@ const InstallPrompt = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, [isInstalled]);
+  }, [isInstalled, isMobile]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -49,8 +51,8 @@ const InstallPrompt = () => {
     localStorage.setItem('installPromptClosed', Date.now().toString());
   };
 
-  // Don't show if already installed or if user closed recently
-  if (isInstalled) return null;
+  // Don't show if not on mobile, already installed, or if user closed recently
+  if (!isMobile || isInstalled) return null;
   
   const lastClosed = localStorage.getItem('installPromptClosed');
   if (lastClosed && Date.now() - parseInt(lastClosed) < 24 * 60 * 60 * 1000) {
