@@ -326,34 +326,47 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                               )}
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                              <div>
-                                <strong>Mecânico:</strong> {checklist.profiles?.full_name || 'Não informado'}
-                              </div>
-                              <div>
-                                <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
-                              </div>
-                              <div>
-                                <strong>Cliente:</strong> {checklist.customer_name}
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-2">
-                              <div>
-                                <strong>OS:</strong> {checklist.service_order}
-                              </div>
-                              {checklist.completed_at && (
+                            {/* Desktop: Informações completas */}
+                            <div className="hidden md:block">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                                 <div>
-                                  <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
+                                  <strong>Mecânico:</strong> {checklist.profiles?.full_name || 'Não informado'}
+                                </div>
+                                <div>
+                                  <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
+                                </div>
+                                <div>
+                                  <strong>Cliente:</strong> {checklist.customer_name}
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-2">
+                                <div>
+                                  <strong>OS:</strong> {checklist.service_order}
+                                </div>
+                                {checklist.completed_at && (
+                                  <div>
+                                    <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {checklist.general_observations && (
+                                <div className="mt-2 text-sm text-muted-foreground">
+                                  <strong>Observações:</strong> {checklist.general_observations}
                                 </div>
                               )}
                             </div>
-                            
-                            {checklist.general_observations && (
-                              <div className="mt-2 text-sm text-muted-foreground">
-                                <strong>Observações:</strong> {checklist.general_observations}
+
+                            {/* Mobile: Apenas informações essenciais */}
+                            <div className="md:hidden space-y-2">
+                              <div className="text-sm text-muted-foreground">
+                                <strong>Cliente:</strong> {checklist.customer_name}
                               </div>
-                            )}
+                              <div className="text-sm text-muted-foreground">
+                                <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
+                              </div>
+                            </div>
                           </div>
                           
                           <div className="flex items-center gap-2 ml-4">

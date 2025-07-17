@@ -163,28 +163,53 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                       <Badge variant={checklist.completed_at ? "default" : "secondary"}>
                         {checklist.completed_at ? 'Concluído' : 'Pendente'}
                       </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewChecklist(checklist)}
-                        className="flex items-center gap-1"
-                      >
-                        <Eye className="h-4 w-4" />
-                        Ver
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditChecklist(checklist)}
-                        className="flex items-center gap-1"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Editar
-                      </Button>
+                      
+                      {/* Desktop: Botões completos */}
+                      <div className="hidden md:flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewChecklist(checklist)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Ver
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditChecklist(checklist)}
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Editar
+                        </Button>
+                      </div>
+                      
+                      {/* Mobile: Botões compactos */}
+                      <div className="md:hidden flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewChecklist(checklist)}
+                          className="px-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditChecklist(checklist)}
+                          className="px-2"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="text-sm text-muted-foreground grid grid-cols-2 gap-4">
+                  {/* Desktop: Informações completas */}
+                  <div className="hidden md:block text-sm text-muted-foreground grid grid-cols-2 gap-4">
                     <div>
                       <p><strong>Cliente:</strong> {checklist.customer_name}</p>
                       <p><strong>OS:</strong> {checklist.service_order}</p>
@@ -195,6 +220,12 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                         <p><strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}</p>
                       )}
                     </div>
+                  </div>
+
+                  {/* Mobile: Apenas informações essenciais */}
+                  <div className="md:hidden space-y-1 text-sm text-muted-foreground">
+                    <p><strong>Cliente:</strong> {checklist.customer_name}</p>
+                    <p><strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
               ))}
