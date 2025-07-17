@@ -53,12 +53,108 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
     return tableNames[tableName] || tableName;
   };
 
-  const formatDataForDisplay = (data: any) => {
+  const getFieldDisplayName = (field: string, tableName: string) => {
+    const fieldNames: Record<string, Record<string, string>> = {
+      'checklists': {
+        'customer_name': 'Nome do Cliente',
+        'vehicle_name': 'Veículo',
+        'plate': 'Placa',
+        'status': 'Status',
+        'priority': 'Prioridade',
+        'general_observations': 'Observações Gerais',
+        'mechanic_id': 'Mecânico Responsável'
+      },
+      'checklist_items': {
+        'item_name': 'Nome do Item',
+        'category': 'Categoria',
+        'checked': 'Verificado',
+        'observation': 'Observação'
+      },
+      'budgets': {
+        'customer_name': 'Nome do Cliente',
+        'vehicle_name': 'Veículo',
+        'vehicle_plate': 'Placa',
+        'vehicle_year': 'Ano',
+        'status': 'Status',
+        'total_amount': 'Valor Total',
+        'discount_amount': 'Desconto',
+        'final_amount': 'Valor Final',
+        'observations': 'Observações',
+        'budget_number': 'Número do Orçamento'
+      },
+      'budget_items': {
+        'service_name': 'Nome do Serviço',
+        'service_category': 'Categoria',
+        'quantity': 'Quantidade',
+        'unit_price': 'Preço Unitário',
+        'total_price': 'Preço Total'
+      },
+      'services': {
+        'name': 'Nome do Serviço',
+        'category': 'Categoria',
+        'unit_price': 'Preço Unitário',
+        'description': 'Descrição',
+        'is_active': 'Ativo'
+      },
+      'vehicles': {
+        'vehicle_name': 'Nome do Veículo',
+        'plate': 'Placa',
+        'customer_name': 'Nome do Cliente',
+        'status': 'Status',
+        'priority': 'Prioridade',
+        'service_order': 'Ordem de Serviço',
+        'scheduled_time': 'Horário Agendado'
+      },
+      'profiles': {
+        'full_name': 'Nome Completo',
+        'username': 'Nome de Usuário',
+        'role': 'Função'
+      },
+      'system_settings': {
+        'system_name': 'Nome do Sistema',
+        'system_description': 'Descrição do Sistema',
+        'company_name': 'Nome da Empresa',
+        'company_cnpj': 'CNPJ',
+        'company_email': 'Email',
+        'company_phone': 'Telefone',
+        'company_address': 'Endereço',
+        'company_website': 'Site'
+      }
+    };
+    
+    return fieldNames[tableName]?.[field] || field;
+  };
+
+  const formatFieldValue = (value: any, field: string) => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+    if (field.includes('amount') || field.includes('price')) {
+      return new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+      }).format(value);
+    }
+    return String(value);
+  };
+
+  const formatDataForDisplay = (data: any, tableName: string) => {
     if (!data) return null;
     
-    const fieldsToHide = ['id', 'created_at', 'updated_at'];
+    // Campos técnicos que devem ser sempre ocultados
+    const fieldsToHide = [
+      'id', 
+      'created_at', 
+      'updated_at', 
+      'mechanic_id',
+      'user_id',
+      'checklist_id',
+      'budget_id',
+      'service_id'
+    ];
+    
     const filteredData = Object.entries(data)
       .filter(([key]) => !fieldsToHide.includes(key))
+      .filter(([, value]) => value !== null && value !== undefined && value !== '')
       .reduce((acc, [key, value]) => {
         acc[key] = value;
         return acc;
@@ -66,8 +162,8 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
 
     return Object.entries(filteredData).map(([key, value]) => (
       <div key={key} className="mb-2">
-        <span className="font-medium text-sm">{key}: </span>
-        <span className="text-sm">{String(value || 'N/A')}</span>
+        <span className="font-medium text-sm">{getFieldDisplayName(key, tableName)}: </span>
+        <span className="text-sm">{formatFieldValue(value, key)}</span>
       </div>
     ));
   };
@@ -103,10 +199,6 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
                 <span className="text-sm font-medium text-gray-600">O que foi alterado:</span>
                 <p className="text-sm mt-1">{getTableDisplayName(log.table_name)}</p>
               </div>
-              <div>
-                <span className="text-sm font-medium text-gray-600">Código do registro:</span>
-                <p className="text-sm mt-1 font-mono">{log.record_id?.substring(0, 8)}...</p>
-              </div>
             </div>
           </div>
 
@@ -117,7 +209,7 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
                 {log.action === 'DELETE' ? 'Dados que foram excluídos:' : 'Como estava antes:'}
               </h3>
               <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-                {formatDataForDisplay(log.old_data)}
+                {formatDataForDisplay(log.old_data, log.table_name)}
               </div>
             </div>
           )}
@@ -129,33 +221,9 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
                 {log.action === 'CREATE' ? 'Dados que foram criados:' : 'Como ficou depois:'}
               </h3>
               <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                {formatDataForDisplay(log.new_data)}
+                {formatDataForDisplay(log.new_data, log.table_name)}
               </div>
             </div>
-          )}
-
-          {/* Informações técnicas */}
-          {(log.ip_address || log.user_agent) && (
-            <>
-              <Separator />
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold mb-3 text-gray-800">Informações Técnicas</h3>
-                <div className="space-y-3">
-                  {log.ip_address && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Endereço IP:</span>
-                      <p className="text-sm mt-1 font-mono">{String(log.ip_address)}</p>
-                    </div>
-                  )}
-                  {log.user_agent && (
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Navegador/Dispositivo:</span>
-                      <p className="text-sm mt-1 break-all">{log.user_agent}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
           )}
         </div>
       </DialogContent>
