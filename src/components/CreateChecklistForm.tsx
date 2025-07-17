@@ -32,11 +32,12 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
   
   const [vehicleData, setVehicleData] = useState({
     vehicleName: '',
-    vehicleColor: '',
     plate: '',
     customerName: '',
     priority: 'Média'
   });
+
+  const [generalObservations, setGeneralObservations] = useState('');
 
   const [checklistItems] = useState([
     { id: 'oil', name: 'Nível de Óleo', category: 'Motor', checked: false, observation: '' },
@@ -77,7 +78,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
     }
 
     // Validar dados do veículo
-    if (!vehicleData.vehicleName || !vehicleData.vehicleColor || !vehicleData.plate || !vehicleData.customerName) {
+    if (!vehicleData.vehicleName || !vehicleData.plate || !vehicleData.customerName) {
       toast.error('Preencha todos os dados obrigatórios do veículo!');
       return;
     }
@@ -92,12 +93,12 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
     try {
       const checklistData = {
         mechanic_id: user.id,
-        vehicle_name: `${vehicleData.vehicleName} - ${vehicleData.vehicleColor}`,
+        vehicle_name: vehicleData.vehicleName,
         plate: vehicleData.plate,
         customer_name: vehicleData.customerName,
         priority: vehicleData.priority,
-        status: 'Em Andamento', // Definir status como "Em Andamento"
-        general_observations: null,
+        status: 'Em Andamento',
+        general_observations: generalObservations || null,
         video_url: videoUrl || null,
         completed_at: new Date().toISOString()
       };
@@ -267,17 +268,6 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                   />
                 </div>
                 <div>
-                  <Label htmlFor="vehicle-color" className="mobile-text-sm">Cor do Veículo *</Label>
-                  <Input
-                    id="vehicle-color"
-                    value={vehicleData.vehicleColor}
-                    onChange={(e) => setVehicleData(prev => ({ ...prev, vehicleColor: e.target.value }))}
-                    placeholder="Ex: Prata, Preto, Branco"
-                    className="mobile-input-sm"
-                    required
-                  />
-                </div>
-                <div>
                   <Label htmlFor="plate" className="mobile-text-sm">Placa *</Label>
                   <Input
                     id="plate"
@@ -311,6 +301,17 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                       <SelectItem value="Alta" className="mobile-text-sm">Alta</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label htmlFor="general-observations" className="mobile-text-sm">Observações Gerais</Label>
+                  <Textarea
+                    id="general-observations"
+                    value={generalObservations}
+                    onChange={(e) => setGeneralObservations(e.target.value)}
+                    placeholder="Observações gerais sobre o veículo ou serviço..."
+                    rows={3}
+                    className="mobile-text-xs lg:text-sm min-h-16 lg:min-h-20"
+                  />
                 </div>
               </CardContent>
             </Card>
