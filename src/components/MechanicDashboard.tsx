@@ -24,8 +24,8 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
 
   // Filtrar checklists do mecânico atual
   const myChecklists = checklists.filter(c => c.mechanic_id === user?.id);
-  const completedChecklists = myChecklists.filter(c => c.completed_at);
-  const pendingChecklists = myChecklists.filter(c => !c.completed_at);
+  const completedChecklists = myChecklists.filter(c => c.status === 'Concluído');
+  const pendingChecklists = myChecklists.filter(c => c.status === 'Pendente');
 
   const handleViewChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
@@ -168,10 +168,10 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                         {checklist.priority}
                       </Badge>
                       <Badge 
-                        variant={checklist.completed_at ? "default" : "secondary"}
+                        variant={checklist.status === 'Concluído' ? "default" : "secondary"}
                         className="mobile-text-xs lg:text-xs px-1 lg:px-2 py-0.5"
                       >
-                        {checklist.completed_at ? 'Concluído' : 'Pendente'}
+                        {checklist.status}
                       </Badge>
                       
                       {/* Botões de ação compactos */}
