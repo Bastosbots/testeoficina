@@ -63,11 +63,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={`${state === 'collapsed' ? 'w-16' : 'w-64'} mobile-dropdown safe-top`}>
-      <div className="flex items-center justify-between p-4 border-b border-border touch-target">
+      <div className="flex items-center justify-between mobile-card-padding lg:p-4 border-b border-border touch-target">
         {state !== 'collapsed' && (
           <div className="flex flex-col">
-            <h2 className="text-lg font-semibold text-foreground">Oficina Check</h2>
-            <p className="text-xs text-muted-foreground">Sistema de Gestão</p>
+            <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground">Oficina Check</h2>
+            <p className="mobile-text-xs lg:text-xs text-muted-foreground">Sistema de Gestão</p>
           </div>
         )}
         <SidebarTrigger className="ml-auto touch-target" />
@@ -76,16 +76,16 @@ export function AppSidebar() {
       <SidebarContent>
         {/* User Info */}
         {state !== 'collapsed' && (
-          <div className="p-4 border-b border-border">
+          <div className="mobile-card-padding lg:p-4 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+              <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center mobile-text-xs lg:text-sm font-medium">
                 {profile?.full_name?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
+                <p className="mobile-text-sm lg:text-sm font-medium text-foreground truncate">
                   {profile?.full_name || 'Usuário'}
                 </p>
-                <p className="text-xs text-muted-foreground capitalize">
+                <p className="mobile-text-xs lg:text-xs text-muted-foreground capitalize">
                   {profile?.role || 'usuário'}
                 </p>
               </div>
@@ -111,8 +111,8 @@ export function AppSidebar() {
                     <item.icon className="h-4 w-4 flex-shrink-0" />
                     {state !== 'collapsed' && (
                       <div className="flex flex-col items-start ml-2">
-                        <span className="text-sm font-medium">{item.title}</span>
-                        <span className="text-xs opacity-70 hidden lg:block">{item.description}</span>
+                        <span className="mobile-text-sm lg:text-sm font-medium">{item.title}</span>
+                        <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">{item.description}</span>
                       </div>
                     )}
                   </SidebarMenuButton>

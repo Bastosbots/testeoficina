@@ -15,12 +15,12 @@ export function Layout({ children }: LayoutProps) {
         
         <main className="flex-1 overflow-hidden">
           {/* Mobile Header - Visible only on mobile */}
-          <header className="lg:hidden h-14 flex items-center justify-between px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 safe-top touch-target">
+          <header className="lg:hidden mobile-header-height flex items-center justify-between mobile-card-padding border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 safe-top touch-target">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="p-2 touch-target">
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4" />
               </SidebarTrigger>
-              <h1 className="text-lg font-semibold truncate">Oficina Check</h1>
+              <h1 className="mobile-text-lg font-semibold truncate">Oficina Check</h1>
             </div>
           </header>
 

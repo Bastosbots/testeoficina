@@ -100,6 +100,29 @@ All colors MUST be HSL.
 
 /* Mobile-first responsive utilities for optimal Apple and Android experience */
 @layer utilities {
+  /* Mobile font sizing - smaller fonts for better mobile UX */
+  .mobile-text-xs { font-size: 0.65rem; line-height: 0.875rem; }
+  .mobile-text-sm { font-size: 0.75rem; line-height: 1rem; }
+  .mobile-text-base { font-size: 0.8rem; line-height: 1.125rem; }
+  .mobile-text-lg { font-size: 0.9rem; line-height: 1.25rem; }
+  .mobile-text-xl { font-size: 1rem; line-height: 1.375rem; }
+  .mobile-text-2xl { font-size: 1.125rem; line-height: 1.5rem; }
+  .mobile-text-3xl { font-size: 1.25rem; line-height: 1.625rem; }
+  
+  /* Mobile component sizing */
+  .mobile-btn-sm { 
+    @apply h-8 px-2 text-xs;
+  }
+  .mobile-btn { 
+    @apply h-9 px-3 text-sm;
+  }
+  .mobile-card-padding { 
+    @apply p-3;
+  }
+  .mobile-header-height { 
+    @apply h-12;
+  }
+
   /* Touch-friendly sizing */
   .touch-target {
     @apply min-h-11 min-w-11;

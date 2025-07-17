@@ -87,18 +87,18 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Painel do Mecânico</h1>
-            <p className="text-muted-foreground">Bem-vindo, {currentUser}</p>
+            <h1 className="mobile-text-2xl lg:text-2xl font-bold text-foreground">Painel do Mecânico</h1>
+            <p className="mobile-text-sm lg:text-base text-muted-foreground">Bem-vindo, {currentUser}</p>
           </div>
           <div className="flex items-center gap-4">
             <Button 
               onClick={() => setActiveView('new-checklist')}
-              className="flex items-center gap-2"
+              className="mobile-btn lg:flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
               Novo Checklist
             </Button>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleLogout} className="mobile-btn lg:flex items-center gap-2">
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
@@ -153,7 +153,7 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
               {myChecklists.map((checklist) => (
                 <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-foreground">
+                    <h3 className="mobile-text-base lg:text-lg font-semibold text-foreground">
                       {checklist.vehicle_name} - {checklist.plate}
                     </h3>
                     <div className="flex items-center gap-2">
@@ -170,19 +170,19 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewChecklist(checklist)}
-                          className="flex items-center gap-1"
+                          className="mobile-btn-sm lg:flex items-center gap-1"
                         >
-                          <Eye className="h-4 w-4" />
-                          Ver
+                          <Eye className="h-3 w-3 lg:h-4 lg:w-4" />
+                          <span className="hidden lg:inline">Ver</span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditChecklist(checklist)}
-                          className="flex items-center gap-1"
+                          className="mobile-btn-sm lg:flex items-center gap-1"
                         >
-                          <Edit className="h-4 w-4" />
-                          Editar
+                          <Edit className="h-3 w-3 lg:h-4 lg:w-4" />
+                          <span className="hidden lg:inline">Editar</span>
                         </Button>
                       </div>
                       
@@ -192,17 +192,17 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewChecklist(checklist)}
-                          className="px-2"
+                          className="mobile-btn-sm"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditChecklist(checklist)}
-                          className="px-2"
+                          className="mobile-btn-sm"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
@@ -223,7 +223,7 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                   </div>
 
                   {/* Mobile: Apenas informações essenciais */}
-                  <div className="md:hidden space-y-1 text-sm text-muted-foreground">
+                  <div className="md:hidden space-y-1 mobile-text-sm text-muted-foreground">
                     <p><strong>Cliente:</strong> {checklist.customer_name}</p>
                     <p><strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>
                   </div>

@@ -161,16 +161,16 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Painel Administrativo</h1>
-            <p className="text-muted-foreground">Bem-vindo, {currentUser}</p>
-          </div>
+        <div>
+          <h1 className="mobile-text-2xl lg:text-2xl font-bold text-foreground">Painel Administrativo</h1>
+          <p className="mobile-text-sm lg:text-base text-muted-foreground">Bem-vindo, {currentUser}</p>
+        </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={handleExportAll} className="flex items-center gap-2">
               <Download className="h-4 w-4" />
               Exportar Todos
             </Button>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleLogout} className="mobile-btn lg:flex items-center gap-2">
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
