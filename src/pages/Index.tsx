@@ -1,14 +1,12 @@
 
 import React from 'react';
 import { useAuth } from "@/hooks/useAuth";
-import { useSystemSettings } from '@/hooks/useSystemSettings';
 import AdminDashboard from "@/components/AdminDashboard";
 import MechanicDashboard from "@/components/MechanicDashboard";
 import Auth from "./Auth";
 
 const Index = () => {
   const { user, profile, loading } = useAuth();
-  const { data: settings } = useSystemSettings();
 
   console.log('Index component - loading:', loading, 'user:', user, 'profile:', profile);
 
@@ -38,13 +36,11 @@ const Index = () => {
     <AdminDashboard 
       currentUser={profile.full_name || 'Admin'} 
       onLogout={handleLogout}
-      systemSettings={settings}
     />
   ) : (
     <MechanicDashboard 
       currentUser={profile.full_name || 'Mecânico'} 
       onLogout={handleLogout}
-      systemSettings={settings}
     />
   );
 };
