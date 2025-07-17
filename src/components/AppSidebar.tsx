@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
@@ -89,11 +88,15 @@ export function AppSidebar() {
 
   const handleLogout = async () => {
     try {
+      console.log('Botão de logout clicado');
+      toast.info('Fazendo logout...');
       await signOut();
-      toast.success('Logout realizado com sucesso!');
-      navigate('/auth');
+      // O redirecionamento é feito dentro da função signOut
     } catch (error) {
+      console.error('Erro no handleLogout:', error);
       toast.error('Erro ao fazer logout');
+      // Em caso de erro, redirecionar mesmo assim
+      window.location.href = '/auth';
     }
   };
 

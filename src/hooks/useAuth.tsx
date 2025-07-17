@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, []); // Removida a dependência [user] que causava o loop infinito
+  }, []);
 
   const signIn = async (username: string, password: string) => {
     try {
@@ -158,33 +158,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      console.log('Signing out user');
+      console.log('Iniciando processo de logout');
       
-      // Limpar estados locais imediatamente
+      // Limpar estados locais primeiro
+      setLoading(true);
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      
+      // Limpar localStorage manualmente para garantir
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-lkfglhtrfoafuahckmsg-auth-token');
+      
+      // Tentar fazer logout no Supabase (mesmo que falhe, continuamos)
+      try {
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        if (error) {
+          console.warn('Erro ao fazer logout no Supabase (continuando mesmo assim):', error);
+        } else {
+          console.log('Logout no Supabase realizado com sucesso');
+        }
+      } catch (supabaseError) {
+        console.warn('Exceção ao fazer logout no Supabase (continuando mesmo assim):', supabaseError);
+      }
+      
+      // Garantir que todos os estados estão limpos
+      setLoading(false);
+      
+      console.log('Logout local concluído, redirecionando para página de login');
+      
+      // Redirecionar para a página de login em vez de recarregar
+      window.location.href = '/auth';
+      
+    } catch (err) {
+      console.error('Erro geral durante logout:', err);
+      
+      // Em caso de erro, limpar tudo e redirecionar mesmo assim
       setUser(null);
       setSession(null);
       setProfile(null);
       setLoading(false);
       
-      // Fazer logout no Supabase
-      const { error } = await supabase.auth.signOut();
+      // Limpar localStorage manualmente
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-lkfglhtrfoafuahckmsg-auth-token');
       
-      if (error) {
-        console.error('Error signing out:', error);
-        // Mesmo com erro, mantenha os estados limpos
-      } else {
-        console.log('Successfully signed out');
-      }
-      
-      // Garantir que a página seja recarregada para limpar qualquer estado residual
-      window.location.reload();
-    } catch (err) {
-      console.error('Exception during signOut:', err);
-      // Mesmo com exceção, limpar estados e recarregar
-      setUser(null);
-      setSession(null);
-      setProfile(null);
-      window.location.reload();
+      window.location.href = '/auth';
     }
   };
 
