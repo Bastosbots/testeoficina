@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
+import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, ScrollText } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -53,6 +52,12 @@ const adminNavigation = [
     icon: ExternalLink,
     description: 'Retornar ao sistema principal de gestão',
     external: true
+  },
+  {
+    title: 'Logs do Sistema',
+    url: '/logs',
+    icon: ScrollText,
+    description: 'Auditoria e controle de ações'
   },
   {
     title: 'Configurações',
