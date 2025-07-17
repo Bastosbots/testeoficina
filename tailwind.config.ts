@@ -12,10 +12,26 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: {
+				DEFAULT: '1rem',
+				sm: '1.5rem',
+				lg: '2rem',
+			},
 			screens: {
 				'2xl': '1400px'
 			}
+		},
+		screens: {
+			'xs': '375px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
+			// Device-specific breakpoints
+			'mobile': { 'max': '767px' },
+			'tablet': { 'min': '768px', 'max': '1023px' },
+			'desktop': { 'min': '1024px' },
 		},
 		extend: {
 			colors: {
@@ -89,6 +105,22 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			// Mobile-first spacing
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
+			// Touch-friendly minimum sizes
+			minHeight: {
+				'touch': '44px', // iOS recommended touch target
+				'touch-android': '48px', // Android recommended touch target
+			},
+			minWidth: {
+				'touch': '44px',
+				'touch-android': '48px',
 			}
 		}
 	},
