@@ -1,26 +1,25 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export const useVehicles = () => {
+export const useProfiles = () => {
   const queryClient = useQueryClient();
 
   // Configurar listener de realtime
   useEffect(() => {
     const channel = supabase
-      .channel('vehicles-changes')
+      .channel('profiles-list-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'vehicles'
+          table: 'profiles'
         },
         (payload) => {
-          console.log('Realtime vehicle change:', payload);
-          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+          console.log('Realtime profiles change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['profiles'] });
         }
       )
       .subscribe();
@@ -31,10 +30,10 @@ export const useVehicles = () => {
   }, [queryClient]);
 
   return useQuery({
-    queryKey: ['vehicles'],
+    queryKey: ['profiles'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('vehicles')
+        .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -44,37 +43,13 @@ export const useVehicles = () => {
   });
 };
 
-export const useCreateVehicle = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (vehicleData: any) => {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .insert([vehicleData])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Veículo criado com sucesso!');
-    },
-    onError: (error: any) => {
-      toast.error('Erro ao criar veículo: ' + error.message);
-    },
-  });
-};
-
-export const useUpdateVehicle = () => {
+export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ id, ...updateData }: any) => {
       const { data, error } = await supabase
-        .from('vehicles')
+        .from('profiles')
         .update(updateData)
         .eq('id', id)
         .select()
@@ -84,11 +59,11 @@ export const useUpdateVehicle = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Veículo atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast.success('Perfil atualizado com sucesso!');
     },
     onError: (error: any) => {
-      toast.error('Erro ao atualizar veículo: ' + error.message);
+      toast.error('Erro ao atualizar perfil: ' + error.message);
     },
   });
 };

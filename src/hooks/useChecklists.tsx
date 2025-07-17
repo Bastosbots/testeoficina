@@ -1,9 +1,35 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const useChecklists = () => {
+  const queryClient = useQueryClient();
+
+  // Configurar listener de realtime
+  useEffect(() => {
+    const channel = supabase
+      .channel('checklists-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'checklists'
+        },
+        (payload) => {
+          console.log('Realtime checklist change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['checklists'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['checklists'],
     queryFn: async () => {

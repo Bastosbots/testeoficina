@@ -9,8 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Users, Shield, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useProfiles } from "@/hooks/useProfiles";
 
 const UserManagement = () => {
   const { signUp, profile } = useAuth();
@@ -23,20 +22,8 @@ const UserManagement = () => {
     role: 'mechanic'
   });
 
-  // Buscar todos os usuários (apenas visível para admins)
-  const { data: users = [], refetch } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: profile?.role === 'admin'
-  });
+  // Buscar todos os usuários usando o hook com realtime
+  const { data: users = [] } = useProfiles();
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +43,7 @@ const UserManagement = () => {
         toast.success('Usuário criado com sucesso!');
         setNewUser({ username: '', password: '', fullName: '', role: 'mechanic' });
         setIsDialogOpen(false);
-        refetch();
+        // O realtime vai atualizar automaticamente a lista
       }
     } catch (err) {
       toast.error('Erro interno do servidor');

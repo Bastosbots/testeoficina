@@ -69,6 +69,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // Set up realtime listener for profiles
+    const profileChannel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Realtime profile change:', payload);
+          // Se a mudança é no perfil do usuário atual, atualizar
+          if (user && payload.new && (payload.new as any)?.id === user.id) {
+            setProfile(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
@@ -82,8 +102,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
+      supabase.removeChannel(profileChannel);
     };
-  }, []);
+  }, [user]);
 
   const signIn = async (username: string, password: string) => {
     try {

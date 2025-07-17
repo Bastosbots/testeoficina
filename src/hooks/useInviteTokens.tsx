@@ -1,26 +1,25 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export const useVehicles = () => {
+export const useInviteTokens = () => {
   const queryClient = useQueryClient();
 
   // Configurar listener de realtime
   useEffect(() => {
     const channel = supabase
-      .channel('vehicles-changes')
+      .channel('invite-tokens-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'vehicles'
+          table: 'invite_tokens'
         },
         (payload) => {
-          console.log('Realtime vehicle change:', payload);
-          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+          console.log('Realtime invite token change:', payload);
+          queryClient.invalidateQueries({ queryKey: ['invite-tokens'] });
         }
       )
       .subscribe();
@@ -31,10 +30,10 @@ export const useVehicles = () => {
   }, [queryClient]);
 
   return useQuery({
-    queryKey: ['vehicles'],
+    queryKey: ['invite-tokens'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('vehicles')
+        .from('invite_tokens')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -44,14 +43,14 @@ export const useVehicles = () => {
   });
 };
 
-export const useCreateVehicle = () => {
+export const useCreateInviteToken = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (vehicleData: any) => {
+    mutationFn: async (tokenData: any) => {
       const { data, error } = await supabase
-        .from('vehicles')
-        .insert([vehicleData])
+        .from('invite_tokens')
+        .insert([tokenData])
         .select()
         .single();
       
@@ -59,36 +58,33 @@ export const useCreateVehicle = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Veículo criado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['invite-tokens'] });
+      toast.success('Token de convite criado com sucesso!');
     },
     onError: (error: any) => {
-      toast.error('Erro ao criar veículo: ' + error.message);
+      toast.error('Erro ao criar token: ' + error.message);
     },
   });
 };
 
-export const useUpdateVehicle = () => {
+export const useDeleteInviteToken = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...updateData }: any) => {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('invite_tokens')
+        .delete()
+        .eq('id', id);
       
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success('Veículo atualizado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['invite-tokens'] });
+      toast.success('Token deletado com sucesso!');
     },
     onError: (error: any) => {
-      toast.error('Erro ao atualizar veículo: ' + error.message);
+      toast.error('Erro ao deletar token: ' + error.message);
     },
   });
 };

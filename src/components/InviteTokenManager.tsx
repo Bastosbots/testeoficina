@@ -8,18 +8,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Copy, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInviteTokens, useCreateInviteToken, useDeleteInviteToken } from "@/hooks/useInviteTokens";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const InviteTokenManager = () => {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [expirationDays, setExpirationDays] = useState(7);
 
-  // Buscar tokens existentes
+  // Usar hooks com realtime
+  const createTokenMutation = useCreateInviteToken();
+  const deleteTokenMutation = useDeleteInviteToken();
+
+  // Buscar tokens com perfis relacionados
   const { data: tokens = [] } = useQuery({
-    queryKey: ['invite-tokens'],
+    queryKey: ['invite-tokens-with-profiles'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('invite_tokens')
@@ -36,36 +40,20 @@ const InviteTokenManager = () => {
     enabled: profile?.role === 'admin'
   });
 
-  // Gerar novo token
-  const generateTokenMutation = useMutation({
-    mutationFn: async (expirationDays: number) => {
-      const token = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + expirationDays);
-
-      const { error } = await supabase
-        .from('invite_tokens')
-        .insert({
-          token,
-          created_by: profile?.id,
-          expires_at: expiresAt.toISOString()
-        });
-
-      if (error) throw error;
-      return token;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invite-tokens'] });
-      toast.success('Token de convite gerado com sucesso!');
-      setIsDialogOpen(false);
-    },
-    onError: () => {
-      toast.error('Erro ao gerar token de convite');
-    }
-  });
-
   const handleGenerateToken = () => {
-    generateTokenMutation.mutate(expirationDays);
+    const token = crypto.randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + expirationDays);
+
+    createTokenMutation.mutate({
+      token,
+      created_by: profile?.id,
+      expires_at: expiresAt.toISOString()
+    });
+    
+    if (!createTokenMutation.isError) {
+      setIsDialogOpen(false);
+    }
   };
 
   const copyInviteLink = (token: string) => {
@@ -130,9 +118,9 @@ const InviteTokenManager = () => {
                   </Button>
                   <Button 
                     onClick={handleGenerateToken} 
-                    disabled={generateTokenMutation.isPending}
+                    disabled={createTokenMutation.isPending}
                   >
-                    {generateTokenMutation.isPending ? "Gerando..." : "Gerar Token"}
+                    {createTokenMutation.isPending ? "Gerando..." : "Gerar Token"}
                   </Button>
                 </div>
               </div>

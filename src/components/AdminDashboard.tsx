@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useChecklists, useDeleteChecklist } from "@/hooks/useChecklists";
+import { useVehicles } from "@/hooks/useVehicles";
 import UserManagement from "@/components/UserManagement";
 import InviteTokenManager from "@/components/InviteTokenManager";
 import ChecklistViewer from "@/components/ChecklistViewer";
