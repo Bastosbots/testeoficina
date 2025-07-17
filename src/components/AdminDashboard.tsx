@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,8 @@ import {
   FileText, 
   Users, 
   Eye,
-  UserPlus
+  UserPlus,
+  ArrowLeft
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -124,11 +126,53 @@ const AdminDashboard = () => {
   });
 
   if (showUserManagement) {
-    return <UserManagement onBack={() => setShowUserManagement(false)} />;
+    return (
+      <div className="lg:zoom-90 min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUserManagement(false)}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <UserManagement />
+        </div>
+      </div>
+    );
   }
 
   if (showInviteTokens) {
-    return <InviteTokenManager onBack={() => setShowInviteTokens(false)} />;
+    return (
+      <div className="lg:zoom-90 min-h-screen bg-gray-50">
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowInviteTokens(false)}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <InviteTokenManager />
+        </div>
+      </div>
+    );
   }
 
   return (
