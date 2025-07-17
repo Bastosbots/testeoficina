@@ -14,7 +14,6 @@ import {
   Save, 
   CheckCircle, 
   AlertCircle,
-  Video,
   FileText
 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,15 +31,10 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
   
   const [vehicleData, setVehicleData] = useState({
     vehicleName: '',
+    vehicleColor: '',
     plate: '',
     customerName: '',
-    serviceOrder: '',
     priority: 'Média'
-  });
-
-  const [formData, setFormData] = useState({
-    generalObservations: '',
-    videoUrl: '',
   });
 
   const [checklistItems] = useState([
@@ -81,7 +75,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
     }
 
     // Validar dados do veículo
-    if (!vehicleData.vehicleName || !vehicleData.plate || !vehicleData.customerName || !vehicleData.serviceOrder) {
+    if (!vehicleData.vehicleName || !vehicleData.vehicleColor || !vehicleData.plate || !vehicleData.customerName) {
       toast.error('Preencha todos os dados obrigatórios do veículo!');
       return;
     }
@@ -96,13 +90,13 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
     try {
       const checklistData = {
         mechanic_id: user.id,
-        vehicle_name: vehicleData.vehicleName,
+        vehicle_name: `${vehicleData.vehicleName} - ${vehicleData.vehicleColor}`,
         plate: vehicleData.plate,
         customer_name: vehicleData.customerName,
-        service_order: vehicleData.serviceOrder,
+        service_order: 'N/A',
         priority: vehicleData.priority,
-        general_observations: formData.generalObservations || null,
-        video_url: formData.videoUrl || null,
+        general_observations: null,
+        video_url: null,
         completed_at: new Date().toISOString()
       };
 
@@ -269,6 +263,16 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                   />
                 </div>
                 <div>
+                  <Label htmlFor="vehicle-color">Cor do Veículo *</Label>
+                  <Input
+                    id="vehicle-color"
+                    value={vehicleData.vehicleColor}
+                    onChange={(e) => setVehicleData(prev => ({ ...prev, vehicleColor: e.target.value }))}
+                    placeholder="Ex: Prata, Preto, Branco"
+                    required
+                  />
+                </div>
+                <div>
                   <Label htmlFor="plate">Placa *</Label>
                   <Input
                     id="plate"
@@ -289,17 +293,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                   />
                 </div>
                 <div>
-                  <Label htmlFor="service-order">Ordem de Serviço *</Label>
-                  <Input
-                    id="service-order"
-                    value={vehicleData.serviceOrder}
-                    onChange={(e) => setVehicleData(prev => ({ ...prev, serviceOrder: e.target.value }))}
-                    placeholder="OS-001"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="priority">Prioridade</Label>
+                  <Label htmlFor="priority">Prioridade *</Label>
                   <Select value={vehicleData.priority} onValueChange={(value) => setVehicleData(prev => ({ ...prev, priority: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -314,46 +308,6 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
               </CardContent>
             </Card>
 
-            {/* General Observations */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Observações Gerais</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Descreva observações gerais sobre o veículo, problemas encontrados, recomendações, etc..."
-                  value={formData.generalObservations}
-                  onChange={(e) => setFormData(prev => ({ ...prev, generalObservations: e.target.value }))}
-                  rows={5}
-                  className="w-full"
-                />
-              </CardContent>
-            </Card>
-
-            {/* Video URL */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5 text-primary" />
-                  Vídeo (Opcional)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <Label htmlFor="video-url" className="text-sm font-medium">
-                    Link do Vídeo (YouTube, Google Drive, etc.)
-                  </Label>
-                  <Input
-                    id="video-url"
-                    type="url"
-                    placeholder="https://..."
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
-                    className="mt-2"
-                  />
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
