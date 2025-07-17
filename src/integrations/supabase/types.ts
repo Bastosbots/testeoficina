@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      budget_items: {
+        Row: {
+          budget_id: string
+          created_at: string
+          id: string
+          quantity: number
+          service_category: string
+          service_name: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          budget_id: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          service_category: string
+          service_name: string
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          budget_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          service_category?: string
+          service_name?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          budget_number: string
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          discount_amount: number | null
+          final_amount: number
+          id: string
+          mechanic_id: string
+          observations: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+          vehicle_name: string
+          vehicle_plate: string
+          vehicle_year: string | null
+        }
+        Insert: {
+          budget_number: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          discount_amount?: number | null
+          final_amount?: number
+          id?: string
+          mechanic_id: string
+          observations?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          vehicle_name: string
+          vehicle_plate: string
+          vehicle_year?: string | null
+        }
+        Update: {
+          budget_number?: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          discount_amount?: number | null
+          final_amount?: number
+          id?: string
+          mechanic_id?: string
+          observations?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          vehicle_name?: string
+          vehicle_plate?: string
+          vehicle_year?: string | null
+        }
+        Relationships: []
+      }
       checklist_items: {
         Row: {
           category: string
@@ -266,6 +367,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_budget_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       save_checklist_items: {
         Args: { p_checklist_id: string; p_items: Json }
         Returns: undefined

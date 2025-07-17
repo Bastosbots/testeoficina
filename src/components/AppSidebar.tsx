@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Settings, LogOut, Menu, Cog } from 'lucide-react';
+import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +30,12 @@ const navigation = [
     url: '/checklists',
     icon: FileText,
     description: 'Arquivo de todos os checklists'
+  },
+  {
+    title: 'Orçamentos',
+    url: '/budgets',
+    icon: DollarSign,
+    description: 'Gestão de orçamentos'
   },
   {
     title: 'Tabela de Serviços',
