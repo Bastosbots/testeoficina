@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Plus, FileText, Clock, Eye, Edit } from "lucide-react";
+import { LogOut, Plus, FileText, Clock, Eye, Edit, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useChecklists } from "@/hooks/useChecklists";
+import { useChecklists, useUpdateChecklist } from "@/hooks/useChecklists";
 import CreateChecklistForm from "@/components/CreateChecklistForm";
 import ChecklistViewer from "@/components/ChecklistViewer";
 import EditChecklistForm from "@/components/EditChecklistForm";
@@ -14,6 +14,7 @@ import EditChecklistForm from "@/components/EditChecklistForm";
 const MechanicDashboard = () => {
   const { signOut, user, profile } = useAuth();
   const { data: checklists = [] } = useChecklists();
+  const updateChecklistMutation = useUpdateChecklist();
   const [activeView, setActiveView] = useState<'dashboard' | 'new-checklist' | 'view-checklist' | 'edit-checklist'>('dashboard');
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
 
@@ -21,6 +22,22 @@ const MechanicDashboard = () => {
   const myChecklists = checklists.filter(c => c.mechanic_id === user?.id);
   const completedChecklists = myChecklists.filter(c => c.status === 'Concluído');
   const pendingChecklists = myChecklists.filter(c => c.status === 'Pendente');
+
+  const handleCompleteChecklist = async (checklist: any) => {
+    try {
+      await updateChecklistMutation.mutateAsync({
+        id: checklist.id,
+        updateData: {
+          status: 'Concluído',
+          completed_at: new Date().toISOString()
+        }
+      });
+      toast.success('Checklist concluído com sucesso!');
+    } catch (error) {
+      console.error('Error completing checklist:', error);
+      toast.error('Erro ao concluir checklist');
+    }
+  };
 
   const handleViewChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
@@ -155,7 +172,7 @@ const MechanicDashboard = () => {
                     <h3 className="mobile-text-sm lg:text-lg font-semibold text-foreground truncate flex-1 mr-2">
                       {checklist.vehicle_name} - {checklist.plate}
                     </h3>
-                    <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0 flex-wrap">
                       <Badge 
                         variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}
                         className="mobile-text-xs lg:text-xs px-1 lg:px-2 py-0.5"
@@ -171,6 +188,18 @@ const MechanicDashboard = () => {
                       
                       {/* Botões de ação compactos */}
                       <div className="flex items-center gap-1">
+                        {checklist.status === 'Pendente' && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleCompleteChecklist(checklist)}
+                            disabled={updateChecklistMutation.isPending}
+                            className="mobile-btn-sm lg:h-8 lg:px-2 flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="h-3 w-3" />
+                            <span className="hidden lg:inline mobile-text-xs">Concluir</span>
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
