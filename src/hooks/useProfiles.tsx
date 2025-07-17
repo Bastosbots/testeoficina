@@ -51,13 +51,34 @@ export const useUpdateProfile = () => {
     mutationFn: async ({ id, ...updateData }: any) => {
       console.log('Updating profile with ID:', id, 'Data:', updateData);
       
-      // Fazer a atualização diretamente sem verificações desnecessárias
+      // Primeiro vamos verificar quantos registros existem com esse ID
+      const { data: checkData, error: checkError, count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact' })
+        .eq('id', id);
+      
+      console.log('Profile check - Count:', count, 'Data:', checkData, 'Error:', checkError);
+      
+      if (checkError) {
+        console.error('Error checking profile:', checkError);
+        throw checkError;
+      }
+      
+      if (count === 0) {
+        throw new Error('Perfil não encontrado');
+      }
+      
+      if (count && count > 1) {
+        console.error('Multiple profiles found with same ID:', count);
+        throw new Error('Múltiplos perfis encontrados com o mesmo ID');
+      }
+      
+      // Agora fazer o update sem usar .single() para evitar o erro
       const { data, error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', id)
-        .select('*')
-        .single();
+        .select('*');
       
       console.log('Update result:', { data, error });
       
@@ -66,12 +87,16 @@ export const useUpdateProfile = () => {
         throw error;
       }
       
-      if (!data) {
-        throw new Error('Erro ao atualizar: nenhum dado retornado');
+      if (!data || data.length === 0) {
+        throw new Error('Nenhuma linha foi atualizada');
       }
       
-      console.log('Profile updated successfully:', data);
-      return data;
+      if (data.length > 1) {
+        console.warn('Multiple rows updated:', data.length);
+      }
+      
+      console.log('Profile updated successfully:', data[0]);
+      return data[0]; // Retornar o primeiro registro
     },
     onSuccess: (data) => {
       console.log('Mutation success, invalidating queries');
