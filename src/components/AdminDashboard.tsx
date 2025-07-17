@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -123,6 +124,32 @@ const AdminDashboard = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  // Render ChecklistViewer as a separate page
+  if (checklistViewerOpen && selectedChecklist) {
+    return (
+      <ChecklistViewer
+        checklist={selectedChecklist}
+        onBack={() => {
+          setChecklistViewerOpen(false);
+          setSelectedChecklist(null);
+        }}
+      />
+    );
+  }
+
+  // Render BudgetViewer as a separate page
+  if (budgetViewerOpen && selectedBudget) {
+    return (
+      <BudgetViewer
+        budget={selectedBudget}
+        onBack={() => {
+          setBudgetViewerOpen(false);
+          setSelectedBudget(null);
+        }}
+      />
+    );
+  }
 
   if (showUserManagement) {
     return (
@@ -430,21 +457,6 @@ const AdminDashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Modals */}
-        {checklistViewerOpen && selectedChecklist && (
-          <ChecklistViewer
-            checklist={selectedChecklist}
-            onBack={() => setChecklistViewerOpen(false)}
-          />
-        )}
-
-        {budgetViewerOpen && selectedBudget && (
-          <BudgetViewer
-            budget={selectedBudget}
-            onBack={() => setBudgetViewerOpen(false)}
-          />
-        )}
       </div>
     </div>
   );
