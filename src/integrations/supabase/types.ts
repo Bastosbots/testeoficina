@@ -177,6 +177,51 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          company_address: string | null
+          company_cnpj: string | null
+          company_email: string | null
+          company_logo_url: string | null
+          company_name: string | null
+          company_phone: string | null
+          company_website: string | null
+          created_at: string | null
+          id: string
+          system_description: string | null
+          system_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_address?: string | null
+          company_cnpj?: string | null
+          company_email?: string | null
+          company_logo_url?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          company_website?: string | null
+          created_at?: string | null
+          id?: string
+          system_description?: string | null
+          system_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_address?: string | null
+          company_cnpj?: string | null
+          company_email?: string | null
+          company_logo_url?: string | null
+          company_name?: string | null
+          company_phone?: string | null
+          company_website?: string | null
+          created_at?: string | null
+          id?: string
+          system_description?: string | null
+          system_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           created_at: string | null

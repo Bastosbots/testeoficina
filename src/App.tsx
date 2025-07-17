@@ -7,6 +7,7 @@ import { Layout } from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import AllChecklists from "@/pages/AllChecklists";
 import ServicesTable from "@/pages/ServicesTable";
+import SystemSettings from "@/pages/SystemSettings";
 import Auth from "@/pages/Auth";
 import Signup from "@/pages/Signup";
 import Register from "@/pages/Register";
@@ -56,6 +57,11 @@ function App() {
               <Route path="/services" element={
                 <ProtectedRoute>
                   <ServicesTable />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <SystemSettings />
                 </ProtectedRoute>
               } />
               <Route path="/auth" element={<Auth />} />

@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Settings, LogOut, Menu } from 'lucide-react';
+import { Home, FileText, Settings, LogOut, Menu, Cog } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -35,6 +36,15 @@ const navigation = [
     url: '/services',
     icon: Settings,
     description: 'Serviços e preços da oficina'
+  }
+];
+
+const adminNavigation = [
+  {
+    title: 'Configurações',
+    url: '/settings',
+    icon: Cog,
+    description: 'Configurações do sistema'
   }
 ];
 
@@ -121,6 +131,37 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Admin Navigation */}
+        {profile?.role === 'admin' && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNavigation.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => navigate(item.url)}
+                      className={`w-full justify-start touch-target ${
+                        isActive(item.url) 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {state !== 'collapsed' && (
+                        <div className="flex flex-col items-start ml-2">
+                          <span className="mobile-text-sm lg:text-sm font-medium">{item.title}</span>
+                          <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">{item.description}</span>
+                        </div>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         <div className="mt-auto p-4 border-t border-border safe-bottom">
           <Button
