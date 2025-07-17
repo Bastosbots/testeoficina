@@ -12,16 +12,18 @@ import {
   Users, 
   Eye,
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
+  CheckCircle,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useChecklists } from '@/hooks/useChecklists';
+import { useChecklists, useUpdateChecklist } from '@/hooks/useChecklists';
 import ChecklistViewer from './ChecklistViewer';
 import BudgetViewer from './BudgetViewer';
 import UserManagement from './UserManagement';
 import InviteTokenManager from './InviteTokenManager';
-import { useBudgets } from '@/hooks/useBudgets';
+import { useBudgets, useUpdateBudget } from '@/hooks/useBudgets';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -29,6 +31,8 @@ const AdminDashboard = () => {
   const { data: checklists, isLoading: checklistsLoading } = useChecklists();
   const { data: budgets, isLoading: budgetsLoading } = useBudgets();
   const { signOut } = useAuth();
+  const updateChecklist = useUpdateChecklist();
+  const updateBudget = useUpdateBudget();
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
   const [selectedBudget, setSelectedBudget] = useState<any>(null);
   const [showUserManagement, setShowUserManagement] = useState(false);
@@ -62,6 +66,48 @@ const AdminDashboard = () => {
   const handleViewBudget = (budget: any) => {
     setSelectedBudget(budget);
     setBudgetViewerOpen(true);
+  };
+
+  const handleCompleteChecklist = async (checklistId: string) => {
+    try {
+      await updateChecklist.mutateAsync({
+        id: checklistId,
+        updateData: { 
+          status: 'Concluído',
+          completed_at: new Date().toISOString()
+        }
+      });
+      toast.success('Checklist concluído com sucesso!');
+    } catch (error) {
+      console.error('Erro ao concluir checklist:', error);
+      toast.error('Erro ao concluir checklist');
+    }
+  };
+
+  const handleApproveBudget = async (budgetId: string) => {
+    try {
+      await updateBudget.mutateAsync({
+        id: budgetId,
+        status: 'Aprovado'
+      });
+      toast.success('Orçamento aprovado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao aprovar orçamento:', error);
+      toast.error('Erro ao aprovar orçamento');
+    }
+  };
+
+  const handleRejectBudget = async (budgetId: string) => {
+    try {
+      await updateBudget.mutateAsync({
+        id: budgetId,
+        status: 'Rejeitado'
+      });
+      toast.success('Orçamento rejeitado');
+    } catch (error) {
+      console.error('Erro ao rejeitar orçamento:', error);
+      toast.error('Erro ao rejeitar orçamento');
+    }
   };
 
   const handleSignOut = async () => {
@@ -391,7 +437,7 @@ const AdminDashboard = () => {
                   {activeView === 'checklists' ? (
                     filteredChecklists?.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                           Nenhum checklist em andamento encontrado
                         </TableCell>
                       </TableRow>
@@ -415,14 +461,26 @@ const AdminDashboard = () => {
                             {format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewChecklist(checklist)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Visualizar
-                            </Button>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewChecklist(checklist)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {checklist.status === 'Em Andamento' && (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => handleCompleteChecklist(checklist.id)}
+                                  disabled={updateChecklist.isPending}
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                  Concluir
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -456,14 +514,38 @@ const AdminDashboard = () => {
                             {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewBudget(budget)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Visualizar
-                            </Button>
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewBudget(budget)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {budget.status === 'Pendente' && (
+                                <>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleApproveBudget(budget.id)}
+                                    disabled={updateBudget.isPending}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    Aprovar
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleRejectBudget(budget.id)}
+                                    disabled={updateBudget.isPending}
+                                  >
+                                    <X className="h-4 w-4" />
+                                    Rejeitar
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
