@@ -23,6 +23,8 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   const canEdit = profile?.role === 'admin' || 
     (profile?.role === 'mechanic' && budget.mechanic_id === profile.id && budget.status === 'Pendente');
 
+  const isAdmin = profile?.role === 'admin';
+
   const generatePDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -449,10 +451,12 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
               <Download className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="ml-1 sm:ml-2">PDF</span>
             </Button>
-            <Button variant="outline" onClick={handlePrint} className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
-              <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="ml-1 sm:ml-2">Imprimir</span>
-            </Button>
+            {isAdmin && (
+              <Button variant="outline" onClick={handlePrint} className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
+                <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="ml-1 sm:ml-2">Imprimir</span>
+              </Button>
+            )}
           </div>
         </div>
 
