@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, Plus, FileText, Clock, Eye } from "lucide-react";
+import { LogOut, Plus, FileText, Clock, Eye, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useChecklists } from "@/hooks/useChecklists";
 import CreateChecklistForm from "@/components/CreateChecklistForm";
 import ChecklistViewer from "@/components/ChecklistViewer";
+import EditChecklistForm from "@/components/EditChecklistForm";
 
 interface MechanicDashboardProps {
   currentUser: string;
@@ -18,7 +19,7 @@ interface MechanicDashboardProps {
 const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) => {
   const { signOut, user } = useAuth();
   const { data: checklists = [] } = useChecklists();
-  const [activeView, setActiveView] = useState<'dashboard' | 'new-checklist' | 'view-checklist'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'new-checklist' | 'view-checklist' | 'edit-checklist'>('dashboard');
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
 
   // Filtrar checklists do mecânico atual
@@ -29,6 +30,11 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
   const handleViewChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
     setActiveView('view-checklist');
+  };
+
+  const handleEditChecklist = (checklist: any) => {
+    setSelectedChecklist(checklist);
+    setActiveView('edit-checklist');
   };
 
   const handleBackToDashboard = () => {
@@ -58,6 +64,19 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
       <ChecklistViewer 
         checklist={selectedChecklist}
         onBack={handleBackToDashboard}
+      />
+    );
+  }
+
+  if (activeView === 'edit-checklist') {
+    return (
+      <EditChecklistForm 
+        checklist={selectedChecklist}
+        onBack={handleBackToDashboard}
+        onSave={() => {
+          handleBackToDashboard();
+          toast.success('Checklist atualizado com sucesso!');
+        }}
       />
     );
   }
@@ -152,6 +171,15 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                       >
                         <Eye className="h-4 w-4" />
                         Ver
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditChecklist(checklist)}
+                        className="flex items-center gap-1"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Editar
                       </Button>
                     </div>
                   </div>
