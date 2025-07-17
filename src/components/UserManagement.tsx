@@ -29,7 +29,6 @@ const UserManagement = () => {
   });
   const [editUser, setEditUser] = useState({
     username: '',
-    fullName: '',
     role: 'mechanic'
   });
   const [passwordData, setPasswordData] = useState({
@@ -74,7 +73,6 @@ const UserManagement = () => {
     setSelectedUser(user);
     setEditUser({
       username: user.username || '',
-      fullName: user.full_name || '',
       role: user.role
     });
     setIsEditDialogOpen(true);
@@ -89,7 +87,6 @@ const UserManagement = () => {
       await updateProfileMutation.mutateAsync({
         id: selectedUser.id,
         username: editUser.username,
-        full_name: editUser.fullName,
         role: editUser.role
       });
       setIsEditDialogOpen(false);
@@ -338,18 +335,6 @@ const UserManagement = () => {
             <DialogTitle>Editar Usuário</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateUser} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="editFullName">Nome Completo</Label>
-              <Input
-                id="editFullName"
-                type="text"
-                placeholder="Nome completo do usuário"
-                value={editUser.fullName}
-                onChange={(e) => setEditUser(prev => ({...prev, fullName: e.target.value}))}
-                required
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="editUsername">Nome de Usuário</Label>
               <Input
