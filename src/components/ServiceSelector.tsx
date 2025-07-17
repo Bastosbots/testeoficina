@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Wrench } from 'lucide-react';
+import { Search, Plus, Wrench, AlertCircle } from 'lucide-react';
 import { useServices, Service } from '@/hooks/useServices';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ServiceSelectorProps {
   onServiceSelect: (service: Service) => void;
@@ -16,19 +17,23 @@ const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data: services = [], isLoading, error } = useServices();
 
-  console.log('ServiceSelector - services:', services);
-  console.log('ServiceSelector - isLoading:', isLoading);
-  console.log('ServiceSelector - error:', error);
+  console.log('ServiceSelector - Estado atual:');
+  console.log('- services:', services);
+  console.log('- isLoading:', isLoading);
+  console.log('- error:', error);
+  console.log('- Total de serviços:', services.length);
 
   const filteredServices = services.filter(service =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.category.toLowerCase().includes(searchTerm.toLowerCase())
+    service.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleServiceSelect = (service: Service) => {
     console.log('Serviço selecionado:', service);
     onServiceSelect(service);
     setOpen(false);
+    setSearchTerm(''); // Limpar busca ao fechar
   };
 
   const groupedServices = filteredServices.reduce((acc, service) => {
@@ -56,7 +61,7 @@ const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Buscar serviços..."
+              placeholder="Buscar serviços por nome, categoria ou descrição..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -67,25 +72,37 @@ const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
             {isLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Carregando serviços...</p>
+                <p className="text-muted-foreground">Carregando serviços cadastrados...</p>
               </div>
             ) : error ? (
-              <div className="text-center py-8 text-red-500">
-                <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Erro ao carregar serviços</p>
-                <p className="text-sm">{error.message}</p>
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Erro ao carregar serviços: {error.message}
+                  <br />
+                  <small>Verifique se existem serviços cadastrados e se você tem permissão para visualizá-los.</small>
+                </AlertDescription>
+              </Alert>
+            ) : services.length === 0 ? (
+              <Alert>
+                <Wrench className="h-4 w-4" />
+                <AlertDescription>
+                  Nenhum serviço cadastrado foi encontrado.
+                  <br />
+                  <small>Entre em contato com a administração para cadastrar novos serviços.</small>
+                </AlertDescription>
+              </Alert>
             ) : Object.keys(groupedServices).length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum serviço encontrado</p>
-                {searchTerm && <p className="text-sm">Tente ajustar o termo de busca</p>}
+                <p className="text-sm">Tente ajustar o termo de busca</p>
               </div>
             ) : (
               Object.entries(groupedServices).map(([category, categoryServices]) => (
                 <div key={category} className="space-y-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                    {category}
+                  <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide border-b pb-1">
+                    {category} ({categoryServices.length})
                   </h3>
                   <div className="space-y-2">
                     {categoryServices.map((service) => (
@@ -115,6 +132,13 @@ const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
               ))
             )}
           </div>
+          
+          {!isLoading && services.length > 0 && (
+            <div className="text-xs text-muted-foreground text-center border-t pt-2">
+              Total: {services.length} serviços cadastrados
+              {searchTerm && ` | Filtrados: ${filteredServices.length}`}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

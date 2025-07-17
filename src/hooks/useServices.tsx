@@ -17,7 +17,8 @@ export const useServices = () => {
   return useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      console.log('Buscando serviços...');
+      console.log('Buscando serviços cadastrados pela administração...');
+      
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -27,11 +28,13 @@ export const useServices = () => {
 
       if (error) {
         console.error('Erro ao buscar serviços:', error);
-        throw error;
+        throw new Error(`Erro ao carregar serviços: ${error.message}`);
       }
       
-      console.log('Serviços encontrados:', data);
+      console.log('Serviços carregados:', data);
       return data as Service[];
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 };
