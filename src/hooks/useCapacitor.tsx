@@ -7,6 +7,13 @@ interface CapacitorInfo {
   isInstalled: boolean;
 }
 
+// Extend the Navigator interface to include the standalone property
+declare global {
+  interface Navigator {
+    standalone?: boolean;
+  }
+}
+
 export const useCapacitor = (): CapacitorInfo => {
   const [capacitorInfo, setCapacitorInfo] = useState<CapacitorInfo>({
     isNative: false,
@@ -24,7 +31,7 @@ export const useCapacitor = (): CapacitorInfo => {
         const platform = Capacitor.getPlatform() as 'web' | 'ios' | 'android';
         
         // Check if app is installed (running as PWA or native app)
-        const isInstalled = window.navigator.standalone === true || 
+        const isInstalled = (window.navigator.standalone === true) || 
                            window.matchMedia('(display-mode: standalone)').matches ||
                            isNative;
 
@@ -35,7 +42,7 @@ export const useCapacitor = (): CapacitorInfo => {
         });
       } catch (error) {
         // Capacitor not available, running as regular web app
-        const isInstalled = window.navigator.standalone === true || 
+        const isInstalled = (window.navigator.standalone === true) || 
                            window.matchMedia('(display-mode: standalone)').matches;
         
         setCapacitorInfo({
