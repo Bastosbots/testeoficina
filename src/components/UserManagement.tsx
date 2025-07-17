@@ -6,20 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Users, Shield, Wrench } from "lucide-react";
+import { Plus, Users, Shield, Wrench, Edit, Key } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfiles } from "@/hooks/useProfiles";
+import { useProfiles, useUpdateProfile } from "@/hooks/useProfiles";
+import { supabase } from '@/integrations/supabase/client';
 
 const UserManagement = () => {
   const { signUp, profile } = useAuth();
+  const updateProfileMutation = useUpdateProfile();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
     username: '',
     password: '',
     fullName: '',
     role: 'mechanic'
+  });
+  const [editUser, setEditUser] = useState({
+    username: '',
+    fullName: '',
+    role: 'mechanic'
+  });
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
   });
 
   // Buscar todos os usuários usando o hook com realtime
@@ -43,7 +57,85 @@ const UserManagement = () => {
         toast.success('Usuário criado com sucesso!');
         setNewUser({ username: '', password: '', fullName: '', role: 'mechanic' });
         setIsDialogOpen(false);
-        // O realtime vai atualizar automaticamente a lista
+      }
+    } catch (err) {
+      toast.error('Erro interno do servidor');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setEditUser({
+      username: user.username || '',
+      fullName: user.full_name || '',
+      role: user.role
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    setLoading(true);
+    try {
+      await updateProfileMutation.mutateAsync({
+        id: selectedUser.id,
+        username: editUser.username,
+        full_name: editUser.fullName,
+        role: editUser.role
+      });
+      setIsEditDialogOpen(false);
+      setSelectedUser(null);
+    } catch (err) {
+      // Error handled by the mutation
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = (user: any) => {
+    setSelectedUser(user);
+    setPasswordData({ newPassword: '', confirmPassword: '' });
+    setIsPasswordDialogOpen(true);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Criar email temporário baseado no username atual
+      const tempEmail = `${selectedUser.username}@mecsys.local`;
+      
+      const { error } = await supabase.auth.admin.updateUserById(
+        selectedUser.id,
+        { 
+          password: passwordData.newPassword,
+          email: tempEmail
+        }
+      );
+
+      if (error) {
+        toast.error('Erro ao alterar senha: ' + error.message);
+      } else {
+        toast.success('Senha alterada com sucesso!');
+        setIsPasswordDialogOpen(false);
+        setSelectedUser(null);
+        setPasswordData({ newPassword: '', confirmPassword: '' });
       }
     } catch (err) {
       toast.error('Erro interno do servidor');
@@ -166,6 +258,26 @@ const UserManagement = () => {
                   Criado em: {new Date(user.created_at).toLocaleDateString('pt-BR')}
                 </p>
               </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEditUser(user)}
+                  className="flex items-center gap-1"
+                >
+                  <Edit className="h-3 w-3" />
+                  Editar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handlePasswordChange(user)}
+                  className="flex items-center gap-1"
+                >
+                  <Key className="h-3 w-3" />
+                  Senha
+                </Button>
+              </div>
             </div>
           ))}
           
@@ -177,6 +289,123 @@ const UserManagement = () => {
           )}
         </div>
       </CardContent>
+
+      {/* Modal de Edição de Usuário */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateUser} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="editFullName">Nome Completo</Label>
+              <Input
+                id="editFullName"
+                type="text"
+                placeholder="Nome completo do usuário"
+                value={editUser.fullName}
+                onChange={(e) => setEditUser(prev => ({...prev, fullName: e.target.value}))}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="editUsername">Nome de Usuário</Label>
+              <Input
+                id="editUsername"
+                type="text"
+                placeholder="Nome de usuário"
+                value={editUser.username}
+                onChange={(e) => setEditUser(prev => ({...prev, username: e.target.value}))}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="editRole">Perfil</Label>
+              <Select value={editUser.role} onValueChange={(value) => 
+                setEditUser(prev => ({...prev, role: value}))
+              }>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Administrador
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="mechanic">
+                    <div className="flex items-center gap-2">
+                      <Wrench className="h-4 w-4" />
+                      Mecânico
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Alteração de Senha */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Senha</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Usuário: <strong>{selectedUser?.full_name}</strong></Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Nova Senha</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Digite a nova senha"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, newPassword: e.target.value}))}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirme a nova senha"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, confirmPassword: e.target.value}))}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Alterando..." : "Alterar Senha"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
