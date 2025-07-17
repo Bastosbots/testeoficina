@@ -72,8 +72,8 @@ serve(async (req) => {
       );
     }
 
-    const { userId, email, fullName } = await req.json();
-    console.log('Updating user data for:', userId, { email, fullName });
+    const { userId, email, fullName, username } = await req.json();
+    console.log('Updating user data for:', userId, { email, fullName, username });
 
     if (!userId) {
       return new Response(
@@ -104,11 +104,43 @@ serve(async (req) => {
       }
     }
 
-    // Atualizar perfil do usuário se fullName foi fornecido
-    if (fullName) {
+    // Se o username foi fornecido, atualizar o email temporário no Auth também
+    if (username) {
+      const tempEmail = `${username}@mecsys.local`;
+      console.log('Updating auth email to:', tempEmail);
+      
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        { email: tempEmail }
+      );
+
+      if (authError) {
+        console.error('Error updating user auth email:', authError);
+        return new Response(
+          JSON.stringify({ error: `Erro ao atualizar email de autenticação: ${authError.message}` }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    }
+
+    // Atualizar perfil do usuário se fullName ou username foram fornecidos
+    if (fullName || username) {
+      const updateData: any = {};
+      
+      if (fullName) {
+        updateData.full_name = fullName;
+      }
+      
+      if (username) {
+        updateData.username = username;
+      }
+
       const { error: profileError } = await supabaseAdmin
         .from('profiles')
-        .update({ full_name: fullName })
+        .update(updateData)
         .eq('id', userId);
 
       if (profileError) {

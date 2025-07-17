@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,8 +47,8 @@ export const useUpdateUserData = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ userId, email, fullName }: { userId: string, email?: string, fullName?: string }) => {
-      console.log('Updating user data:', userId, { email, fullName });
+    mutationFn: async ({ userId, email, fullName, username }: { userId: string, email?: string, fullName?: string, username?: string }) => {
+      console.log('Updating user data:', userId, { email, fullName, username });
       
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
@@ -57,7 +56,7 @@ export const useUpdateUserData = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('update-user-data', {
-        body: { userId, email, fullName },
+        body: { userId, email, fullName, username },
         headers: {
           Authorization: `Bearer ${session.session.access_token}`,
         },
@@ -89,11 +88,23 @@ export const useUpdateUserData = () => {
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
+  const updateUserDataMutation = useUpdateUserData();
   
   return useMutation({
     mutationFn: async ({ id, username, role }: { id: string, username: string, role: string }) => {
       console.log('Updating profile with ID:', id, 'Data:', { username, role });
       
+      // Primeiro, buscar os dados atuais do usuário para comparar
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('username, role')
+        .eq('id', id)
+        .single();
+
+      if (!currentProfile) {
+        throw new Error('Usuário não encontrado');
+      }
+
       // Verificar se o username já existe em outro usuário
       const { data: usernameCheck } = await supabase
         .from('profiles')
@@ -106,30 +117,46 @@ export const useUpdateProfile = () => {
         throw new Error('Nome de usuário já está em uso');
       }
 
-      // Atualizar o perfil (as políticas RLS agora permitem que admins atualizem qualquer perfil)
-      const { data, error } = await supabase
+      // Se o username mudou, usar a função para sincronizar com o Auth
+      if (username !== currentProfile.username) {
+        console.log('Username changed, updating via edge function');
+        await updateUserDataMutation.mutateAsync({
+          userId: id,
+          username: username
+        });
+      }
+
+      // Atualizar o role no perfil se necessário
+      if (role !== currentProfile.role) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({ 
+            role: role,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select('*');
+        
+        if (error) {
+          console.error('Update role error:', error);
+          throw new Error(`Erro ao atualizar role: ${error.message}`);
+        }
+        
+        if (!data || data.length === 0) {
+          throw new Error('Nenhuma linha foi atualizada. Usuário não encontrado.');
+        }
+        
+        return data[0];
+      }
+
+      // Se só o username mudou, buscar os dados atualizados
+      const { data: updatedProfile } = await supabase
         .from('profiles')
-        .update({ 
-          username: username,
-          role: role,
-          updated_at: new Date().toISOString()
-        })
+        .select('*')
         .eq('id', id)
-        .select('*');
-      
-      console.log('Update result:', { data, error });
-      
-      if (error) {
-        console.error('Update error:', error);
-        throw new Error(`Erro ao atualizar perfil: ${error.message}`);
-      }
-      
-      if (!data || data.length === 0) {
-        throw new Error('Nenhuma linha foi atualizada. Usuário não encontrado.');
-      }
-      
-      console.log('Profile updated successfully:', data[0]);
-      return data[0];
+        .single();
+
+      return updatedProfile;
     },
     onSuccess: (data) => {
       console.log('Mutation success, invalidating queries');
