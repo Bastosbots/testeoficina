@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -135,25 +134,29 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
 
   if (activeView === 'view-checklist') {
     return (
-      <ChecklistViewer 
-        checklist={selectedChecklist}
-        onBack={handleBackToDashboard}
-      />
+      <div className="hidden lg:block lg:zoom-90">
+        <ChecklistViewer 
+          checklist={selectedChecklist}
+          onBack={handleBackToDashboard}
+        />
+      </div>
     );
   }
 
   if (activeView === 'edit-checklist') {
     return (
-      <EditChecklistForm
-        checklist={selectedChecklist}
-        onBack={handleBackToDashboard}
-        onSave={handleChecklistSaved}
-      />
+      <div className="hidden lg:block lg:zoom-90">
+        <EditChecklistForm
+          checklist={selectedChecklist}
+          onBack={handleBackToDashboard}
+          onSave={handleChecklistSaved}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background hidden lg:block lg:zoom-90">
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">

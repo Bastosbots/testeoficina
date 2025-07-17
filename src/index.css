@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -261,4 +260,19 @@ All colors MUST be HSL.
   .mobile\:h-8 { height: 2rem; }
   .mobile\:h-10 { height: 2.5rem; }
   .mobile\:min-h-16 { min-height: 4rem; }
+}
+
+/* Desktop zoom utilities for admin dashboard */
+@layer utilities {
+  .lg\:zoom-90 {
+    @media (min-width: 1024px) {
+      zoom: 90%;
+      -moz-transform: scale(0.9);
+      -moz-transform-origin: 0 0;
+      -webkit-transform: scale(0.9);
+      -webkit-transform-origin: 0 0;
+      transform: scale(0.9);
+      transform-origin: 0 0;
+    }
+  }
 }
