@@ -21,7 +21,6 @@ const budgetSchema = z.object({
   customer_name: z.string().min(2, 'Nome do cliente é obrigatório'),
   vehicle_name: z.string().optional(),
   vehicle_plate: z.string().optional(),
-  vehicle_year: z.string().optional(),
   discount_amount: z.number().min(0, 'Desconto não pode ser negativo').optional(),
   observations: z.string().optional(),
 });
@@ -56,7 +55,6 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
       customer_name: '',
       vehicle_name: '',
       vehicle_plate: '',
-      vehicle_year: '',
       discount_amount: 0,
       observations: '',
     },
@@ -118,7 +116,6 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
         customer_name: data.customer_name,
         vehicle_name: data.vehicle_name || null,
         vehicle_plate: data.vehicle_plate || null,
-        vehicle_year: data.vehicle_year || null,
         total_amount: totalAmount,
         discount_amount: discountAmount,
         final_amount: finalAmount,
@@ -146,22 +143,22 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background mobile-card-padding lg:p-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 lg:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={onBack} className="mobile-btn lg:h-10 lg:px-4">
+        <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <Button variant="outline" onClick={onBack} size="sm" className="sm:h-10 sm:px-4">
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden lg:inline ml-2">Voltar</span>
+            <span className="hidden sm:inline ml-2">Voltar</span>
           </Button>
-          <h1 className="mobile-text-lg lg:text-2xl font-bold">Novo Orçamento</h1>
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Novo Orçamento</h1>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             {/* Dados do Cliente */}
             <Card>
-              <CardHeader>
-                <CardTitle>Dados do Cliente</CardTitle>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Dados do Cliente</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -169,9 +166,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                   name="customer_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome do Cliente *</FormLabel>
+                      <FormLabel className="text-sm sm:text-base">Nome do Cliente *</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} className="text-sm sm:text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -182,22 +179,24 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
 
             {/* Dados do Veículo */}
             <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Dados do Veículo (Opcional)</CardTitle>
-                  <VehicleSelector onVehicleSelect={handleVehicleSelect} />
+              <CardHeader className="pb-3 sm:pb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <CardTitle className="text-base sm:text-lg">Dados do Veículo (Opcional)</CardTitle>
+                  <div className="w-full sm:w-auto">
+                    <VehicleSelector onVehicleSelect={handleVehicleSelect} />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="vehicle_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Veículo</FormLabel>
+                        <FormLabel className="text-sm sm:text-base">Veículo</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Honda Civic" />
+                          <Input {...field} placeholder="Ex: Honda Civic" className="text-sm sm:text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -209,23 +208,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                     name="vehicle_plate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Placa</FormLabel>
+                        <FormLabel className="text-sm sm:text-base">Placa</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="ABC-1234" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="vehicle_year"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ano</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="2020" />
+                          <Input {...field} placeholder="ABC-1234" className="text-sm sm:text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -237,56 +222,62 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
 
             {/* Serviços */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Serviços</CardTitle>
-                <ServiceSelector onServiceSelect={handleServiceSelect} />
+              <CardHeader className="pb-3 sm:pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <CardTitle className="text-base sm:text-lg">Serviços</CardTitle>
+                  <div className="w-full sm:w-auto">
+                    <ServiceSelector onServiceSelect={handleServiceSelect} />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {services.map((service, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{service.service_name}</h4>
-                        <p className="text-sm text-muted-foreground">{service.service_category}</p>
+                  <div key={index} className="border rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base truncate">{service.service_name}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{service.service_category}</p>
                       </div>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => removeService(index)}
+                        className="shrink-0"
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                       <div>
-                        <Label>Quantidade</Label>
+                        <Label className="text-xs sm:text-sm">Quantidade</Label>
                         <Input
                           type="number"
                           min="1"
                           value={service.quantity}
                           onChange={(e) => updateServiceQuantity(index, parseInt(e.target.value) || 1)}
+                          className="text-sm"
                         />
                       </div>
                       
                       <div>
-                        <Label>Preço Unitário</Label>
+                        <Label className="text-xs sm:text-sm">Preço Unitário</Label>
                         <Input
                           type="number"
                           value={service.unit_price.toFixed(2)}
                           readOnly
-                          className="bg-muted"
+                          className="bg-muted text-sm"
                         />
                       </div>
                       
                       <div>
-                        <Label>Total</Label>
+                        <Label className="text-xs sm:text-sm">Total</Label>
                         <Input
                           type="number"
                           value={service.total_price.toFixed(2)}
                           readOnly
-                          className="bg-muted"
+                          className="bg-muted text-sm"
                         />
                       </div>
                     </div>
@@ -294,9 +285,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                 ))}
                 
                 {services.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>Nenhum serviço adicionado ainda.</p>
-                    <p className="text-sm">Use o botão "Adicionar Serviço" para começar.</p>
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                    <p className="text-sm sm:text-base">Nenhum serviço adicionado ainda.</p>
+                    <p className="text-xs sm:text-sm">Use o botão "Adicionar Serviço" para começar.</p>
                   </div>
                 )}
               </CardContent>
@@ -304,8 +295,8 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
 
             {/* Resumo do Orçamento */}
             <Card>
-              <CardHeader>
-                <CardTitle>Resumo do Orçamento</CardTitle>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Resumo do Orçamento</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -313,7 +304,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                   name="discount_amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Desconto (R$)</FormLabel>
+                      <FormLabel className="text-sm sm:text-base">Desconto (R$)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -321,6 +312,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                           step="0.01"
                           {...field}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          className="text-sm sm:text-base"
                         />
                       </FormControl>
                       <FormMessage />
@@ -333,9 +325,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                   name="observations"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Observações</FormLabel>
+                      <FormLabel className="text-sm sm:text-base">Observações</FormLabel>
                       <FormControl>
-                        <Textarea {...field} rows={3} />
+                        <Textarea {...field} rows={3} className="text-sm sm:text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -343,18 +335,18 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                 />
 
                 <div className="border-t pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
                     <div>
-                      <Label>Subtotal</Label>
-                      <p className="text-lg font-medium">R$ {totalAmount.toFixed(2)}</p>
+                      <Label className="text-xs sm:text-sm">Subtotal</Label>
+                      <p className="text-base sm:text-lg font-medium">R$ {totalAmount.toFixed(2)}</p>
                     </div>
                     <div>
-                      <Label>Desconto</Label>
-                      <p className="text-lg font-medium">R$ {(form.watch('discount_amount') || 0).toFixed(2)}</p>
+                      <Label className="text-xs sm:text-sm">Desconto</Label>
+                      <p className="text-base sm:text-lg font-medium">R$ {(form.watch('discount_amount') || 0).toFixed(2)}</p>
                     </div>
                     <div>
-                      <Label>Total Final</Label>
-                      <p className="text-xl font-bold text-primary">
+                      <Label className="text-xs sm:text-sm">Total Final</Label>
+                      <p className="text-lg sm:text-xl font-bold text-primary">
                         R$ {(totalAmount - (form.watch('discount_amount') || 0)).toFixed(2)}
                       </p>
                     </div>
@@ -363,14 +355,14 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
               </CardContent>
             </Card>
 
-            <div className="flex gap-4">
-              <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <Button type="button" variant="outline" onClick={onBack} className="flex-1 h-10 sm:h-12">
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={createBudget.isPending || createBudgetItems.isPending}
-                className="flex-1"
+                className="flex-1 h-10 sm:h-12"
               >
                 {createBudget.isPending || createBudgetItems.isPending ? 'Criando...' : 'Criar Orçamento'}
               </Button>

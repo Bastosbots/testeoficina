@@ -69,14 +69,14 @@ const VehicleSelector = ({ onVehicleSelect }: VehicleSelectorProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="w-full">
-          <Car className="h-4 w-4 mr-2" />
-          Selecionar de Checklist Existente
+        <Button type="button" variant="outline" className="w-full text-xs sm:text-sm h-9 sm:h-10">
+          <Car className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          <span className="truncate">Selecionar de Checklist</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl mx-4 sm:mx-0">
         <DialogHeader>
-          <DialogTitle>Selecionar Veículo dos Checklists</DialogTitle>
+          <DialogTitle className="text-lg">Selecionar Veículo dos Checklists</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -86,7 +86,7 @@ const VehicleSelector = ({ onVehicleSelect }: VehicleSelectorProps) => {
               placeholder="Buscar por cliente, veículo ou placa..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-sm"
             />
           </div>
 
@@ -94,27 +94,27 @@ const VehicleSelector = ({ onVehicleSelect }: VehicleSelectorProps) => {
             {filteredVehicles.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Nenhum veículo encontrado</p>
+                <p className="text-sm sm:text-base">Nenhum veículo encontrado</p>
               </div>
             ) : (
               filteredVehicles.map((vehicle) => (
                 <div
                   key={vehicle.id}
-                  className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer transition-colors"
+                  className="border rounded-lg p-3 sm:p-4 hover:bg-muted/50 cursor-pointer transition-colors"
                   onClick={() => handleVehicleSelect(vehicle)}
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Cliente</Label>
-                      <p className="font-medium">{vehicle.customer_name}</p>
+                      <Label className="text-xs text-muted-foreground">Cliente</Label>
+                      <p className="font-medium text-sm truncate">{vehicle.customer_name}</p>
                     </div>
                     <div>
-                      <Label className="text-sm text-muted-foreground">Veículo</Label>
-                      <p className="font-medium">{vehicle.vehicle_name}</p>
+                      <Label className="text-xs text-muted-foreground">Veículo</Label>
+                      <p className="font-medium text-sm truncate">{vehicle.vehicle_name}</p>
                     </div>
                     <div>
-                      <Label className="text-sm text-muted-foreground">Placa</Label>
-                      <p className="font-medium">{vehicle.plate}</p>
+                      <Label className="text-xs text-muted-foreground">Placa</Label>
+                      <p className="font-medium text-sm">{vehicle.plate}</p>
                     </div>
                   </div>
                 </div>

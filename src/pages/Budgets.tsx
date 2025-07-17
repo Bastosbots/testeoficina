@@ -72,75 +72,75 @@ const Budgets = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background mobile-card-padding lg:p-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
-            <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Orçamentos</h1>
-            <p className="mobile-text-xs lg:text-base text-muted-foreground">
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">Orçamentos</h1>
+            <p className="text-xs sm:text-sm lg:text-base text-muted-foreground">
               Gerencie os orçamentos da oficina
             </p>
           </div>
-          <Button onClick={handleNewBudget} className="mobile-btn lg:h-10 lg:px-4">
+          <Button onClick={handleNewBudget} className="w-full sm:w-auto h-10 sm:h-10 lg:h-10 text-sm">
             <Plus className="h-4 w-4" />
             <span className="ml-2">Novo Orçamento</span>
           </Button>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Total</CardTitle>
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalBudgets}</div>
+              <div className="text-lg sm:text-2xl font-bold">{totalBudgets}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Pendentes</CardTitle>
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingBudgets}</div>
+              <div className="text-lg sm:text-2xl font-bold">{pendingBudgets}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Aprovados</CardTitle>
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{approvedBudgets}</div>
+              <div className="text-lg sm:text-2xl font-bold">{approvedBudgets}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="col-span-2 lg:col-span-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Valor Total</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {totalValue.toFixed(2)}</div>
+              <div className="text-lg sm:text-2xl font-bold">R$ {totalValue.toFixed(2)}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Search */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar por cliente, veículo, placa ou número do orçamento..."
+                placeholder="Buscar por cliente, veículo, placa ou número..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
           </CardContent>
@@ -149,39 +149,39 @@ const Budgets = () => {
         {/* Budgets List */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               Lista de Orçamentos
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Carregando orçamentos...</p>
+              <div className="text-center py-6 sm:py-8">
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground text-sm">Carregando orçamentos...</p>
               </div>
             ) : myBudgets.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg mb-2">Nenhum orçamento encontrado</p>
-                <p className="text-sm">
+              <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-base sm:text-lg mb-2">Nenhum orçamento encontrado</p>
+                <p className="text-xs sm:text-sm">
                   {searchTerm ? 'Tente ajustar os filtros de busca' : 'Crie seu primeiro orçamento'}
                 </p>
                 {!searchTerm && (
-                  <Button onClick={handleNewBudget} className="mt-4">
+                  <Button onClick={handleNewBudget} className="mt-4 text-sm">
                     <Plus className="h-4 w-4 mr-2" />
                     Criar Orçamento
                   </Button>
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {myBudgets.map((budget) => (
-                  <div key={budget.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={budget.id} className="border rounded-lg p-3 sm:p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">#{budget.budget_number}</h3>
-                        <Badge variant={budget.status === 'Aprovado' ? 'default' : 'secondary'}>
+                        <h3 className="font-semibold text-sm sm:text-base">#{budget.budget_number}</h3>
+                        <Badge variant={budget.status === 'Aprovado' ? 'default' : 'secondary'} className="text-xs">
                           {budget.status}
                         </Badge>
                       </div>
@@ -189,20 +189,21 @@ const Budgets = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewBudget(budget)}
+                        className="w-full sm:w-auto text-xs sm:text-sm"
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Ver
                       </Button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
                       <div>
                         <p className="text-muted-foreground">Cliente</p>
-                        <p className="font-medium">{budget.customer_name}</p>
+                        <p className="font-medium truncate">{budget.customer_name}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Veículo</p>
-                        <p className="font-medium">
+                        <p className="font-medium truncate">
                           {budget.vehicle_name && budget.vehicle_plate 
                             ? `${budget.vehicle_name} - ${budget.vehicle_plate}`
                             : budget.vehicle_name || budget.vehicle_plate || 'Não informado'
