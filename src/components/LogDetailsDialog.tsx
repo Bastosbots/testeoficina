@@ -126,7 +126,7 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
                 {log.ip_address && (
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Endereço IP</h3>
-                    <p className="text-sm font-mono">{log.ip_address}</p>
+                    <p className="text-sm font-mono">{String(log.ip_address)}</p>
                   </div>
                 )}
                 {log.user_agent && (
