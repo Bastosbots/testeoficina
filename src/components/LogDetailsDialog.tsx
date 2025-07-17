@@ -161,17 +161,17 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
 
     return Object.entries(filteredData).map(([key, value]) => (
       <div key={key} className="mb-2">
-        <span className="font-medium text-sm text-foreground">{getFieldDisplayName(key, tableName)}: </span>
-        <span className="text-sm text-muted-foreground">{formatFieldValue(value, key)}</span>
+        <span className="font-medium text-sm text-gray-800">{getFieldDisplayName(key, tableName)}: </span>
+        <span className="text-sm text-gray-700">{formatFieldValue(value, key)}</span>
       </div>
     ));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-card border-border">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white border-gray-200">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-card-foreground">
+          <DialogTitle className="flex items-center gap-3 text-gray-900">
             <span>Detalhes da Atividade</span>
             <Badge className={getActionColor(log.action)}>
               {getActionText(log.action)}
@@ -181,22 +181,22 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
 
         <div className="space-y-6">
           {/* Informações básicas */}
-          <div className="bg-muted/50 p-4 rounded-lg border border-border">
-            <h3 className="font-semibold mb-3 text-foreground">Informações Gerais</h3>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 className="font-semibold mb-3 text-gray-900">Informações Gerais</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Quando aconteceu:</span>
-                <p className="text-sm mt-1 text-foreground">
+                <span className="text-sm font-medium text-gray-600">Quando aconteceu:</span>
+                <p className="text-sm mt-1 text-gray-800">
                   {format(new Date(log.created_at), 'dd/MM/yyyy \'às\' HH:mm:ss', { locale: ptBR })}
                 </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Quem fez:</span>
-                <p className="text-sm mt-1 text-foreground">{log.user_name || 'Sistema automático'}</p>
+                <span className="text-sm font-medium text-gray-600">Quem fez:</span>
+                <p className="text-sm mt-1 text-gray-800">{log.user_name || 'Sistema automático'}</p>
               </div>
               <div>
-                <span className="text-sm font-medium text-muted-foreground">O que foi alterado:</span>
-                <p className="text-sm mt-1 text-foreground">{getTableDisplayName(log.table_name)}</p>
+                <span className="text-sm font-medium text-gray-600">O que foi alterado:</span>
+                <p className="text-sm mt-1 text-gray-800">{getTableDisplayName(log.table_name)}</p>
               </div>
             </div>
           </div>
@@ -204,7 +204,7 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
           {/* Dados anteriores (para UPDATE e DELETE) */}
           {log.old_data && (
             <div>
-              <h3 className="font-semibold mb-3 text-foreground">
+              <h3 className="font-semibold mb-3 text-gray-900">
                 {log.action === 'DELETE' ? 'Dados que foram excluídos:' : 'Como estava antes:'}
               </h3>
               <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
@@ -216,7 +216,7 @@ export function LogDetailsDialog({ log, open, onOpenChange }: LogDetailsDialogPr
           {/* Dados novos (para CREATE e UPDATE) */}
           {log.new_data && (
             <div>
-              <h3 className="font-semibold mb-3 text-foreground">
+              <h3 className="font-semibold mb-3 text-gray-900">
                 {log.action === 'CREATE' ? 'Dados que foram criados:' : 'Como ficou depois:'}
               </h3>
               <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
