@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { toast } from 'sonner';
 
 const navigation = [
@@ -53,6 +54,10 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
+  const { data: settings } = useSystemSettings();
+  
+  const systemName = settings?.system_name || 'Oficina Check';
+  const systemDescription = settings?.system_description || 'Sistema de Gestão';
   
   const isActive = (path: string) => {
     if (path === '/') {
@@ -76,8 +81,8 @@ export function AppSidebar() {
       <div className="flex items-center justify-between mobile-card-padding lg:p-4 border-b border-border touch-target">
         {state !== 'collapsed' && (
           <div className="flex flex-col">
-            <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground">Oficina Check</h2>
-            <p className="mobile-text-xs lg:text-xs text-muted-foreground">Sistema de Gestão</p>
+            <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground">{systemName}</h2>
+            <p className="mobile-text-xs lg:text-xs text-muted-foreground">{systemDescription}</p>
           </div>
         )}
         <SidebarTrigger className="ml-auto touch-target" />
