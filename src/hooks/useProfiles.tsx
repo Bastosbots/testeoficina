@@ -51,45 +51,15 @@ export const useUpdateProfile = () => {
     mutationFn: async ({ id, ...updateData }: any) => {
       console.log('Updating profile with ID:', id, 'Data:', updateData);
       
-      // Primeiro vamos verificar se o perfil existe
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-      
-      console.log('Existing profile check:', existingProfile, checkError);
-      
-      if (checkError) {
-        console.error('Error checking existing profile:', checkError);
-        throw checkError;
-      }
-      
-      if (!existingProfile) {
-        throw new Error('Perfil não encontrado');
-      }
-      
-      // Verificar se há mudanças reais nos dados
-      const hasChanges = Object.keys(updateData).some(key => {
-        return existingProfile[key] !== updateData[key];
-      });
-      
-      console.log('Has changes:', hasChanges);
-      
-      if (!hasChanges) {
-        console.log('No changes detected, returning existing profile');
-        return existingProfile;
-      }
-      
-      // Agora fazemos a atualização
-      const { data, error, count } = await supabase
+      // Fazer a atualização diretamente sem verificações desnecessárias
+      const { data, error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', id)
-        .select()
-        .maybeSingle();
+        .select('*')
+        .single();
       
-      console.log('Update result:', { data, error, count });
+      console.log('Update result:', { data, error });
       
       if (error) {
         console.error('Update error:', error);
@@ -97,30 +67,14 @@ export const useUpdateProfile = () => {
       }
       
       if (!data) {
-        // Tentar buscar o perfil novamente para ver se a atualização funcionou
-        const { data: updatedProfile, error: fetchError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', id)
-          .maybeSingle();
-        
-        console.log('Refetch after update:', updatedProfile, fetchError);
-        
-        if (fetchError) {
-          throw fetchError;
-        }
-        
-        if (updatedProfile) {
-          return updatedProfile;
-        }
-        
-        throw new Error('Erro ao atualizar: perfil não encontrado após atualização');
+        throw new Error('Erro ao atualizar: nenhum dado retornado');
       }
       
       console.log('Profile updated successfully:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation success, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast.success('Perfil atualizado com sucesso!');
     },
