@@ -47,11 +47,14 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
   console.log('AdminDashboard renderizado para:', currentUser);
   console.log('Checklists carregados:', checklists);
 
+  // Filtrar apenas checklists com status "Em Andamento" para o histórico
+  const inProgressChecklists = checklists.filter(c => (c as any).status === 'Em Andamento');
+
   const stats = {
     totalChecklists: checklists.length,
     completed: checklists.filter(c => (c as any).status === 'Concluído').length,
-    pending: checklists.filter(c => (c as any).status === 'Pendente' || !(c as any).status).length,
     inProgress: checklists.filter(c => (c as any).status === 'Em Andamento').length,
+    cancelled: checklists.filter(c => (c as any).status === 'Cancelado').length,
     totalVehicles: new Set(checklists.map(c => c.plate)).size
   };
 
@@ -103,34 +106,26 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
     }
   };
 
-  const filteredChecklists = checklists.filter(checklist => {
+  const filteredChecklists = inProgressChecklists.filter(checklist => {
     const vehicleName = checklist.vehicle_name || '';
     const mechanicName = checklist.profiles?.full_name || '';
-    const checklistStatus = (checklist as any).status || 'Pendente';
     const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          mechanicName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          checklist.plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          checklist.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
     const matchesMechanic = filterMechanic === 'all' || mechanicName === filterMechanic;
-    const matchesStatus = filterStatus === 'all' || checklistStatus === filterStatus;
     
-    return matchesSearch && matchesDate && matchesMechanic && matchesStatus;
+    return matchesSearch && matchesDate && matchesMechanic;
   });
 
-  // Obter mecânicos únicos para o filtro
+  // Obter mecânicos únicos para o filtro (apenas dos checklists em andamento)
   const uniqueMechanics = Array.from(new Set(
-    checklists.map(c => c.profiles?.full_name).filter(Boolean)
-  ));
-
-  // Obter status únicos para o filtro
-  const uniqueStatuses = Array.from(new Set(
-    checklists.map(c => (c as any).status || 'Pendente').filter(Boolean)
+    inProgressChecklists.map(c => c.profiles?.full_name).filter(Boolean)
   ));
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pendente': return 'bg-yellow-100 text-yellow-800';
       case 'Em Andamento': return 'bg-blue-100 text-blue-800';
       case 'Concluído': return 'bg-green-100 text-green-800';
       case 'Cancelado': return 'bg-red-100 text-red-800';
@@ -214,11 +209,11 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
+              <Clock className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+              <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
             </CardContent>
           </Card>
           
@@ -236,7 +231,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
         {/* Tabs for different sections */}
         <Tabs defaultValue="checklists" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="checklists">Checklists</TabsTrigger>
+            <TabsTrigger value="checklists">Checklists em Andamento</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="invites">Convites</TabsTrigger>
           </TabsList>
@@ -251,7 +246,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -280,18 +275,6 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                       ))}
                     </SelectContent>
                   </Select>
-
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os status</SelectItem>
-                      {uniqueStatuses.map((status) => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -299,12 +282,12 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
             {/* Checklists Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Histórico de Checklists ({filteredChecklists.length})</CardTitle>
+                <CardTitle>Checklists em Andamento ({filteredChecklists.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {filteredChecklists.map((checklist) => {
-                    const checklistStatus = (checklist as any).status || 'Pendente';
+                    const checklistStatus = (checklist as any).status || 'Em Andamento';
                     return (
                       <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                         <div className="flex items-center justify-between">
@@ -407,9 +390,9 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                   {filteredChecklists.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground">
                       <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Nenhum checklist encontrado com os filtros aplicados.</p>
-                      {checklists.length === 0 && (
-                        <p className="mt-2">Nenhum checklist foi criado ainda.</p>
+                      <p>Nenhum checklist em andamento encontrado com os filtros aplicados.</p>
+                      {inProgressChecklists.length === 0 && (
+                        <p className="mt-2">Não há checklists em andamento no momento.</p>
                       )}
                     </div>
                   )}
