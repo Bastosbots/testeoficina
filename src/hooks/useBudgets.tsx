@@ -7,17 +7,14 @@ export interface Budget {
   id: string;
   mechanic_id: string;
   customer_name: string;
-  customer_phone?: string;
-  customer_email?: string;
-  vehicle_name: string;
-  vehicle_plate: string;
+  vehicle_name?: string;
+  vehicle_plate?: string;
   vehicle_year?: string;
   budget_number: string;
   total_amount: number;
   discount_amount?: number;
   final_amount: number;
   observations?: string;
-  valid_until?: string;
   status: string;
   created_at: string;
   updated_at: string;
@@ -26,6 +23,7 @@ export interface Budget {
 export interface BudgetItem {
   id: string;
   budget_id: string;
+  service_id?: string;
   service_name: string;
   service_category: string;
   quantity: number;

@@ -9,30 +9,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon, Plus, Minus, ArrowLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Minus, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateBudget, useCreateBudgetItems } from '@/hooks/useBudgets';
+import { Service } from '@/hooks/useServices';
 import { toast } from 'sonner';
+import VehicleSelector from './VehicleSelector';
+import ServiceSelector from './ServiceSelector';
 
 const budgetSchema = z.object({
   customer_name: z.string().min(2, 'Nome do cliente é obrigatório'),
-  customer_phone: z.string().optional(),
-  customer_email: z.string().email('E-mail inválido').optional().or(z.literal('')),
-  vehicle_name: z.string().min(2, 'Nome do veículo é obrigatório'),
-  vehicle_plate: z.string().min(3, 'Placa do veículo é obrigatória'),
+  vehicle_name: z.string().optional(),
+  vehicle_plate: z.string().optional(),
   vehicle_year: z.string().optional(),
   discount_amount: z.number().min(0, 'Desconto não pode ser negativo').optional(),
   observations: z.string().optional(),
-  valid_until: z.date().optional(),
 });
 
 type BudgetFormData = z.infer<typeof budgetSchema>;
 
 interface ServiceItem {
+  service_id: string;
   service_name: string;
   service_category: string;
   quantity: number;
@@ -57,8 +54,6 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
     resolver: zodResolver(budgetSchema),
     defaultValues: {
       customer_name: '',
-      customer_phone: '',
-      customer_email: '',
       vehicle_name: '',
       vehicle_plate: '',
       vehicle_year: '',
@@ -67,14 +62,23 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
     },
   });
 
-  const addService = () => {
-    setServices([...services, {
-      service_name: '',
-      service_category: '',
+  const handleVehicleSelect = (vehicle: { customer_name: string; vehicle_name: string; plate: string }) => {
+    form.setValue('customer_name', vehicle.customer_name);
+    form.setValue('vehicle_name', vehicle.vehicle_name);
+    form.setValue('vehicle_plate', vehicle.plate);
+  };
+
+  const handleServiceSelect = (service: Service) => {
+    const newService: ServiceItem = {
+      service_id: service.id,
+      service_name: service.name,
+      service_category: service.category,
       quantity: 1,
-      unit_price: 0,
-      total_price: 0,
-    }]);
+      unit_price: service.unit_price,
+      total_price: service.unit_price,
+    };
+    
+    setServices([...services, newService]);
   };
 
   const removeService = (index: number) => {
@@ -82,14 +86,10 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
     setServices(newServices);
   };
 
-  const updateService = (index: number, field: keyof ServiceItem, value: any) => {
+  const updateServiceQuantity = (index: number, quantity: number) => {
     const newServices = [...services];
-    newServices[index] = { ...newServices[index], [field]: value };
-    
-    if (field === 'quantity' || field === 'unit_price') {
-      newServices[index].total_price = newServices[index].quantity * newServices[index].unit_price;
-    }
-    
+    newServices[index].quantity = quantity;
+    newServices[index].total_price = quantity * newServices[index].unit_price;
     setServices(newServices);
   };
 
@@ -116,16 +116,13 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
       const budgetData = {
         mechanic_id: user.id,
         customer_name: data.customer_name,
-        customer_phone: data.customer_phone,
-        customer_email: data.customer_email,
-        vehicle_name: data.vehicle_name,
-        vehicle_plate: data.vehicle_plate,
-        vehicle_year: data.vehicle_year,
+        vehicle_name: data.vehicle_name || null,
+        vehicle_plate: data.vehicle_plate || null,
+        vehicle_year: data.vehicle_year || null,
         total_amount: totalAmount,
         discount_amount: discountAmount,
         final_amount: finalAmount,
         observations: data.observations,
-        valid_until: data.valid_until?.toISOString().split('T')[0],
         status: 'Pendente',
       };
 
@@ -133,6 +130,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
 
       const budgetItems = services.map(service => ({
         budget_id: budget.id,
+        service_id: service.service_id,
         service_name: service.service_name,
         service_category: service.service_category,
         quantity: service.quantity,
@@ -166,44 +164,14 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                 <CardTitle>Dados do Cliente</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="customer_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome do Cliente *</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="customer_phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefone</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 <FormField
                   control={form.control}
-                  name="customer_email"
+                  name="customer_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-mail</FormLabel>
+                      <FormLabel>Nome do Cliente *</FormLabel>
                       <FormControl>
-                        <Input type="email" {...field} />
+                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -215,7 +183,10 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
             {/* Dados do Veículo */}
             <Card>
               <CardHeader>
-                <CardTitle>Dados do Veículo</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Dados do Veículo (Opcional)</CardTitle>
+                  <VehicleSelector onVehicleSelect={handleVehicleSelect} />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -224,7 +195,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                     name="vehicle_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Veículo *</FormLabel>
+                        <FormLabel>Veículo</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="Ex: Honda Civic" />
                         </FormControl>
@@ -238,7 +209,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                     name="vehicle_plate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Placa *</FormLabel>
+                        <FormLabel>Placa</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="ABC-1234" />
                         </FormControl>
@@ -268,16 +239,16 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Serviços</CardTitle>
-                <Button type="button" onClick={addService} className="mobile-btn lg:h-10 lg:px-4">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden lg:inline ml-2">Adicionar Serviço</span>
-                </Button>
+                <ServiceSelector onServiceSelect={handleServiceSelect} />
               </CardHeader>
               <CardContent className="space-y-4">
                 {services.map((service, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-4">
                     <div className="flex justify-between items-start">
-                      <h4 className="font-medium">Serviço {index + 1}</h4>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{service.service_name}</h4>
+                        <p className="text-sm text-muted-foreground">{service.service_category}</p>
+                      </div>
                       <Button
                         type="button"
                         variant="outline"
@@ -288,45 +259,24 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                       </Button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Nome do Serviço *</Label>
-                        <Input
-                          value={service.service_name}
-                          onChange={(e) => updateService(index, 'service_name', e.target.value)}
-                          placeholder="Ex: Troca de óleo"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Categoria *</Label>
-                        <Input
-                          value={service.service_category}
-                          onChange={(e) => updateService(index, 'service_category', e.target.value)}
-                          placeholder="Ex: Manutenção"
-                        />
-                      </div>
-                    </div>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label>Quantidade *</Label>
+                        <Label>Quantidade</Label>
                         <Input
                           type="number"
                           min="1"
                           value={service.quantity}
-                          onChange={(e) => updateService(index, 'quantity', parseInt(e.target.value) || 1)}
+                          onChange={(e) => updateServiceQuantity(index, parseInt(e.target.value) || 1)}
                         />
                       </div>
                       
                       <div>
-                        <Label>Preço Unitário *</Label>
+                        <Label>Preço Unitário</Label>
                         <Input
                           type="number"
-                          min="0"
-                          step="0.01"
-                          value={service.unit_price}
-                          onChange={(e) => updateService(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                          value={service.unit_price.toFixed(2)}
+                          readOnly
+                          className="bg-muted"
                         />
                       </div>
                       
@@ -346,83 +296,37 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
                 {services.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <p>Nenhum serviço adicionado ainda.</p>
-                    <Button type="button" onClick={addService} className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Primeiro Serviço
-                    </Button>
+                    <p className="text-sm">Use o botão "Adicionar Serviço" para começar.</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Resumo e Detalhes Finais */}
+            {/* Resumo do Orçamento */}
             <Card>
               <CardHeader>
                 <CardTitle>Resumo do Orçamento</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="discount_amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Desconto (R$)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="valid_until"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Válido até</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "dd/MM/yyyy")
-                                ) : (
-                                  <span>Selecionar data</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                              className="p-3 pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="discount_amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Desconto (R$)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}

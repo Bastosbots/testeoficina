@@ -21,8 +21,8 @@ const Budgets = () => {
 
   const filteredBudgets = budgets.filter(budget =>
     budget.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    budget.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    budget.vehicle_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (budget.vehicle_name && budget.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (budget.vehicle_plate && budget.vehicle_plate.toLowerCase().includes(searchTerm.toLowerCase())) ||
     budget.budget_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -202,7 +202,12 @@ const Budgets = () => {
                       </div>
                       <div>
                         <p className="text-muted-foreground">Veículo</p>
-                        <p className="font-medium">{budget.vehicle_name} - {budget.vehicle_plate}</p>
+                        <p className="font-medium">
+                          {budget.vehicle_name && budget.vehicle_plate 
+                            ? `${budget.vehicle_name} - ${budget.vehicle_plate}`
+                            : budget.vehicle_name || budget.vehicle_plate || 'Não informado'
+                          }
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Data</p>

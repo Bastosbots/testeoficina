@@ -59,14 +59,7 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
     doc.setFont('helvetica', 'bold');
     doc.text(`Número: ${budget.budget_number}`, margin, yPosition);
     doc.text(`Data: ${format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}`, pageWidth - margin - 60, yPosition);
-    yPosition += 10;
-
-    if (budget.valid_until) {
-      doc.text(`Válido até: ${format(new Date(budget.valid_until), 'dd/MM/yyyy', { locale: ptBR })}`, margin, yPosition);
-      yPosition += 10;
-    }
-
-    yPosition += 5;
+    yPosition += 15;
 
     // Customer Info
     doc.setFont('helvetica', 'bold');
@@ -75,37 +68,29 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
 
     doc.setFont('helvetica', 'normal');
     doc.text(`Nome: ${budget.customer_name}`, margin, yPosition);
-    yPosition += 6;
-    
-    if (budget.customer_phone) {
-      doc.text(`Telefone: ${budget.customer_phone}`, margin, yPosition);
-      yPosition += 6;
-    }
-    
-    if (budget.customer_email) {
-      doc.text(`Email: ${budget.customer_email}`, margin, yPosition);
-      yPosition += 6;
-    }
-
-    yPosition += 5;
-
-    // Vehicle Info
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS DO VEÍCULO', margin, yPosition);
-    yPosition += 8;
-
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Veículo: ${budget.vehicle_name}`, margin, yPosition);
-    yPosition += 6;
-    doc.text(`Placa: ${budget.vehicle_plate}`, margin, yPosition);
-    yPosition += 6;
-    
-    if (budget.vehicle_year) {
-      doc.text(`Ano: ${budget.vehicle_year}`, margin, yPosition);
-      yPosition += 6;
-    }
-
     yPosition += 10;
+
+    // Vehicle Info (only if exists)
+    if (budget.vehicle_name || budget.vehicle_plate) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('DADOS DO VEÍCULO', margin, yPosition);
+      yPosition += 8;
+
+      doc.setFont('helvetica', 'normal');
+      if (budget.vehicle_name) {
+        doc.text(`Veículo: ${budget.vehicle_name}`, margin, yPosition);
+        yPosition += 6;
+      }
+      if (budget.vehicle_plate) {
+        doc.text(`Placa: ${budget.vehicle_plate}`, margin, yPosition);
+        yPosition += 6;
+      }
+      if (budget.vehicle_year) {
+        doc.text(`Ano: ${budget.vehicle_year}`, margin, yPosition);
+        yPosition += 6;
+      }
+      yPosition += 5;
+    }
 
     // Services Table Header
     doc.setFont('helvetica', 'bold');
@@ -228,11 +213,6 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
                   <p className="text-sm text-muted-foreground">
                     {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                   </p>
-                  {budget.valid_until && (
-                    <p className="text-sm text-muted-foreground">
-                      Válido até: {format(new Date(budget.valid_until), 'dd/MM/yyyy', { locale: ptBR })}
-                    </p>
-                  )}
                   <Badge variant={budget.status === 'Aprovado' ? 'default' : 'secondary'} className="mt-2">
                     {budget.status}
                   </Badge>
@@ -241,34 +221,33 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
             </CardHeader>
           </Card>
 
-          {/* Customer and Vehicle Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="print:shadow-none print:border">
-              <CardHeader className="print:pb-2">
-                <CardTitle className="text-lg">Dados do Cliente</CardTitle>
-              </CardHeader>
-              <CardContent className="print:pt-0">
-                <div className="space-y-2">
-                  <p><strong>Nome:</strong> {budget.customer_name}</p>
-                  {budget.customer_phone && <p><strong>Telefone:</strong> {budget.customer_phone}</p>}
-                  {budget.customer_email && <p><strong>Email:</strong> {budget.customer_email}</p>}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Customer Info */}
+          <Card className="print:shadow-none print:border">
+            <CardHeader className="print:pb-2">
+              <CardTitle className="text-lg">Dados do Cliente</CardTitle>
+            </CardHeader>
+            <CardContent className="print:pt-0">
+              <div className="space-y-2">
+                <p><strong>Nome:</strong> {budget.customer_name}</p>
+              </div>
+            </CardContent>
+          </Card>
 
+          {/* Vehicle Info - only show if exists */}
+          {(budget.vehicle_name || budget.vehicle_plate) && (
             <Card className="print:shadow-none print:border">
               <CardHeader className="print:pb-2">
                 <CardTitle className="text-lg">Dados do Veículo</CardTitle>
               </CardHeader>
               <CardContent className="print:pt-0">
                 <div className="space-y-2">
-                  <p><strong>Veículo:</strong> {budget.vehicle_name}</p>
-                  <p><strong>Placa:</strong> {budget.vehicle_plate}</p>
+                  {budget.vehicle_name && <p><strong>Veículo:</strong> {budget.vehicle_name}</p>}
+                  {budget.vehicle_plate && <p><strong>Placa:</strong> {budget.vehicle_plate}</p>}
                   {budget.vehicle_year && <p><strong>Ano:</strong> {budget.vehicle_year}</p>}
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
           {/* Services */}
           <Card className="print:shadow-none print:border">

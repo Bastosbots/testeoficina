@@ -21,6 +21,7 @@ export type Database = {
           id: string
           quantity: number
           service_category: string
+          service_id: string | null
           service_name: string
           total_price: number
           unit_price: number
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           quantity?: number
           service_category: string
+          service_id?: string | null
           service_name: string
           total_price: number
           unit_price: number
@@ -41,6 +43,7 @@ export type Database = {
           id?: string
           quantity?: number
           service_category?: string
+          service_id?: string | null
           service_name?: string
           total_price?: number
           unit_price?: number
@@ -53,15 +56,20 @@ export type Database = {
             referencedRelation: "budgets"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "budget_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
         ]
       }
       budgets: {
         Row: {
           budget_number: string
           created_at: string
-          customer_email: string | null
           customer_name: string
-          customer_phone: string | null
           discount_amount: number | null
           final_amount: number
           id: string
@@ -70,17 +78,14 @@ export type Database = {
           status: string
           total_amount: number
           updated_at: string
-          valid_until: string | null
-          vehicle_name: string
-          vehicle_plate: string
+          vehicle_name: string | null
+          vehicle_plate: string | null
           vehicle_year: string | null
         }
         Insert: {
           budget_number: string
           created_at?: string
-          customer_email?: string | null
           customer_name: string
-          customer_phone?: string | null
           discount_amount?: number | null
           final_amount?: number
           id?: string
@@ -89,17 +94,14 @@ export type Database = {
           status?: string
           total_amount?: number
           updated_at?: string
-          valid_until?: string | null
-          vehicle_name: string
-          vehicle_plate: string
+          vehicle_name?: string | null
+          vehicle_plate?: string | null
           vehicle_year?: string | null
         }
         Update: {
           budget_number?: string
           created_at?: string
-          customer_email?: string | null
           customer_name?: string
-          customer_phone?: string | null
           discount_amount?: number | null
           final_amount?: number
           id?: string
@@ -108,9 +110,8 @@ export type Database = {
           status?: string
           total_amount?: number
           updated_at?: string
-          valid_until?: string | null
-          vehicle_name?: string
-          vehicle_plate?: string
+          vehicle_name?: string | null
+          vehicle_plate?: string | null
           vehicle_year?: string | null
         }
         Relationships: []
@@ -275,6 +276,39 @@ export type Database = {
           role?: string
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          unit_price?: number
+          updated_at?: string
         }
         Relationships: []
       }
