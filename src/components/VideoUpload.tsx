@@ -42,14 +42,23 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File input changed', event.target.files);
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selected:', file.name, file.type);
       if (file.type.startsWith('video/')) {
         uploadVideo(file);
       } else {
         toast.error('Por favor, selecione um arquivo de vídeo');
       }
+    } else {
+      console.log('No file selected');
     }
+  };
+
+  const handleButtonClick = () => {
+    console.log('Button clicked, triggering file input');
+    fileInputRef.current?.click();
   };
 
   const removeCurrentVideo = () => {
@@ -87,7 +96,7 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
       {!currentVideoUrl && (
         <Button 
           variant="outline"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={handleButtonClick}
           disabled={isUploading}
           className="w-full flex items-center justify-center"
         >
