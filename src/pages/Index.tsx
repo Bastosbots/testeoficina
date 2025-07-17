@@ -28,20 +28,10 @@ const Index = () => {
 
   console.log('User role:', profile.role);
 
-  const handleLogout = async () => {
-    // This will be handled by the auth context
-  };
-
   return profile.role === 'admin' ? (
-    <AdminDashboard 
-      currentUser={profile.full_name || 'Admin'} 
-      onLogout={handleLogout}
-    />
+    <AdminDashboard />
   ) : (
-    <MechanicDashboard 
-      currentUser={profile.full_name || 'Mecânico'} 
-      onLogout={handleLogout}
-    />
+    <MechanicDashboard />
   );
 };
 

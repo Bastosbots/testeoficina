@@ -7,20 +7,10 @@ import MechanicDashboard from '@/components/MechanicDashboard';
 const Dashboard = () => {
   const { profile } = useAuth();
 
-  const handleLogout = async () => {
-    // This will be handled by the auth context through the sidebar
-  };
-
   return profile?.role === 'admin' ? (
-    <AdminDashboard 
-      currentUser={profile.full_name || 'Admin'} 
-      onLogout={handleLogout}
-    />
+    <AdminDashboard />
   ) : (
-    <MechanicDashboard 
-      currentUser={profile.full_name || 'Mecânico'} 
-      onLogout={handleLogout}
-    />
+    <MechanicDashboard />
   );
 };
 

@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,7 +8,6 @@ import Dashboard from "@/pages/Dashboard";
 import AllChecklists from "@/pages/AllChecklists";
 import ServicesTable from "@/pages/ServicesTable";
 import SystemSettings from "@/pages/SystemSettings";
-import SystemLogs from "@/pages/SystemLogs";
 import Budgets from "@/pages/Budgets";
 import Auth from "@/pages/Auth";
 import Signup from "@/pages/Signup";
@@ -68,11 +68,6 @@ function App() {
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <SystemSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/logs" element={
-                <ProtectedRoute>
-                  <SystemLogs />
                 </ProtectedRoute>
               } />
               <Route path="/auth" element={<Auth />} />

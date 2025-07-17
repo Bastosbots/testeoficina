@@ -9,22 +9,18 @@ import {
   LogOut, 
   FileText, 
   Users, 
-  Download,
-  Filter,
   Eye,
-  UserPlus,
-  Settings
+  UserPlus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useChecklists } from '@/hooks/useChecklists';
-import { ChecklistViewer } from './ChecklistViewer';
-import { BudgetViewer } from './BudgetViewer';
-import { UserManagement } from './UserManagement';
-import { InviteTokenManager } from './InviteTokenManager';
+import ChecklistViewer from './ChecklistViewer';
+import BudgetViewer from './BudgetViewer';
+import UserManagement from './UserManagement';
+import InviteTokenManager from './InviteTokenManager';
 import { useBudgets } from '@/hooks/useBudgets';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const AdminDashboard = () => {
@@ -41,15 +37,7 @@ const AdminDashboard = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [activeView, setActiveView] = useState<'checklists' | 'budgets'>('checklists');
 
-  if (checklistsLoading) {
-    return (
-      <div className="lg:zoom-90 flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (budgetsLoading) {
+  if (checklistsLoading || budgetsLoading) {
     return (
       <div className="lg:zoom-90 flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -58,10 +46,10 @@ const AdminDashboard = () => {
   }
 
   const stats = {
-    totalChecklists: checklists.length,
-    completed: checklists.filter(c => (c as any).status === 'Concluído').length,
-    inProgress: checklists.filter(c => (c as any).status === 'Em Andamento').length,
-    cancelled: checklists.filter(c => (c as any).status === 'Cancelado').length
+    totalChecklists: checklists?.length || 0,
+    completed: checklists?.filter(c => (c as any).status === 'Concluído').length || 0,
+    inProgress: checklists?.filter(c => (c as any).status === 'Em Andamento').length || 0,
+    cancelled: checklists?.filter(c => (c as any).status === 'Cancelado').length || 0
   };
 
   const handleViewChecklist = (checklist: any) => {
@@ -401,17 +389,19 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Modals */}
-        <ChecklistViewer
-          checklist={selectedChecklist}
-          open={checklistViewerOpen}
-          onOpenChange={setChecklistViewerOpen}
-        />
+        {checklistViewerOpen && selectedChecklist && (
+          <ChecklistViewer
+            checklist={selectedChecklist}
+            onBack={() => setChecklistViewerOpen(false)}
+          />
+        )}
 
-        <BudgetViewer
-          budget={selectedBudget}
-          open={budgetViewerOpen}
-          onOpenChange={setBudgetViewerOpen}
-        />
+        {budgetViewerOpen && selectedBudget && (
+          <BudgetViewer
+            budget={selectedBudget}
+            onBack={() => setBudgetViewerOpen(false)}
+          />
+        )}
       </div>
     </div>
   );
