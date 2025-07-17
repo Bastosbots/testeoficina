@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Settings, Plus, Edit, Trash2, Search, DollarSign, Clock, Wrench } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface Service {
@@ -36,6 +37,7 @@ interface Service {
 }
 
 const ServicesTable = () => {
+  const { profile } = useAuth();
   const [services, setServices] = useState<Service[]>([
     {
       id: '1',
@@ -169,13 +171,14 @@ const ServicesTable = () => {
           <p className="text-muted-foreground">Gerencie todos os serviços e preços da sua oficina</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Serviço
-            </Button>
-          </DialogTrigger>
+        {profile?.role === 'admin' && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => handleOpenDialog()} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Serviço
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -271,7 +274,8 @@ const ServicesTable = () => {
               </div>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -400,23 +404,27 @@ const ServicesTable = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleOpenDialog(service)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteService(service.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {profile?.role === 'admin' ? (
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenDialog(service)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteService(service.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Apenas visualização</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
