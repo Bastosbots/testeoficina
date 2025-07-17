@@ -96,6 +96,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         plate: vehicleData.plate,
         customer_name: vehicleData.customerName,
         priority: vehicleData.priority,
+        status: 'Em Andamento', // Definir status como "Em Andamento"
         general_observations: null,
         video_url: videoUrl || null,
         completed_at: new Date().toISOString()
