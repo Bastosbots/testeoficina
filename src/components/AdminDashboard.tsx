@@ -1,52 +1,61 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   LogOut, 
   FileText, 
   Users, 
   Download,
   Filter,
-  Search,
   Eye,
-  Edit,
-  Trash2,
-  Clock
-} from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
-import { useChecklists, useDeleteChecklist } from "@/hooks/useChecklists";
-import { useVehicles } from "@/hooks/useVehicles";
-import UserManagement from "@/components/UserManagement";
-import InviteTokenManager from "@/components/InviteTokenManager";
-import ChecklistViewer from "@/components/ChecklistViewer";
-import EditChecklistForm from "@/components/EditChecklistForm";
+  UserPlus,
+  Settings
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useChecklists } from '@/hooks/useChecklists';
+import { ChecklistViewer } from './ChecklistViewer';
+import { BudgetViewer } from './BudgetViewer';
+import { UserManagement } from './UserManagement';
+import { InviteTokenManager } from './InviteTokenManager';
+import { useBudgets } from '@/hooks/useBudgets';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface AdminDashboardProps {
-  currentUser: string;
-  onLogout: () => void;
-}
-
-const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
+const AdminDashboard = () => {
+  const { data: checklists, isLoading: checklistsLoading } = useChecklists();
+  const { data: budgets, isLoading: budgetsLoading } = useBudgets();
   const { signOut } = useAuth();
-  const { data: checklists = [] } = useChecklists();
-  const deleteChecklistMutation = useDeleteChecklist();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterDate, setFilterDate] = useState('');
-  const [filterMechanic, setFilterMechanic] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
-  const [activeView, setActiveView] = useState<'dashboard' | 'view-checklist' | 'edit-checklist'>('dashboard');
+  const [selectedBudget, setSelectedBudget] = useState<any>(null);
+  const [showUserManagement, setShowUserManagement] = useState(false);
+  const [showInviteTokens, setShowInviteTokens] = useState(false);
+  const [checklistViewerOpen, setChecklistViewerOpen] = useState(false);
+  const [budgetViewerOpen, setBudgetViewerOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [activeView, setActiveView] = useState<'checklists' | 'budgets'>('checklists');
 
-  console.log('AdminDashboard renderizado para:', currentUser);
-  console.log('Checklists carregados:', checklists);
+  if (checklistsLoading) {
+    return (
+      <div className="lg:zoom-90 flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  // Filtrar apenas checklists com status "Em Andamento" para o histórico
-  const inProgressChecklists = checklists.filter(c => (c as any).status === 'Em Andamento');
+  if (budgetsLoading) {
+    return (
+      <div className="lg:zoom-90 flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const stats = {
     totalChecklists: checklists.length,
@@ -57,123 +66,125 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
 
   const handleViewChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
-    setActiveView('view-checklist');
+    setChecklistViewerOpen(true);
   };
 
-  const handleEditChecklist = (checklist: any) => {
-    setSelectedChecklist(checklist);
-    setActiveView('edit-checklist');
+  const handleViewBudget = (budget: any) => {
+    setSelectedBudget(budget);
+    setBudgetViewerOpen(true);
   };
 
-  const handleDeleteChecklist = async (checklistId: string) => {
-    if (window.confirm('Tem certeza que deseja deletar este checklist? Esta ação não pode ser desfeita.')) {
-      try {
-        await deleteChecklistMutation.mutateAsync(checklistId);
-      } catch (error) {
-        console.error('Error deleting checklist:', error);
-      }
-    }
-  };
-
-  const handleBackToDashboard = () => {
-    setActiveView('dashboard');
-    setSelectedChecklist(null);
-  };
-
-  const handleChecklistSaved = () => {
-    handleBackToDashboard();
-  };
-
-  const handleGeneratePDF = (checklistId: string) => {
-    toast.success(`PDF do checklist gerado com sucesso!`);
-    // Implementar geração de PDF
-  };
-
-  const handleExportAll = () => {
-    toast.success('Exportação de todos os checklists iniciada!');
-    // Implementar exportação
-  };
-
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     try {
       await signOut();
       toast.success('Logout realizado com sucesso!');
     } catch (error) {
+      console.error('Erro ao fazer logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
 
-  const filteredChecklists = inProgressChecklists.filter(checklist => {
-    const vehicleName = checklist.vehicle_name || '';
-    const mechanicName = checklist.profiles?.full_name || '';
-    const matchesSearch = vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         mechanicName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         checklist.plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         checklist.customer_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDate = !filterDate || checklist.created_at?.startsWith(filterDate);
-    const matchesMechanic = filterMechanic === 'all' || mechanicName === filterMechanic;
-    
-    return matchesSearch && matchesDate && matchesMechanic;
-  });
-
-  // Obter mecânicos únicos para o filtro (apenas dos checklists em andamento)
-  const uniqueMechanics = Array.from(new Set(
-    inProgressChecklists.map(c => c.profiles?.full_name).filter(Boolean)
-  ));
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Em Andamento': return 'bg-blue-100 text-blue-800';
-      case 'Concluído': return 'bg-green-100 text-green-800';
-      case 'Cancelado': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Concluído':
+        return 'bg-green-500 text-white border-green-500';
+      case 'Em Andamento':
+        return 'bg-blue-500 text-white border-blue-500';
+      case 'Pendente':
+        return 'bg-yellow-500 text-white border-yellow-500';
+      case 'Cancelado':
+        return 'bg-red-500 text-white border-red-500';
+      default:
+        return 'bg-gray-500 text-white border-gray-500';
     }
   };
 
-  if (activeView === 'view-checklist') {
-    return (
-      <div className="hidden lg:block lg:zoom-90">
-        <ChecklistViewer 
-          checklist={selectedChecklist}
-          onBack={handleBackToDashboard}
-        />
-      </div>
-    );
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Alta':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'Média':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'Baixa':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const filteredChecklists = checklists?.filter(checklist => {
+    const matchesSearch = searchTerm === '' || 
+      (checklist as any).customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (checklist as any).vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (checklist as any).plate?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || (checklist as any).status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredBudgets = budgets?.filter(budget => {
+    const matchesSearch = searchTerm === '' || 
+      budget.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      budget.vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      budget.vehicle_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      budget.budget_number?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || budget.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  if (showUserManagement) {
+    return <UserManagement onBack={() => setShowUserManagement(false)} />;
   }
 
-  if (activeView === 'edit-checklist') {
-    return (
-      <div className="hidden lg:block lg:zoom-90">
-        <EditChecklistForm
-          checklist={selectedChecklist}
-          onBack={handleBackToDashboard}
-          onSave={handleChecklistSaved}
-        />
-      </div>
-    );
+  if (showInviteTokens) {
+    return <InviteTokenManager onBack={() => setShowInviteTokens(false)} />;
   }
 
   return (
-    <div className="min-h-screen bg-background hidden lg:block lg:zoom-90">
+    <div className="lg:zoom-90 min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center justify-between">
-        <div>
-          <h1 className="mobile-text-2xl lg:text-2xl font-bold text-foreground">Painel Administrativo</h1>
-          <p className="mobile-text-sm lg:text-base text-muted-foreground">Bem-vindo, {currentUser}</p>
-        </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleExportAll} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Exportar Todos
-            </Button>
-            <Button variant="outline" onClick={handleLogout} className="mobile-btn lg:flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              Sair
-            </Button>
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Painel Administrativo</h1>
+              <p className="text-sm text-gray-600">Visão geral completa do sistema</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowInviteTokens(true)}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Tokens de Convite
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowUserManagement(true)}
+                className="flex items-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Usuários
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="p-6">
         {/* Stats Cards */}
@@ -181,10 +192,10 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Checklists</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalChecklists}</div>
+              <div className="text-2xl font-bold text-primary">{stats.totalChecklists}</div>
             </CardContent>
           </Card>
           
@@ -201,7 +212,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
+              <FileText className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
@@ -211,7 +222,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
-              <Clock className="h-4 w-4 text-red-600" />
+              <FileText className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
@@ -219,187 +230,188 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
           </Card>
         </div>
 
-        {/* Tabs for different sections */}
-        <Tabs defaultValue="checklists" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="checklists">Checklists de Serviços em Andamento</TabsTrigger>
-            <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="invites">Convites</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="checklists" className="space-y-6">
+        {/* Navigation Tabs */}
+        <div className="mb-6">
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+            <Button
+              variant={activeView === 'checklists' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveView('checklists')}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Checklists
+            </Button>
+            <Button
+              variant={activeView === 'budgets' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveView('budgets')}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Orçamentos
+            </Button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {activeView === 'checklists' ? 'Todos os Checklists' : 'Todos os Orçamentos'}
+            </CardTitle>
+            <CardDescription>
+              {activeView === 'checklists' 
+                ? 'Visualize e gerencie todos os checklists do sistema'
+                : 'Visualize e gerencie todos os orçamentos do sistema'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Filtros de Busca
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Buscar por veículo, mecânico, placa ou cliente..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  <Input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    className="w-full"
-                  />
-                  
-                  <Select value={filterMechanic} onValueChange={setFilterMechanic}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filtrar por mecânico" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os mecânicos</SelectItem>
-                      {uniqueMechanics.map((mechanic) => (
-                        <SelectItem key={mechanic} value={mechanic}>{mechanic}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <Input
+                  placeholder={activeView === 'checklists' 
+                    ? "Buscar por cliente, veículo ou placa..." 
+                    : "Buscar por cliente, veículo, placa ou número do orçamento..."
+                  }
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full lg:w-[200px]">
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                  <SelectItem value="Concluído">Concluído</SelectItem>
+                  <SelectItem value="Cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            {/* Checklists Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Checklists em Andamento ({filteredChecklists.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredChecklists.map((checklist) => {
-                    const checklistStatus = (checklist as any).status || 'Em Andamento';
-                    return (
-                      <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <Car className="h-5 w-5 text-primary" />
-                              <h3 className="font-semibold text-foreground">
-                                {checklist.vehicle_name} - {checklist.plate}
-                              </h3>
-                              <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
-                                {checklist.priority}
-                              </Badge>
-                              <Badge className={getStatusColor(checklistStatus)}>
-                                {checklistStatus}
-                              </Badge>
-                            </div>
-                            
-                            {/* Desktop: Informações completas */}
-                            <div className="hidden md:block">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                                <div>
-                                  <strong>Mecânico:</strong> {checklist.profiles?.full_name || 'Não informado'}
-                                </div>
-                                <div>
-                                  <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
-                                </div>
-                                <div>
-                                  <strong>Cliente:</strong> {checklist.customer_name}
-                                </div>
-                              </div>
-
-                              {checklist.completed_at && (
-                                <div>
-                                  <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
-                                </div>
-                              )}
-                              
-                              {checklist.general_observations && (
-                                <div className="mt-2 text-sm text-muted-foreground">
-                                  <strong>Observações:</strong> {checklist.general_observations}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Mobile: Apenas informações essenciais */}
-                            <div className="md:hidden space-y-2">
-                              <div className="text-sm text-muted-foreground">
-                                <strong>Cliente:</strong> {checklist.customer_name}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                <strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 ml-4">
+            {/* Content Table */}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Veículo</TableHead>
+                    <TableHead>Placa</TableHead>
+                    <TableHead>Status</TableHead>
+                    {activeView === 'checklists' && <TableHead>Prioridade</TableHead>}
+                    {activeView === 'budgets' && <TableHead>Número</TableHead>}
+                    {activeView === 'budgets' && <TableHead>Valor Final</TableHead>}
+                    <TableHead>Data</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeView === 'checklists' ? (
+                    filteredChecklists?.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                          Nenhum checklist encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredChecklists?.map((checklist: any) => (
+                        <TableRow key={checklist.id}>
+                          <TableCell className="font-medium">{checklist.customer_name}</TableCell>
+                          <TableCell>{checklist.vehicle_name}</TableCell>
+                          <TableCell className="font-mono">{checklist.plate}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(checklist.status)}>
+                              {checklist.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getPriorityColor(checklist.priority)}>
+                              {checklist.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-right">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleViewChecklist(checklist)}
-                              className="flex items-center gap-1"
                             >
-                              <Eye className="h-4 w-4" />
-                              Ver
+                              <Eye className="h-4 w-4 mr-1" />
+                              Visualizar
                             </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleEditChecklist(checklist)}
-                              className="flex items-center gap-1"
-                            >
-                              <Edit className="h-4 w-4" />
-                              Editar
-                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )
+                  ) : (
+                    filteredBudgets?.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                          Nenhum orçamento encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredBudgets?.map((budget) => (
+                        <TableRow key={budget.id}>
+                          <TableCell className="font-medium">{budget.customer_name}</TableCell>
+                          <TableCell>{budget.vehicle_name || '-'}</TableCell>
+                          <TableCell className="font-mono">{budget.vehicle_plate || '-'}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(budget.status)}>
+                              {budget.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-mono">{budget.budget_number}</TableCell>
+                          <TableCell className="font-medium">
+                            {new Intl.NumberFormat('pt-BR', { 
+                              style: 'currency', 
+                              currency: 'BRL' 
+                            }).format(budget.final_amount)}
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-right">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleGeneratePDF(checklist.id)}
-                              className="flex items-center gap-1"
+                              onClick={() => handleViewBudget(budget)}
                             >
-                              <Download className="h-4 w-4" />
-                              PDF
+                              <Eye className="h-4 w-4 mr-1" />
+                              Visualizar
                             </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteChecklist(checklist.id)}
-                              className="flex items-center gap-1"
-                              disabled={deleteChecklistMutation.isPending}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Deletar
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  {filteredChecklists.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Nenhum checklist em andamento encontrado com os filtros aplicados.</p>
-                      {inProgressChecklists.length === 0 && (
-                        <p className="mt-2">Não há checklists em andamento no momento.</p>
-                      )}
-                    </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
-          
-          <TabsContent value="invites">
-            <InviteTokenManager />
-          </TabsContent>
-        </Tabs>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Modals */}
+        <ChecklistViewer
+          checklist={selectedChecklist}
+          open={checklistViewerOpen}
+          onOpenChange={setChecklistViewerOpen}
+        />
+
+        <BudgetViewer
+          budget={selectedBudget}
+          open={budgetViewerOpen}
+          onOpenChange={setBudgetViewerOpen}
+        />
       </div>
     </div>
   );
