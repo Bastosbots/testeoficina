@@ -11,13 +11,8 @@ import CreateChecklistForm from "@/components/CreateChecklistForm";
 import ChecklistViewer from "@/components/ChecklistViewer";
 import EditChecklistForm from "@/components/EditChecklistForm";
 
-interface MechanicDashboardProps {
-  currentUser: string;
-  onLogout: () => void;
-}
-
-const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) => {
-  const { signOut, user } = useAuth();
+const MechanicDashboard = () => {
+  const { signOut, user, profile } = useAuth();
   const { data: checklists = [] } = useChecklists();
   const [activeView, setActiveView] = useState<'dashboard' | 'new-checklist' | 'view-checklist' | 'edit-checklist'>('dashboard');
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
@@ -88,7 +83,7 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Painel do Mecânico</h1>
-            <p className="mobile-text-xs lg:text-base text-muted-foreground">Bem-vindo, {currentUser}</p>
+            <p className="mobile-text-xs lg:text-base text-muted-foreground">Bem-vindo, {profile?.full_name || user?.email}</p>
           </div>
           <div className="flex items-center gap-2 lg:gap-4">
             <Button 
