@@ -63,6 +63,7 @@ export type Database = {
           plate: string
           priority: string | null
           service_order: string
+          status: string
           updated_at: string | null
           vehicle_name: string
           video_url: string | null
@@ -77,6 +78,7 @@ export type Database = {
           plate: string
           priority?: string | null
           service_order: string
+          status?: string
           updated_at?: string | null
           vehicle_name: string
           video_url?: string | null
@@ -91,6 +93,7 @@ export type Database = {
           plate?: string
           priority?: string | null
           service_order?: string
+          status?: string
           updated_at?: string | null
           vehicle_name?: string
           video_url?: string | null
