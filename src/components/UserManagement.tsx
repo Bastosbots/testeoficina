@@ -92,7 +92,7 @@ const UserManagement = () => {
   };
 
   const handlePasswordInfo = () => {
-    toast.info('Para alterar senhas, acesse o painel administrativo do Supabase > Authentication > Users');
+    toast.info('Para alterar senhas, acesse o painel administrativo do Supabase Authentication &gt; Users');
   };
 
   if (profile?.role !== 'admin') {
@@ -198,7 +198,7 @@ const UserManagement = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Para alterar senhas de usuários, acesse o painel administrativo do Supabase > Authentication > Users
+              Para alterar senhas de usuários, acesse o painel administrativo do Supabase Authentication &gt; Users
             </AlertDescription>
           </Alert>
 
