@@ -60,6 +60,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
     },
   });
 
+  console.log('BudgetForm - Estado atual do usuário:', user);
+  console.log('BudgetForm - Serviços selecionados:', services);
+
   const handleVehicleSelect = (vehicle: { customer_name: string; vehicle_name: string; plate: string }) => {
     console.log('Veículo selecionado:', vehicle);
     form.setValue('customer_name', vehicle.customer_name);
@@ -112,20 +115,24 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
   }, [services]);
 
   const onSubmit = async (data: BudgetFormData) => {
+    console.log('=== INICIANDO CRIAÇÃO DO ORÇAMENTO ===');
+    console.log('Dados do formulário:', data);
+    console.log('Serviços selecionados:', services);
+    console.log('Usuário autenticado:', user);
+
     if (services.length === 0) {
+      console.error('Erro: Nenhum serviço selecionado');
       toast.error('Adicione pelo menos um serviço ao orçamento');
       return;
     }
 
-    if (!user) {
+    if (!user?.id) {
+      console.error('Erro: Usuário não autenticado ou sem ID');
       toast.error('Usuário não autenticado');
       return;
     }
 
     try {
-      console.log('Criando orçamento com dados:', data);
-      console.log('Serviços do orçamento:', services);
-      
       const discountAmount = data.discount_amount || 0;
       const finalAmount = totalAmount - discountAmount;
 
@@ -137,13 +144,18 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
         total_amount: totalAmount,
         discount_amount: discountAmount,
         final_amount: finalAmount,
-        observations: data.observations,
+        observations: data.observations || null,
         status: 'Pendente',
       };
 
-      const budget = await createBudget.mutateAsync(budgetData);
-      console.log('Orçamento criado:', budget);
+      console.log('Dados do orçamento a serem enviados:', budgetData);
 
+      // Criar o orçamento
+      console.log('Criando orçamento...');
+      const budget = await createBudget.mutateAsync(budgetData);
+      console.log('Orçamento criado com sucesso:', budget);
+
+      // Preparar itens do orçamento
       const budgetItems = services.map(service => ({
         budget_id: budget.id,
         service_id: service.service_id,
@@ -154,14 +166,27 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
         total_price: service.total_price,
       }));
 
-      console.log('Criando itens do orçamento:', budgetItems);
+      console.log('Itens do orçamento a serem criados:', budgetItems);
+
+      // Criar itens do orçamento
+      console.log('Criando itens do orçamento...');
       await createBudgetItems.mutateAsync(budgetItems);
+      console.log('Itens do orçamento criados com sucesso');
       
       toast.success('Orçamento criado com sucesso!');
       onComplete();
     } catch (error) {
-      console.error('Erro ao criar orçamento:', error);
-      toast.error('Erro ao criar orçamento');
+      console.error('=== ERRO DETALHADO AO CRIAR ORÇAMENTO ===');
+      console.error('Erro completo:', error);
+      console.error('Tipo do erro:', typeof error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
+      console.error('Mensagem do erro:', error instanceof Error ? error.message : String(error));
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        toast.error(`Erro ao criar orçamento: ${error.message}`);
+      } else {
+        toast.error('Erro ao criar orçamento. Verifique o console para mais detalhes.');
+      }
     }
   };
 
