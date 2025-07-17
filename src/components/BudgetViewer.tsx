@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -210,7 +209,216 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   };
 
   const handlePrint = () => {
-    window.print();
+    // Create a new window with the standardized print layout
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Orçamento ${budget.budget_number}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: Arial, sans-serif; 
+              font-size: 12px; 
+              line-height: 1.4;
+              padding: 20px;
+              background: white;
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 30px;
+              position: relative;
+            }
+            .logo {
+              width: 60px;
+              height: 60px;
+              background: #ffff00;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              font-size: 10px;
+            }
+            .company-info {
+              position: absolute;
+              left: 50%;
+              transform: translateX(-50%);
+              text-align: center;
+            }
+            .company-name {
+              font-size: 16px;
+              font-weight: bold;
+              margin-bottom: 8px;
+            }
+            .company-address {
+              font-size: 12px;
+              color: #666;
+            }
+            .contact-info {
+              text-align: right;
+              font-size: 10px;
+              color: #666;
+            }
+            .title {
+              text-align: center;
+              font-size: 20px;
+              font-weight: bold;
+              margin: 20px 0;
+            }
+            .content {
+              display: flex;
+              gap: 30px;
+              margin-bottom: 20px;
+            }
+            .column {
+              flex: 1;
+            }
+            .section-title {
+              font-weight: bold;
+              margin-bottom: 8px;
+            }
+            .info-item {
+              margin-bottom: 4px;
+            }
+            .services-section {
+              margin: 20px 0;
+            }
+            .services-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
+            .services-table th,
+            .services-table td {
+              border: 1px solid #000;
+              padding: 8px;
+              text-align: left;
+            }
+            .services-table th {
+              background-color: #f0f0f0;
+              font-weight: bold;
+            }
+            .total-section {
+              margin: 15px 0;
+            }
+            .total-box {
+              background-color: #f0f0f0;
+              border: 1px solid #000;
+              padding: 10px;
+              text-align: right;
+              font-size: 14px;
+              font-weight: bold;
+            }
+            .observations {
+              margin: 20px 0;
+            }
+            .footer {
+              display: flex;
+              justify-content: space-between;
+              margin-top: 30px;
+              font-size: 10px;
+              color: #666;
+            }
+            @media print {
+              body { padding: 0; }
+              .no-print { display: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">LOGO</div>
+            <div class="company-info">
+              <div class="company-name">${settings?.company_name || 'Nome da Empresa'}</div>
+              ${settings?.company_address ? `<div class="company-address">${settings.company_address}</div>` : ''}
+            </div>
+            <div class="contact-info">
+              ${settings?.company_phone ? `<div>Telefone: ${settings.company_phone}</div>` : ''}
+              ${settings?.company_email ? `<div>Email: ${settings.company_email}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="title">ORÇAMENTO</div>
+
+          <div class="content">
+            <div class="column">
+              <div class="section-title">Cliente:</div>
+              <div class="info-item">Nome: ${budget.customer_name}</div>
+            </div>
+            
+            ${budget.vehicle_name || budget.vehicle_plate ? `
+            <div class="column">
+              <div class="section-title">Veículo:</div>
+              ${budget.vehicle_name ? `<div class="info-item">Modelo: ${budget.vehicle_name}</div>` : ''}
+              ${budget.vehicle_plate ? `<div class="info-item">Placa: ${budget.vehicle_plate}</div>` : ''}
+              ${budget.vehicle_year ? `<div class="info-item">Ano: ${budget.vehicle_year}</div>` : ''}
+            </div>
+            ` : ''}
+          </div>
+
+          <div class="services-section">
+            <div class="section-title">Serviços:</div>
+            <table class="services-table">
+              <thead>
+                <tr>
+                  <th>Serviço</th>
+                  <th>Quantidade</th>
+                  <th>Preço Unit.</th>
+                  <th>Sub-total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${budgetItems.map(item => `
+                  <tr>
+                    <td>${item.service_name}</td>
+                    <td>${item.quantity}</td>
+                    <td>R$ ${item.unit_price.toFixed(2)}</td>
+                    <td>R$ ${item.total_price.toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div style="text-align: right; font-weight: bold; margin-bottom: 10px;">
+              Total em Serviços: R$ ${budget.total_amount.toFixed(2)}
+            </div>
+          </div>
+
+          <div class="total-section">
+            <div class="total-box">
+              Valor Total: R$ ${budget.final_amount.toFixed(2)}
+            </div>
+          </div>
+
+          ${budget.observations ? `
+          <div class="observations">
+            <div class="section-title">Observações:</div>
+            <div>${budget.observations}</div>
+          </div>
+          ` : ''}
+
+          <div class="footer">
+            <div>Orçamento: ${budget.budget_number}</div>
+            <div>Data: ${format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = () => {
+      printWindow.print();
+      printWindow.close();
+    };
   };
 
   const handleEdit = () => {
