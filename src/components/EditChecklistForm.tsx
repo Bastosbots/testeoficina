@@ -110,94 +110,100 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
   }, {} as Record<string, any[]>) : {};
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background mobile-card-padding lg:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 lg:mb-6 space-y-3 lg:space-y-0">
+        <div className="flex items-center gap-2 lg:gap-4">
           <Button
             variant="outline"
             onClick={onBack}
-            className="flex items-center gap-2"
+            className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
+            <ArrowLeft className="h-3 w-3 lg:h-4 lg:w-4" />
+            <span className="mobile-text-xs lg:text-sm">Voltar</span>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Editar Checklist</h1>
-            <p className="text-muted-foreground">
+            <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Editar Checklist</h1>
+            <p className="mobile-text-xs lg:text-base text-muted-foreground">
               Modificar informações e status do checklist
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Badge className={getStatusColor(formData.status)}>
+        <div className="flex items-center gap-1 lg:gap-2">
+          <Badge className={`${getStatusColor(formData.status)} mobile-text-xs lg:text-sm px-1 lg:px-3 py-0.5 lg:py-1`}>
             {formData.status}
           </Badge>
           <Button 
             onClick={handleSave}
             disabled={updateChecklistMutation.isPending}
-            className="flex items-center gap-2"
+            className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
           >
-            <Save className="h-4 w-4" />
-            {updateChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}
+            <Save className="h-3 w-3 lg:h-4 lg:w-4" />
+            <span className="mobile-text-xs lg:text-sm">
+              {updateChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}
+            </span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
         {/* Informações Básicas */}
         <div className="lg:col-span-1">
           <Card>
-            <CardHeader>
-              <CardTitle>Informações Básicas</CardTitle>
+            <CardHeader className="mobile-card-padding lg:p-6">
+              <CardTitle className="mobile-text-sm lg:text-lg">Informações Básicas</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="vehicle_name">Nome do Veículo</Label>
+            <CardContent className="mobile-card-padding lg:p-6 space-y-3 lg:space-y-4">
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="vehicle_name" className="mobile-text-xs lg:text-sm">Nome do Veículo</Label>
                 <Input
                   id="vehicle_name"
                   value={formData.vehicle_name}
                   onChange={(e) => handleInputChange('vehicle_name', e.target.value)}
+                  className="mobile-input lg:h-10"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="plate">Placa</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="plate" className="mobile-text-xs lg:text-sm">Placa</Label>
                 <Input
                   id="plate"
                   value={formData.plate}
                   onChange={(e) => handleInputChange('plate', e.target.value)}
+                  className="mobile-input lg:h-10"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="customer_name">Cliente</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="customer_name" className="mobile-text-xs lg:text-sm">Cliente</Label>
                 <Input
                   id="customer_name"
                   value={formData.customer_name}
                   onChange={(e) => handleInputChange('customer_name', e.target.value)}
+                  className="mobile-input lg:h-10"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="service_order">Ordem de Serviço</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="service_order" className="mobile-text-xs lg:text-sm">Ordem de Serviço</Label>
                 <Input
                   id="service_order"
                   value={formData.service_order}
                   onChange={(e) => handleInputChange('service_order', e.target.value)}
+                  className="mobile-input lg:h-10"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="priority">Prioridade</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="priority" className="mobile-text-xs lg:text-sm">Prioridade</Label>
                 <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mobile-input lg:h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {priorityOptions.map((priority) => (
-                      <SelectItem key={priority} value={priority}>
+                      <SelectItem key={priority} value={priority} className="mobile-text-xs lg:text-sm">
                         {priority}
                       </SelectItem>
                     ))}
@@ -205,15 +211,15 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="status" className="mobile-text-xs lg:text-sm">Status</Label>
                 <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mobile-input lg:h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {statusOptions.map((status) => (
-                      <SelectItem key={status} value={status}>
+                      <SelectItem key={status} value={status} className="mobile-text-xs lg:text-sm">
                         {status}
                       </SelectItem>
                     ))}
@@ -221,23 +227,25 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="video_url">URL do Vídeo</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="video_url" className="mobile-text-xs lg:text-sm">URL do Vídeo</Label>
                 <Input
                   id="video_url"
                   value={formData.video_url}
                   onChange={(e) => handleInputChange('video_url', e.target.value)}
                   placeholder="https://..."
+                  className="mobile-input lg:h-10"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="general_observations">Observações Gerais</Label>
+              <div className="space-y-1 lg:space-y-2">
+                <Label htmlFor="general_observations" className="mobile-text-xs lg:text-sm">Observações Gerais</Label>
                 <Textarea
                   id="general_observations"
                   value={formData.general_observations}
                   onChange={(e) => handleInputChange('general_observations', e.target.value)}
-                  rows={4}
+                  rows={3}
+                  className="mobile-text-xs lg:text-sm min-h-16 lg:min-h-20"
                 />
               </div>
             </CardContent>
@@ -247,26 +255,26 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
         {/* Itens do Checklist */}
         <div className="lg:col-span-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Itens do Checklist</CardTitle>
+            <CardHeader className="mobile-card-padding lg:p-6">
+              <CardTitle className="mobile-text-sm lg:text-lg">Itens do Checklist</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
+            <CardContent className="mobile-card-padding lg:p-6">
+              <div className="space-y-4 lg:space-y-6">
                 {Object.entries(itemsByCategory).map(([category, categoryItems]) => {
                   const categoryItemsArray = Array.isArray(categoryItems) ? categoryItems : [];
                   return (
                     <div key={category}>
-                      <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <h3 className="mobile-text-sm lg:text-lg font-semibold text-foreground mb-2 lg:mb-3 flex items-center gap-1 lg:gap-2">
                         {category}
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="mobile-text-xs lg:text-xs px-1 lg:px-2 py-0.5">
                           {categoryItemsArray.filter(item => item.checked).length}/{categoryItemsArray.length}
                         </Badge>
                       </h3>
                       
-                      <div className="space-y-3">
+                      <div className="space-y-2 lg:space-y-3">
                         {categoryItemsArray.map((item) => (
-                          <div key={item.id} className="border rounded-lg p-4 bg-card">
-                            <div className="flex items-start gap-3">
+                          <div key={item.id} className="border rounded-lg mobile-card-padding lg:p-4 bg-card">
+                            <div className="flex items-start gap-2 lg:gap-3">
                               <Checkbox
                                 checked={item.checked || false}
                                 onCheckedChange={(checked) => 
@@ -274,8 +282,8 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                                 }
                                 className="mt-1"
                               />
-                              <div className="flex-1 space-y-2">
-                                <div className="font-medium text-foreground">
+                              <div className="flex-1 space-y-1 lg:space-y-2">
+                                <div className="mobile-text-xs lg:text-sm font-medium text-foreground">
                                   {item.item_name}
                                 </div>
                                 <Textarea
@@ -285,7 +293,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                                   }
                                   placeholder="Observações sobre este item..."
                                   rows={2}
-                                  className="text-sm"
+                                  className="mobile-text-xs lg:text-sm min-h-12 lg:min-h-16"
                                 />
                               </div>
                             </div>
@@ -294,15 +302,15 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                       </div>
                       
                       {category !== Object.keys(itemsByCategory)[Object.keys(itemsByCategory).length - 1] && (
-                        <Separator className="mt-6" />
+                        <Separator className="mt-4 lg:mt-6" />
                       )}
                     </div>
                   );
                 })}
 
                 {Object.keys(itemsByCategory).length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>Nenhum item encontrado para este checklist.</p>
+                  <div className="text-center py-6 lg:py-8 text-muted-foreground">
+                    <p className="mobile-text-xs lg:text-base">Nenhum item encontrado para este checklist.</p>
                   </div>
                 )}
               </div>
