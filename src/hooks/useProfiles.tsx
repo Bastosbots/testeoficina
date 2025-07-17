@@ -111,7 +111,39 @@ export const useUpdateProfile = () => {
         throw new Error('Sem permissão para editar usuários');
       }
 
-      // Atualizar o perfil usando o service role através de uma query simples
+      // Primeiro, verificar se o perfil existe
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id, username, role')
+        .eq('id', id)
+        .single();
+
+      console.log('Existing profile check:', { existingProfile, checkError });
+
+      if (checkError) {
+        console.error('Error checking existing profile:', checkError);
+        throw new Error(`Erro ao verificar perfil: ${checkError.message}`);
+      }
+
+      if (!existingProfile) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Verificar se o username já existe em outro usuário
+      if (username !== existingProfile.username) {
+        const { data: usernameCheck } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', username)
+          .neq('id', id)
+          .maybeSingle();
+
+        if (usernameCheck) {
+          throw new Error('Nome de usuário já está em uso');
+        }
+      }
+
+      // Atualizar o perfil
       const { data, error } = await supabase
         .from('profiles')
         .update({ 
@@ -130,7 +162,7 @@ export const useUpdateProfile = () => {
       }
       
       if (!data || data.length === 0) {
-        throw new Error('Perfil não encontrado');
+        throw new Error('Nenhuma linha foi atualizada. Verifique as permissões.');
       }
       
       console.log('Profile updated successfully:', data[0]);
