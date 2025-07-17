@@ -69,13 +69,27 @@ export const useUpdateProfile = () => {
         throw new Error('Perfil não encontrado');
       }
       
+      // Verificar se há mudanças reais nos dados
+      const hasChanges = Object.keys(updateData).some(key => {
+        return existingProfile[key] !== updateData[key];
+      });
+      
+      console.log('Has changes:', hasChanges);
+      
+      if (!hasChanges) {
+        console.log('No changes detected, returning existing profile');
+        return existingProfile;
+      }
+      
       // Agora fazemos a atualização
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', id)
         .select()
         .maybeSingle();
+      
+      console.log('Update result:', { data, error, count });
       
       if (error) {
         console.error('Update error:', error);
@@ -83,7 +97,24 @@ export const useUpdateProfile = () => {
       }
       
       if (!data) {
-        throw new Error('Nenhuma linha foi atualizada');
+        // Tentar buscar o perfil novamente para ver se a atualização funcionou
+        const { data: updatedProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        
+        console.log('Refetch after update:', updatedProfile, fetchError);
+        
+        if (fetchError) {
+          throw fetchError;
+        }
+        
+        if (updatedProfile) {
+          return updatedProfile;
+        }
+        
+        throw new Error('Erro ao atualizar: perfil não encontrado após atualização');
       }
       
       console.log('Profile updated successfully:', data);
