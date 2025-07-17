@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Search, Plus, Wrench } from 'lucide-react';
 import { useServices, Service } from '@/hooks/useServices';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +14,11 @@ interface ServiceSelectorProps {
 const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: services = [], isLoading } = useServices();
+  const { data: services = [], isLoading, error } = useServices();
+
+  console.log('ServiceSelector - services:', services);
+  console.log('ServiceSelector - isLoading:', isLoading);
+  console.log('ServiceSelector - error:', error);
 
   const filteredServices = services.filter(service =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,6 +26,7 @@ const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
   );
 
   const handleServiceSelect = (service: Service) => {
+    console.log('Serviço selecionado:', service);
     onServiceSelect(service);
     setOpen(false);
   };
@@ -65,10 +69,17 @@ const ServiceSelector = ({ onServiceSelect }: ServiceSelectorProps) => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Carregando serviços...</p>
               </div>
+            ) : error ? (
+              <div className="text-center py-8 text-red-500">
+                <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Erro ao carregar serviços</p>
+                <p className="text-sm">{error.message}</p>
+              </div>
             ) : Object.keys(groupedServices).length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Wrench className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum serviço encontrado</p>
+                {searchTerm && <p className="text-sm">Tente ajustar o termo de busca</p>}
               </div>
             ) : (
               Object.entries(groupedServices).map(([category, categoryServices]) => (

@@ -61,12 +61,16 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
   });
 
   const handleVehicleSelect = (vehicle: { customer_name: string; vehicle_name: string; plate: string }) => {
+    console.log('Veículo selecionado:', vehicle);
     form.setValue('customer_name', vehicle.customer_name);
     form.setValue('vehicle_name', vehicle.vehicle_name);
     form.setValue('vehicle_plate', vehicle.plate);
+    toast.success('Dados do veículo preenchidos automaticamente');
   };
 
   const handleServiceSelect = (service: Service) => {
+    console.log('Adicionando serviço ao orçamento:', service);
+    
     const newService: ServiceItem = {
       service_id: service.id,
       service_name: service.name,
@@ -76,15 +80,25 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
       total_price: service.unit_price,
     };
     
-    setServices([...services, newService]);
+    setServices(prevServices => {
+      const updatedServices = [...prevServices, newService];
+      console.log('Serviços atualizados:', updatedServices);
+      return updatedServices;
+    });
+    
+    toast.success(`Serviço "${service.name}" adicionado ao orçamento`);
   };
 
   const removeService = (index: number) => {
+    const serviceToRemove = services[index];
     const newServices = services.filter((_, i) => i !== index);
     setServices(newServices);
+    toast.success(`Serviço "${serviceToRemove.service_name}" removido do orçamento`);
   };
 
   const updateServiceQuantity = (index: number, quantity: number) => {
+    if (quantity < 1) return;
+    
     const newServices = [...services];
     newServices[index].quantity = quantity;
     newServices[index].total_price = quantity * newServices[index].unit_price;
@@ -94,6 +108,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
   useEffect(() => {
     const total = services.reduce((sum, service) => sum + service.total_price, 0);
     setTotalAmount(total);
+    console.log('Total atualizado:', total);
   }, [services]);
 
   const onSubmit = async (data: BudgetFormData) => {
@@ -108,6 +123,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
     }
 
     try {
+      console.log('Criando orçamento com dados:', data);
+      console.log('Serviços do orçamento:', services);
+      
       const discountAmount = data.discount_amount || 0;
       const finalAmount = totalAmount - discountAmount;
 
@@ -124,6 +142,7 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
       };
 
       const budget = await createBudget.mutateAsync(budgetData);
+      console.log('Orçamento criado:', budget);
 
       const budgetItems = services.map(service => ({
         budget_id: budget.id,
@@ -135,10 +154,14 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
         total_price: service.total_price,
       }));
 
+      console.log('Criando itens do orçamento:', budgetItems);
       await createBudgetItems.mutateAsync(budgetItems);
+      
+      toast.success('Orçamento criado com sucesso!');
       onComplete();
     } catch (error) {
       console.error('Erro ao criar orçamento:', error);
+      toast.error('Erro ao criar orçamento');
     }
   };
 

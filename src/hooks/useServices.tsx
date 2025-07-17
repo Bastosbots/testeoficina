@@ -17,6 +17,7 @@ export const useServices = () => {
   return useQuery({
     queryKey: ['services'],
     queryFn: async () => {
+      console.log('Buscando serviços...');
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -24,7 +25,12 @@ export const useServices = () => {
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar serviços:', error);
+        throw error;
+      }
+      
+      console.log('Serviços encontrados:', data);
       return data as Service[];
     },
   });
