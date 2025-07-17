@@ -231,7 +231,7 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
         {/* Tabs for different sections */}
         <Tabs defaultValue="checklists" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="checklists">Checklists em Andamento</TabsTrigger>
+            <TabsTrigger value="checklists">Checklists de Serviços em Andamento</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="invites">Convites</TabsTrigger>
           </TabsList>
