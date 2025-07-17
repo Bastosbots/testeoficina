@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     plate: checklist.plate || '',
     customer_name: checklist.customer_name || '',
     priority: checklist.priority || 'Média',
-    status: checklist.status || 'Pendente',
+    status: checklist.status || 'Em Andamento',
     general_observations: checklist.general_observations || '',
     video_url: checklist.video_url || '',
   });
@@ -88,7 +87,6 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pendente': return 'bg-yellow-100 text-yellow-800';
       case 'Em Andamento': return 'bg-blue-100 text-blue-800';
       case 'Concluído': return 'bg-green-100 text-green-800';
       case 'Cancelado': return 'bg-red-100 text-red-800';
@@ -97,7 +95,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
   };
 
   const priorityOptions = ['Baixa', 'Média', 'Alta'];
-  const statusOptions = ['Pendente', 'Em Andamento', 'Concluído', 'Cancelado'];
+  const statusOptions = ['Em Andamento', 'Concluído', 'Cancelado'];
 
   // Agrupar itens por categoria
   const itemsByCategory = Array.isArray(items) ? items.reduce((acc, item) => {

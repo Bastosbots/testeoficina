@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,9 @@ const AllChecklists = () => {
       checklist.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'completed' && checklist.completed_at) ||
-      (statusFilter === 'pending' && !checklist.completed_at);
+      (statusFilter === 'completed' && checklist.status === 'Concluído') ||
+      (statusFilter === 'in-progress' && checklist.status === 'Em Andamento') ||
+      (statusFilter === 'cancelled' && checklist.status === 'Cancelado');
 
     const matchesPriority = priorityFilter === 'all' || checklist.priority === priorityFilter;
 
@@ -56,11 +58,17 @@ const AllChecklists = () => {
     setSelectedChecklist(null);
   };
 
-  const getStatusBadge = (checklist: any) => {
-    if (checklist.completed_at) {
-      return <Badge variant="default">Concluído</Badge>;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Concluído':
+        return <Badge variant="default" className="bg-green-100 text-green-800">Concluído</Badge>;
+      case 'Em Andamento':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Em Andamento</Badge>;
+      case 'Cancelado':
+        return <Badge variant="destructive" className="bg-red-100 text-red-800">Cancelado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
-    return <Badge variant="secondary">Pendente</Badge>;
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -131,8 +139,9 @@ const AllChecklists = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="in-progress">Em Andamento</SelectItem>
                 <SelectItem value="completed">Concluídos</SelectItem>
-                <SelectItem value="pending">Pendentes</SelectItem>
+                <SelectItem value="cancelled">Cancelados</SelectItem>
               </SelectContent>
             </Select>
 
@@ -175,7 +184,7 @@ const AllChecklists = () => {
                       {checklist.vehicle_name} - {checklist.plate}
                     </h3>
                     <div className="flex gap-2">
-                      {getStatusBadge(checklist)}
+                      {getStatusBadge(checklist.status)}
                       {getPriorityBadge(checklist.priority)}
                     </div>
                   </div>
