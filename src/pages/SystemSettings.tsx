@@ -10,7 +10,6 @@ import { Separator } from '@/components/ui/separator';
 import { Settings, Building, Save, Loader2 } from 'lucide-react';
 import { useSystemSettings, useUpdateSystemSettings, SystemSettings } from '@/hooks/useSystemSettings';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 
 const SystemSettingsPage = () => {
   const { profile } = useAuth();
