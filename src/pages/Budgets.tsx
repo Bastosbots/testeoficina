@@ -2,18 +2,18 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Eye, FileText, Clock, DollarSign } from 'lucide-react';
+import { Plus, Search, Eye, FileText, Clock, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useBudgets } from '@/hooks/useBudgets';
 import { useAuth } from '@/hooks/useAuth';
 import BudgetForm from '@/components/BudgetForm';
 import BudgetViewer from '@/components/BudgetViewer';
+import BudgetStatus from '@/components/BudgetStatus';
 
 const Budgets = () => {
-  const { data: budgets = [], isLoading } = useBudgets();
+  const { data: budgets = [], isLoading, refetch } = useBudgets();
   const { profile } = useAuth();
   const [activeView, setActiveView] = useState<'list' | 'new' | 'view'>('list');
   const [selectedBudget, setSelectedBudget] = useState<any>(null);
@@ -33,6 +33,7 @@ const Budgets = () => {
   const totalBudgets = myBudgets.length;
   const pendingBudgets = myBudgets.filter(b => b.status === 'Pendente').length;
   const approvedBudgets = myBudgets.filter(b => b.status === 'Aprovado').length;
+  const rejectedBudgets = myBudgets.filter(b => b.status === 'Rejeitado').length;
   const totalValue = myBudgets.reduce((sum, b) => sum + b.final_amount, 0);
 
   const handleViewBudget = (budget: any) => {
@@ -43,6 +44,7 @@ const Budgets = () => {
   const handleBackToList = () => {
     setActiveView('list');
     setSelectedBudget(null);
+    refetch();
   };
 
   const handleNewBudget = () => {
@@ -51,6 +53,11 @@ const Budgets = () => {
 
   const handleBudgetComplete = () => {
     setActiveView('list');
+    refetch();
+  };
+
+  const handleStatusChange = () => {
+    refetch();
   };
 
   if (activeView === 'new') {
@@ -89,7 +96,7 @@ const Budgets = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium">Total</CardTitle>
@@ -113,10 +120,20 @@ const Budgets = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium">Aprovados</CardTitle>
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">{approvedBudgets}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Rejeitados</CardTitle>
+              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg sm:text-2xl font-bold">{rejectedBudgets}</div>
             </CardContent>
           </Card>
 
@@ -181,9 +198,7 @@ const Budgets = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm sm:text-base">#{budget.budget_number}</h3>
-                        <Badge variant={budget.status === 'Aprovado' ? 'default' : 'secondary'} className="text-xs">
-                          {budget.status}
-                        </Badge>
+                        <BudgetStatus budget={budget} onStatusChange={handleStatusChange} />
                       </div>
                       <Button
                         variant="outline"

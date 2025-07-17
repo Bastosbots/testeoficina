@@ -1,12 +1,15 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Download, Printer } from 'lucide-react';
+import { ArrowLeft, Download, Printer, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useBudgetItems, Budget } from '@/hooks/useBudgets';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { useAuth } from '@/hooks/useAuth';
+import BudgetStatus from '@/components/BudgetStatus';
+import BudgetForm from '@/components/BudgetForm';
 import jsPDF from 'jspdf';
 
 interface BudgetViewerProps {
@@ -17,6 +20,11 @@ interface BudgetViewerProps {
 const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   const { data: budgetItems = [] } = useBudgetItems(budget.id);
   const { data: settings } = useSystemSettings();
+  const { profile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+
+  const canEdit = profile?.role === 'admin' || 
+    (profile?.role === 'mechanic' && budget.mechanic_id === profile.id && budget.status === 'Pendente');
 
   const generatePDF = () => {
     const doc = new jsPDF();
@@ -170,6 +178,29 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
     window.print();
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleBackFromEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleEditComplete = () => {
+    setIsEditing(false);
+    onBack();
+  };
+
+  if (isEditing) {
+    return (
+      <BudgetForm
+        budget={budget}
+        onBack={handleBackFromEdit}
+        onComplete={handleEditComplete}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-3 sm:p-4 lg:p-6">
       <div className="max-w-4xl mx-auto">
@@ -183,6 +214,12 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
           </div>
           
           <div className="flex gap-2 w-full sm:w-auto">
+            {canEdit && (
+              <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="ml-1 sm:ml-2">Editar</span>
+              </Button>
+            )}
             <Button variant="outline" onClick={generatePDF} className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
               <Download className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="ml-1 sm:ml-2">PDF</span>
@@ -212,9 +249,9 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
                   <p className="text-xs sm:text-sm text-muted-foreground">
                     {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                   </p>
-                  <Badge variant={budget.status === 'Aprovado' ? 'default' : 'secondary'} className="mt-2 text-xs">
-                    {budget.status}
-                  </Badge>
+                  <div className="mt-2">
+                    <BudgetStatus budget={budget} />
+                  </div>
                 </div>
               </div>
             </CardHeader>
