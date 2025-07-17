@@ -106,25 +106,33 @@ export const useUpdatePassword = () => {
     mutationFn: async ({ userId, newPassword }: { userId: string, newPassword: string }) => {
       console.log('Updating password for user:', userId);
       
-      // Verificar se o usuário atual é admin
-      const { data: currentUser } = await supabase.auth.getUser();
-      if (!currentUser.user) {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
         throw new Error('Usuário não autenticado');
       }
 
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', currentUser.user.id)
-        .single();
+      const { data, error } = await supabase.functions.invoke('update-user-password', {
+        body: { userId, newPassword },
+        headers: {
+          Authorization: `Bearer ${session.session.access_token}`,
+        },
+      });
 
-      if (!currentProfile || currentProfile.role !== 'admin') {
-        throw new Error('Sem permissão para alterar senhas');
+      if (error) {
+        console.error('Erro ao chamar função:', error);
+        throw new Error(error.message || 'Erro ao alterar senha');
       }
 
-      // Como não podemos usar auth.admin no cliente, vamos orientar o usuário
-      // a fazer isso através do painel do Supabase ou implementar uma edge function
-      throw new Error('Alteração de senha deve ser feita através do painel administrativo do Supabase');
+      if (data.error) {
+        console.error('Erro na função:', data.error);
+        throw new Error(data.error);
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      console.log('Senha alterada com sucesso');
+      toast.success('Senha alterada com sucesso!');
     },
     onError: (error: any) => {
       console.error('Password update error:', error);

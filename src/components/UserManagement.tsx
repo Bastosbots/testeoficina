@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,14 +8,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Users, Shield, Wrench, Edit, Key, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfiles, useUpdateProfile } from "@/hooks/useProfiles";
+import { useProfiles, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfiles";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const UserManagement = () => {
   const { signUp, profile } = useAuth();
   const updateProfileMutation = useUpdateProfile();
+  const updatePasswordMutation = useUpdatePassword();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
@@ -29,6 +30,10 @@ const UserManagement = () => {
     username: '',
     fullName: '',
     role: 'mechanic'
+  });
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
   });
 
   // Buscar todos os usuários usando o hook com realtime
@@ -91,8 +96,46 @@ const UserManagement = () => {
     }
   };
 
-  const handlePasswordInfo = () => {
-    toast.info('Para alterar senhas, acesse o painel administrativo do Supabase Authentication &gt; Users');
+  const handlePasswordChange = (user: any) => {
+    setSelectedUser(user);
+    setPasswordData({
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setIsPasswordDialogOpen(true);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await updatePasswordMutation.mutateAsync({
+        userId: selectedUser.id,
+        newPassword: passwordData.newPassword
+      });
+      setIsPasswordDialogOpen(false);
+      setSelectedUser(null);
+      setPasswordData({
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (err) {
+      // Error handled by the mutation
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (profile?.role !== 'admin') {
@@ -229,7 +272,7 @@ const UserManagement = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={handlePasswordInfo}
+                  onClick={() => handlePasswordChange(user)}
                   className="flex items-center gap-1"
                 >
                   <Key className="h-3 w-3" />
@@ -310,6 +353,51 @@ const UserManagement = () => {
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Alteração de Senha */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Senha</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Nova Senha</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Digite a nova senha"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, newPassword: e.target.value}))}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirme a nova senha"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, confirmPassword: e.target.value}))}
+                required
+                minLength={6}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Alterando..." : "Alterar Senha"}
               </Button>
             </div>
           </form>
