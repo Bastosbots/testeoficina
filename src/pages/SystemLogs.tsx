@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye, Search, Filter, FileText } from 'lucide-react';
+import { Eye, Search, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useSystemLogs, type SystemLog } from '@/hooks/useSystemLogs';
@@ -22,32 +22,32 @@ const SystemLogs = () => {
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'CREATE': return 'bg-green-500';
-      case 'UPDATE': return 'bg-blue-500';
-      case 'DELETE': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'CREATE': return 'bg-green-500 hover:bg-green-600';
+      case 'UPDATE': return 'bg-blue-500 hover:bg-blue-600';
+      case 'DELETE': return 'bg-red-500 hover:bg-red-600';
+      default: return 'bg-gray-500 hover:bg-gray-600';
     }
   };
 
   const getActionText = (action: string) => {
     switch (action) {
-      case 'CREATE': return 'Criação';
-      case 'UPDATE': return 'Atualização';
-      case 'DELETE': return 'Exclusão';
+      case 'CREATE': return 'Criou';
+      case 'UPDATE': return 'Alterou';
+      case 'DELETE': return 'Excluiu';
       default: return action;
     }
   };
 
   const getTableDisplayName = (tableName: string) => {
     const tableNames: Record<string, string> = {
-      'checklists': 'Checklists',
-      'checklist_items': 'Itens de Checklist',
-      'budgets': 'Orçamentos',
-      'budget_items': 'Itens de Orçamento',
-      'services': 'Serviços',
-      'vehicles': 'Veículos',
-      'profiles': 'Perfis de Usuário',
-      'system_settings': 'Configurações do Sistema'
+      'checklists': 'Checklist',
+      'checklist_items': 'Item do Checklist',
+      'budgets': 'Orçamento',
+      'budget_items': 'Item do Orçamento',
+      'services': 'Serviço',
+      'vehicles': 'Veículo',
+      'profiles': 'Usuário',
+      'system_settings': 'Configuração'
     };
     return tableNames[tableName] || tableName;
   };
@@ -55,8 +55,8 @@ const SystemLogs = () => {
   const filteredLogs = logs?.filter(log => {
     const matchesSearch = searchTerm === '' || 
       log.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.table_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchTerm.toLowerCase());
+      getTableDisplayName(log.table_name).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getActionText(log.action).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesAction = filterAction === 'all' || log.action === filterAction;
     const matchesTable = filterTable === 'all' || log.table_name === filterTable;
@@ -87,7 +87,7 @@ const SystemLogs = () => {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-red-600">
-              Erro ao carregar logs: {error.message}
+              Erro ao carregar histórico: {error.message}
             </div>
           </CardContent>
         </Card>
@@ -98,15 +98,15 @@ const SystemLogs = () => {
   return (
     <div className="mobile-card-padding lg:p-6 space-y-6">
       <div className="flex items-center gap-2">
-        <FileText className="h-6 w-6" />
-        <h1 className="mobile-text-xl lg:text-2xl font-bold">Logs do Sistema</h1>
+        <History className="h-6 w-6" />
+        <h1 className="mobile-text-xl lg:text-2xl font-bold">Histórico de Atividades</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Auditoria de Ações</CardTitle>
+          <CardTitle>Todas as Atividades do Sistema</CardTitle>
           <CardDescription>
-            Visualize todas as ações realizadas no sistema para controle administrativo
+            Veja tudo que foi criado, alterado ou excluído no sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -116,7 +116,7 @@ const SystemLogs = () => {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por usuário, tabela ou ação..."
+                  placeholder="Buscar por usuário, item ou ação..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -125,21 +125,21 @@ const SystemLogs = () => {
             </div>
             <Select value={filterAction} onValueChange={setFilterAction}>
               <SelectTrigger className="w-full lg:w-[150px]">
-                <SelectValue placeholder="Ação" />
+                <SelectValue placeholder="Tipo de ação" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as ações</SelectItem>
-                <SelectItem value="CREATE">Criação</SelectItem>
-                <SelectItem value="UPDATE">Atualização</SelectItem>
-                <SelectItem value="DELETE">Exclusão</SelectItem>
+                <SelectItem value="CREATE">Criações</SelectItem>
+                <SelectItem value="UPDATE">Alterações</SelectItem>
+                <SelectItem value="DELETE">Exclusões</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterTable} onValueChange={setFilterTable}>
               <SelectTrigger className="w-full lg:w-[180px]">
-                <SelectValue placeholder="Tabela" />
+                <SelectValue placeholder="Item" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as tabelas</SelectItem>
+                <SelectItem value="all">Todos os itens</SelectItem>
                 {uniqueTables.map(table => (
                   <SelectItem key={table} value={table}>
                     {getTableDisplayName(table)}
@@ -154,32 +154,32 @@ const SystemLogs = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Ação</TableHead>
-                  <TableHead>Tabela</TableHead>
-                  <TableHead>ID do Registro</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead>Quando</TableHead>
+                  <TableHead>Quem</TableHead>
+                  <TableHead>Fez o quê</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead className="text-right">Ver Detalhes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLogs?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Nenhum log encontrado
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      Nenhuma atividade encontrada
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredLogs?.map((log) => (
-                    <TableRow key={log.id}>
+                    <TableRow key={log.id} className="hover:bg-gray-50">
                       <TableCell className="mobile-text-xs lg:text-sm">
-                        {format(new Date(log.created_at), 'dd/MM/yy HH:mm', { locale: ptBR })}
+                        {format(new Date(log.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                       </TableCell>
                       <TableCell className="mobile-text-xs lg:text-sm">
                         {log.user_name || 'Sistema'}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${getActionColor(log.action)} text-white mobile-text-xs lg:text-xs`}>
+                        <Badge className={`${getActionColor(log.action)} text-white mobile-text-xs lg:text-xs border-0`}>
                           {getActionText(log.action)}
                         </Badge>
                       </TableCell>
@@ -187,16 +187,17 @@ const SystemLogs = () => {
                         {getTableDisplayName(log.table_name)}
                       </TableCell>
                       <TableCell className="mobile-text-xs lg:text-sm font-mono">
-                        {log.record_id?.substring(0, 8)}...
+                        {log.record_id?.substring(0, 6)}...
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleViewDetails(log)}
-                          className="touch-target"
+                          className="touch-target hover:bg-blue-50"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -207,9 +208,9 @@ const SystemLogs = () => {
           </div>
 
           {/* Estatísticas */}
-          <div className="mt-4 text-sm text-muted-foreground">
-            Total de logs: {filteredLogs?.length || 0}
-            {searchTerm && ` (filtrados de ${logs?.length || 0})`}
+          <div className="mt-4 text-sm text-muted-foreground bg-gray-50 p-3 rounded-lg">
+            <strong>Total de atividades:</strong> {filteredLogs?.length || 0}
+            {searchTerm && ` (de ${logs?.length || 0} no total)`}
           </div>
         </CardContent>
       </Card>
