@@ -102,28 +102,43 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredChecklists = checklists?.filter(checklist => {
-    const matchesSearch = searchTerm === '' || 
-      (checklist as any).customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (checklist as any).vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (checklist as any).plate?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === 'all' || (checklist as any).status === filterStatus;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Filtrar checklists - por padrão mostrar apenas "Em Andamento"
+  const getDefaultChecklistFilter = () => {
+    if (filterStatus === 'all') {
+      return checklists?.filter(checklist => (checklist as any).status === 'Em Andamento') || [];
+    }
+    return checklists?.filter(checklist => {
+      const matchesSearch = searchTerm === '' || 
+        (checklist as any).customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (checklist as any).vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (checklist as any).plate?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = filterStatus === 'all' || (checklist as any).status === filterStatus;
+      
+      return matchesSearch && matchesStatus;
+    }) || [];
+  };
 
-  const filteredBudgets = budgets?.filter(budget => {
-    const matchesSearch = searchTerm === '' || 
-      budget.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      budget.vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      budget.vehicle_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      budget.budget_number?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === 'all' || budget.status === filterStatus;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Filtrar orçamentos - por padrão mostrar apenas "Pendente"
+  const getDefaultBudgetFilter = () => {
+    if (filterStatus === 'all') {
+      return budgets?.filter(budget => budget.status === 'Pendente') || [];
+    }
+    return budgets?.filter(budget => {
+      const matchesSearch = searchTerm === '' || 
+        budget.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        budget.vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        budget.vehicle_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        budget.budget_number?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = filterStatus === 'all' || budget.status === filterStatus;
+      
+      return matchesSearch && matchesStatus;
+    }) || [];
+  };
+
+  const filteredChecklists = getDefaultChecklistFilter();
+  const filteredBudgets = getDefaultBudgetFilter();
 
   // Render ChecklistViewer as a separate page
   if (checklistViewerOpen && selectedChecklist) {
@@ -298,7 +313,7 @@ const AdminDashboard = () => {
               className="flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
-              Checklists
+              Checklists Em Andamento
             </Button>
             <Button
               variant={activeView === 'budgets' ? 'default' : 'ghost'}
@@ -307,7 +322,7 @@ const AdminDashboard = () => {
               className="flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
-              Orçamentos
+              Orçamentos Pendentes
             </Button>
           </div>
         </div>
@@ -317,12 +332,12 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              {activeView === 'checklists' ? 'Todos os Checklists' : 'Todos os Orçamentos'}
+              {activeView === 'checklists' ? 'Checklists Em Andamento' : 'Orçamentos Pendentes'}
             </CardTitle>
             <CardDescription>
               {activeView === 'checklists' 
-                ? 'Visualize e gerencie todos os checklists do sistema'
-                : 'Visualize e gerencie todos os orçamentos do sistema'
+                ? 'Checklists que estão sendo executados no momento'
+                : 'Orçamentos aguardando aprovação ou resposta'
               }
             </CardDescription>
           </CardHeader>
@@ -345,7 +360,9 @@ const AdminDashboard = () => {
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="all">
+                    {activeView === 'checklists' ? 'Apenas Em Andamento' : 'Apenas Pendentes'}
+                  </SelectItem>
                   <SelectItem value="Pendente">Pendente</SelectItem>
                   <SelectItem value="Em Andamento">Em Andamento</SelectItem>
                   <SelectItem value="Concluído">Concluído</SelectItem>
@@ -375,7 +392,7 @@ const AdminDashboard = () => {
                     filteredChecklists?.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          Nenhum checklist encontrado
+                          Nenhum checklist em andamento encontrado
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -414,7 +431,7 @@ const AdminDashboard = () => {
                     filteredBudgets?.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          Nenhum orçamento encontrado
+                          Nenhum orçamento pendente encontrado
                         </TableCell>
                       </TableRow>
                     ) : (
