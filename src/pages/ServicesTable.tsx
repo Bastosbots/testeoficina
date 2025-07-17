@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,78 +23,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Settings, Plus, Edit, Trash2, Search, DollarSign, Clock, Wrench } from 'lucide-react';
+import { Settings, Plus, Edit, Trash2, Search, DollarSign, Clock, Wrench, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useServices, Service } from '@/hooks/useServices';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Service {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  estimatedTime: string;
-  description: string;
-  status: 'active' | 'inactive';
-}
 
 const ServicesTable = () => {
   const { profile } = useAuth();
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: '1',
-      name: 'Troca de Óleo',
-      category: 'Manutenção Preventiva',
-      price: 150,
-      estimatedTime: '30 min',
-      description: 'Troca completa do óleo do motor e filtro',
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Alinhamento e Balanceamento',
-      category: 'Pneus e Rodas',
-      price: 80,
-      estimatedTime: '1h',
-      description: 'Alinhamento e balanceamento das 4 rodas',
-      status: 'active'
-    },
-    {
-      id: '3',
-      name: 'Revisão Completa',
-      category: 'Manutenção Preventiva',
-      price: 300,
-      estimatedTime: '2h',
-      description: 'Revisão completa do veículo com checklist de 50 itens',
-      status: 'active'
-    }
-  ]);
+  const { data: services = [], isLoading, refetch } = useServices();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState<{
     name: string;
     category: string;
-    price: string;
-    estimatedTime: string;
+    unit_price: string;
     description: string;
-    status: 'active' | 'inactive';
+    is_active: boolean;
   }>({
     name: '',
     category: '',
-    price: '',
-    estimatedTime: '',
+    unit_price: '',
     description: '',
-    status: 'active' as const
+    is_active: true
   });
 
   const categories = ['Manutenção Preventiva', 'Manutenção Corretiva', 'Pneus e Rodas', 'Freios', 'Motor', 'Elétrica', 'Suspensão', 'Outros'];
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = categoryFilter === 'all' || service.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -104,55 +68,98 @@ const ServicesTable = () => {
       setFormData({
         name: service.name,
         category: service.category,
-        price: service.price.toString(),
-        estimatedTime: service.estimatedTime,
-        description: service.description,
-        status: service.status
+        unit_price: service.unit_price.toString(),
+        description: service.description || '',
+        is_active: service.is_active
       });
     } else {
       setEditingService(null);
       setFormData({
         name: '',
         category: '',
-        price: '',
-        estimatedTime: '',
+        unit_price: '',
         description: '',
-        status: 'active'
+        is_active: true
       });
     }
     setIsDialogOpen(true);
   };
 
-  const handleSaveService = () => {
-    if (!formData.name || !formData.category || !formData.price) {
+  const handleSaveService = async () => {
+    if (!formData.name || !formData.category || !formData.unit_price) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
 
-    const serviceData: Service = {
-      id: editingService?.id || Date.now().toString(),
-      name: formData.name,
-      category: formData.category,
-      price: parseFloat(formData.price),
-      estimatedTime: formData.estimatedTime,
-      description: formData.description,
-      status: formData.status
-    };
-
-    if (editingService) {
-      setServices(prev => prev.map(s => s.id === editingService.id ? serviceData : s));
-      toast.success('Serviço atualizado com sucesso!');
-    } else {
-      setServices(prev => [...prev, serviceData]);
-      toast.success('Serviço adicionado com sucesso!');
+    const unitPrice = parseFloat(formData.unit_price);
+    if (isNaN(unitPrice) || unitPrice <= 0) {
+      toast.error('Preço deve ser um valor válido maior que zero');
+      return;
     }
 
-    setIsDialogOpen(false);
+    setIsSubmitting(true);
+
+    try {
+      if (editingService) {
+        // Atualizar serviço existente
+        const { error } = await supabase
+          .from('services')
+          .update({
+            name: formData.name,
+            category: formData.category,
+            unit_price: unitPrice,
+            description: formData.description || null,
+            is_active: formData.is_active
+          })
+          .eq('id', editingService.id);
+
+        if (error) throw error;
+        toast.success('Serviço atualizado com sucesso!');
+      } else {
+        // Criar novo serviço
+        const { error } = await supabase
+          .from('services')
+          .insert({
+            name: formData.name,
+            category: formData.category,
+            unit_price: unitPrice,
+            description: formData.description || null,
+            is_active: formData.is_active
+          });
+
+        if (error) throw error;
+        toast.success('Serviço adicionado com sucesso!');
+      }
+
+      setIsDialogOpen(false);
+      refetch();
+    } catch (error) {
+      console.error('Erro ao salvar serviço:', error);
+      toast.error('Erro ao salvar serviço. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDeleteService = (id: string) => {
-    setServices(prev => prev.filter(s => s.id !== id));
-    toast.success('Serviço removido com sucesso!');
+  const handleDeleteService = async (id: string) => {
+    if (!confirm('Tem certeza que deseja remover este serviço?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Serviço removido com sucesso!');
+      refetch();
+    } catch (error) {
+      console.error('Erro ao remover serviço:', error);
+      toast.error('Erro ao remover serviço. Tente novamente.');
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -161,6 +168,17 @@ const ServicesTable = () => {
       currency: 'BRL'
     }).format(value);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Carregando serviços...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -179,101 +197,101 @@ const ServicesTable = () => {
                 Novo Serviço
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingService ? 'Editar Serviço' : 'Novo Serviço'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingService ? 'Edite as informações do serviço.' : 'Adicione um novo serviço à tabela.'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingService ? 'Editar Serviço' : 'Novo Serviço'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingService ? 'Edite as informações do serviço.' : 'Adicione um novo serviço à tabela.'}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Nome do Serviço *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Ex: Troca de Óleo"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="category">Categoria *</Label>
+                    <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="unit_price">Preço (R$) *</Label>
+                    <Input
+                      id="unit_price"
+                      type="number"
+                      step="0.01"
+                      value={formData.unit_price}
+                      onChange={(e) => setFormData(prev => ({ ...prev, unit_price: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="is_active">Status</Label>
+                    <Select 
+                      value={formData.is_active ? 'true' : 'false'} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, is_active: value === 'true' }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Ativo</SelectItem>
+                        <SelectItem value="false">Inativo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div>
-                  <Label htmlFor="name">Nome do Serviço *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Ex: Troca de Óleo"
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Descreva os detalhes do serviço..."
+                    rows={3}
                   />
                 </div>
-                
-                <div>
-                  <Label htmlFor="category">Categoria *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSaveService} disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        {editingService ? 'Atualizando...' : 'Salvando...'}
+                      </>
+                    ) : (
+                      editingService ? 'Atualizar' : 'Salvar'
+                    )}
+                  </Button>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="price">Preço (R$) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="0,00"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="estimatedTime">Tempo Estimado</Label>
-                  <Input
-                    id="estimatedTime"
-                    value={formData.estimatedTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                    placeholder="Ex: 1h 30min"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva os detalhes do serviço..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value: 'active' | 'inactive') => setFormData(prev => ({ ...prev, status: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveService}>
-                  {editingService ? 'Atualizar' : 'Salvar'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
+            </DialogContent>
           </Dialog>
         )}
       </div>
@@ -288,7 +306,7 @@ const ServicesTable = () => {
           <CardContent>
             <div className="text-2xl font-bold">{services.length}</div>
             <p className="text-xs text-muted-foreground">
-              {services.filter(s => s.status === 'active').length} ativos
+              {services.filter(s => s.is_active).length} ativos
             </p>
           </CardContent>
         </Card>
@@ -300,7 +318,10 @@ const ServicesTable = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(services.reduce((acc, s) => acc + s.price, 0) / services.length || 0)}
+              {services.length > 0 
+                ? formatCurrency(services.reduce((acc, s) => acc + s.unit_price, 0) / services.length)
+                : formatCurrency(0)
+              }
             </div>
             <p className="text-xs text-muted-foreground">Média dos serviços</p>
           </CardContent>
@@ -365,7 +386,6 @@ const ServicesTable = () => {
                   <TableHead>Serviço</TableHead>
                   <TableHead className="hidden md:table-cell">Categoria</TableHead>
                   <TableHead>Preço</TableHead>
-                  <TableHead className="hidden lg:table-cell">Tempo</TableHead>
                   <TableHead className="hidden lg:table-cell">Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -390,17 +410,11 @@ const ServicesTable = () => {
                       <Badge variant="outline">{service.category}</Badge>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {formatCurrency(service.price)}
+                      {formatCurrency(service.unit_price)}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {service.estimatedTime}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <Badge variant={service.status === 'active' ? 'default' : 'secondary'}>
-                        {service.status === 'active' ? 'Ativo' : 'Inativo'}
+                      <Badge variant={service.is_active ? 'default' : 'secondary'}>
+                        {service.is_active ? 'Ativo' : 'Inativo'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
