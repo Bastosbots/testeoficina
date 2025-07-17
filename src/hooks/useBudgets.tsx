@@ -70,53 +70,35 @@ export const useCreateBudget = () => {
 
   return useMutation({
     mutationFn: async (budgetData: Omit<Budget, 'id' | 'created_at' | 'updated_at' | 'budget_number'>) => {
-      console.log('useCreateBudget - Iniciando criação do orçamento');
-      console.log('useCreateBudget - Dados recebidos:', budgetData);
+      // Gerar número do orçamento
+      const { data: budgetNumber, error: numberError } = await supabase.rpc('generate_budget_number');
       
-      try {
-        // Gerar número do orçamento
-        console.log('useCreateBudget - Gerando número do orçamento...');
-        const { data: budgetNumber, error: numberError } = await supabase.rpc('generate_budget_number');
-        
-        if (numberError) {
-          console.error('useCreateBudget - Erro ao gerar número do orçamento:', numberError);
-          throw new Error(`Erro ao gerar número do orçamento: ${numberError.message}`);
-        }
-
-        console.log('useCreateBudget - Número do orçamento gerado:', budgetNumber);
-
-        const budgetToInsert = {
-          ...budgetData,
-          budget_number: budgetNumber
-        };
-
-        console.log('useCreateBudget - Inserindo orçamento no banco:', budgetToInsert);
-
-        const { data, error } = await supabase
-          .from('budgets')
-          .insert(budgetToInsert)
-          .select()
-          .single();
-
-        if (error) {
-          console.error('useCreateBudget - Erro ao inserir orçamento:', error);
-          throw new Error(`Erro ao criar orçamento: ${error.message}`);
-        }
-
-        console.log('useCreateBudget - Orçamento criado com sucesso:', data);
-        return data;
-      } catch (error) {
-        console.error('useCreateBudget - Erro geral:', error);
-        throw error;
+      if (numberError) {
+        throw new Error(`Erro ao gerar número do orçamento: ${numberError.message}`);
       }
+
+      const budgetToInsert = {
+        ...budgetData,
+        budget_number: budgetNumber
+      };
+
+      const { data, error } = await supabase
+        .from('budgets')
+        .insert(budgetToInsert)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Erro ao criar orçamento: ${error.message}`);
+      }
+
+      return data;
     },
-    onSuccess: (data) => {
-      console.log('useCreateBudget - onSuccess chamado com:', data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       toast.success('Orçamento criado com sucesso!');
     },
     onError: (error) => {
-      console.error('useCreateBudget - onError chamado com:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error(`Erro ao criar orçamento: ${errorMessage}`);
     },
@@ -154,35 +136,23 @@ export const useCreateBudgetItems = () => {
 
   return useMutation({
     mutationFn: async (items: Omit<BudgetItem, 'id' | 'created_at'>[]) => {
-      console.log('useCreateBudgetItems - Iniciando criação dos itens');
-      console.log('useCreateBudgetItems - Itens recebidos:', items);
-      
-      try {
-        const { data, error } = await supabase
-          .from('budget_items')
-          .insert(items)
-          .select();
+      const { data, error } = await supabase
+        .from('budget_items')
+        .insert(items)
+        .select();
 
-        if (error) {
-          console.error('useCreateBudgetItems - Erro ao inserir itens:', error);
-          throw new Error(`Erro ao criar itens do orçamento: ${error.message}`);
-        }
-
-        console.log('useCreateBudgetItems - Itens criados com sucesso:', data);
-        return data;
-      } catch (error) {
-        console.error('useCreateBudgetItems - Erro geral:', error);
-        throw error;
+      if (error) {
+        throw new Error(`Erro ao criar itens do orçamento: ${error.message}`);
       }
+
+      return data;
     },
     onSuccess: (_, variables) => {
-      console.log('useCreateBudgetItems - onSuccess chamado');
       if (variables.length > 0) {
         queryClient.invalidateQueries({ queryKey: ['budget-items', variables[0].budget_id] });
       }
     },
     onError: (error) => {
-      console.error('useCreateBudgetItems - onError chamado com:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error(`Erro ao adicionar itens ao orçamento: ${errorMessage}`);
     },
