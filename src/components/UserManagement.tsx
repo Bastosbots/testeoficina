@@ -6,18 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Users, Shield, Wrench, Edit, Key } from "lucide-react";
+import { Plus, Users, Shield, Wrench, Edit, Key, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfiles, useUpdateProfile } from "@/hooks/useProfiles";
-import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const UserManagement = () => {
   const { signUp, profile } = useAuth();
   const updateProfileMutation = useUpdateProfile();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
@@ -30,10 +29,6 @@ const UserManagement = () => {
     username: '',
     fullName: '',
     role: 'mechanic'
-  });
-  const [passwordData, setPasswordData] = useState({
-    newPassword: '',
-    confirmPassword: ''
   });
 
   // Buscar todos os usuários usando o hook com realtime
@@ -96,52 +91,8 @@ const UserManagement = () => {
     }
   };
 
-  const handlePasswordChange = (user: any) => {
-    setSelectedUser(user);
-    setPasswordData({ newPassword: '', confirmPassword: '' });
-    setIsPasswordDialogOpen(true);
-  };
-
-  const handleUpdatePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUser) return;
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Criar email temporário baseado no username atual
-      const tempEmail = `${selectedUser.username}@mecsys.local`;
-      
-      const { error } = await supabase.auth.admin.updateUserById(
-        selectedUser.id,
-        { 
-          password: passwordData.newPassword,
-          email: tempEmail
-        }
-      );
-
-      if (error) {
-        toast.error('Erro ao alterar senha: ' + error.message);
-      } else {
-        toast.success('Senha alterada com sucesso!');
-        setIsPasswordDialogOpen(false);
-        setSelectedUser(null);
-        setPasswordData({ newPassword: '', confirmPassword: '' });
-      }
-    } catch (err) {
-      toast.error('Erro interno do servidor');
-    } finally {
-      setLoading(false);
-    }
+  const handlePasswordInfo = () => {
+    toast.info('Para alterar senhas, acesse o painel administrativo do Supabase > Authentication > Users');
   };
 
   if (profile?.role !== 'admin') {
@@ -244,6 +195,13 @@ const UserManagement = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Para alterar senhas de usuários, acesse o painel administrativo do Supabase > Authentication > Users
+            </AlertDescription>
+          </Alert>
+
           {users.map((user) => (
             <div key={user.id} className="border rounded-lg p-4 flex items-center justify-between">
               <div>
@@ -271,7 +229,7 @@ const UserManagement = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handlePasswordChange(user)}
+                  onClick={handlePasswordInfo}
                   className="flex items-center gap-1"
                 >
                   <Key className="h-3 w-3" />
@@ -352,55 +310,6 @@ const UserManagement = () => {
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Alteração de Senha */}
-      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Alterar Senha</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleUpdatePassword} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Usuário: <strong>{selectedUser?.full_name}</strong></Label>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">Nova Senha</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                placeholder="Digite a nova senha"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData(prev => ({...prev, newPassword: e.target.value}))}
-                required
-                minLength={6}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirme a nova senha"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData(prev => ({...prev, confirmPassword: e.target.value}))}
-                required
-                minLength={6}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Alterando..." : "Alterar Senha"}
               </Button>
             </div>
           </form>

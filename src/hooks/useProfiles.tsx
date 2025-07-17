@@ -51,29 +51,24 @@ export const useUpdateProfile = () => {
     mutationFn: async ({ id, ...updateData }: any) => {
       console.log('Updating profile with ID:', id, 'Data:', updateData);
       
-      // Primeiro vamos verificar quantos registros existem com esse ID
-      const { data: checkData, error: checkError, count } = await supabase
+      // Verificar se o perfil existe e se o usuário tem permissão para editá-lo
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Verificar se o usuário atual é admin
+      const { data: currentProfile } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact' })
-        .eq('id', id);
-      
-      console.log('Profile check - Count:', count, 'Data:', checkData, 'Error:', checkError);
-      
-      if (checkError) {
-        console.error('Error checking profile:', checkError);
-        throw checkError;
+        .select('role')
+        .eq('id', currentUser.user.id)
+        .single();
+
+      if (!currentProfile || currentProfile.role !== 'admin') {
+        throw new Error('Sem permissão para editar usuários');
       }
-      
-      if (count === 0) {
-        throw new Error('Perfil não encontrado');
-      }
-      
-      if (count && count > 1) {
-        console.error('Multiple profiles found with same ID:', count);
-        throw new Error('Múltiplos perfis encontrados com o mesmo ID');
-      }
-      
-      // Agora fazer o update sem usar .single() para evitar o erro
+
+      // Fazer o update do perfil
       const { data, error } = await supabase
         .from('profiles')
         .update(updateData)
@@ -88,15 +83,11 @@ export const useUpdateProfile = () => {
       }
       
       if (!data || data.length === 0) {
-        throw new Error('Nenhuma linha foi atualizada');
-      }
-      
-      if (data.length > 1) {
-        console.warn('Multiple rows updated:', data.length);
+        throw new Error('Perfil não encontrado ou sem permissão para atualizar');
       }
       
       console.log('Profile updated successfully:', data[0]);
-      return data[0]; // Retornar o primeiro registro
+      return data[0];
     },
     onSuccess: (data) => {
       console.log('Mutation success, invalidating queries');
@@ -106,6 +97,38 @@ export const useUpdateProfile = () => {
     onError: (error: any) => {
       console.error('Mutation error:', error);
       toast.error('Erro ao atualizar perfil: ' + error.message);
+    },
+  });
+};
+
+export const useUpdatePassword = () => {
+  return useMutation({
+    mutationFn: async ({ userId, newPassword }: { userId: string, newPassword: string }) => {
+      console.log('Updating password for user:', userId);
+      
+      // Verificar se o usuário atual é admin
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', currentUser.user.id)
+        .single();
+
+      if (!currentProfile || currentProfile.role !== 'admin') {
+        throw new Error('Sem permissão para alterar senhas');
+      }
+
+      // Como não podemos usar auth.admin no cliente, vamos orientar o usuário
+      // a fazer isso através do painel do Supabase ou implementar uma edge function
+      throw new Error('Alteração de senha deve ser feita através do painel administrativo do Supabase');
+    },
+    onError: (error: any) => {
+      console.error('Password update error:', error);
+      toast.error('Erro ao alterar senha: ' + error.message);
     },
   });
 };
