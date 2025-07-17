@@ -210,7 +210,6 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
                     <div className="hidden md:block grid grid-cols-2 gap-4">
                       <div>
                         <p><strong>Cliente:</strong> {checklist.customer_name}</p>
-                        <p><strong>OS:</strong> {checklist.service_order}</p>
                       </div>
                       <div>
                         <p><strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>

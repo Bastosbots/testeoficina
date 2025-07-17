@@ -62,11 +62,9 @@ export type Database = {
           mechanic_id: string
           plate: string
           priority: string | null
-          service_order: string
           status: string
           updated_at: string | null
           vehicle_name: string
-          video_url: string | null
         }
         Insert: {
           completed_at?: string | null
@@ -77,11 +75,9 @@ export type Database = {
           mechanic_id: string
           plate: string
           priority?: string | null
-          service_order: string
           status?: string
           updated_at?: string | null
           vehicle_name: string
-          video_url?: string | null
         }
         Update: {
           completed_at?: string | null
@@ -92,11 +88,9 @@ export type Database = {
           mechanic_id?: string
           plate?: string
           priority?: string | null
-          service_order?: string
           status?: string
           updated_at?: string | null
           vehicle_name?: string
-          video_url?: string | null
         }
         Relationships: [
           {

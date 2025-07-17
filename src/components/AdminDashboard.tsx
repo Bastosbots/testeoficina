@@ -320,11 +320,6 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                               <Badge className={getStatusColor(checklistStatus)}>
                                 {checklistStatus}
                               </Badge>
-                              {checklist.video_url && (
-                                <Badge variant="outline" className="text-primary border-primary/20">
-                                  Com Vídeo
-                                </Badge>
-                              )}
                             </div>
                             
                             {/* Desktop: Informações completas */}
@@ -341,16 +336,11 @@ const AdminDashboard = ({ currentUser }: AdminDashboardProps) => {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mt-2">
+                              {checklist.completed_at && (
                                 <div>
-                                  <strong>OS:</strong> {checklist.service_order}
+                                  <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
                                 </div>
-                                {checklist.completed_at && (
-                                  <div>
-                                    <strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}
-                                  </div>
-                                )}
-                              </div>
+                              )}
                               
                               {checklist.general_observations && (
                                 <div className="mt-2 text-sm text-muted-foreground">

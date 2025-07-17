@@ -158,8 +158,8 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
                   <p className="mobile-text-xs lg:text-sm font-semibold">{checklist.customer_name}</p>
                 </div>
                 <div>
-                  <span className="mobile-text-xs lg:text-sm font-medium text-muted-foreground">Ordem de Serviço</span>
-                  <p className="mobile-text-xs lg:text-sm font-semibold">{checklist.service_order}</p>
+                  <span className="mobile-text-xs lg:text-sm font-medium text-muted-foreground">Data de Criação</span>
+                  <p className="mobile-text-xs lg:text-sm font-semibold">{new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>
                 </div>
                 <div>
                   <span className="mobile-text-xs lg:text-sm font-medium text-muted-foreground">Prioridade</span>
@@ -217,28 +217,6 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
                 </CardHeader>
                 <CardContent className="mobile-card-padding lg:p-6">
                   <p className="mobile-text-xs lg:text-sm whitespace-pre-wrap">{checklist.general_observations}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Video */}
-            {checklist.video_url && (
-              <Card>
-                <CardHeader className="mobile-card-padding lg:p-6">
-                  <CardTitle className="flex items-center gap-1 lg:gap-2 mobile-text-sm lg:text-lg">
-                    <Video className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
-                    Vídeo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="mobile-card-padding lg:p-6">
-                  <a
-                    href={checklist.video_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mobile-text-xs lg:text-sm text-primary hover:underline break-all"
-                  >
-                    {checklist.video_url}
-                  </a>
                 </CardContent>
               </Card>
             )}

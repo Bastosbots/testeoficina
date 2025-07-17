@@ -28,11 +28,9 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     vehicle_name: checklist.vehicle_name || '',
     plate: checklist.plate || '',
     customer_name: checklist.customer_name || '',
-    service_order: checklist.service_order || '',
     priority: checklist.priority || 'Média',
     status: checklist.status || 'Pendente',
     general_observations: checklist.general_observations || '',
-    video_url: checklist.video_url || '',
   });
 
   const [items, setItems] = useState<any[]>([]);
@@ -185,15 +183,6 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                 />
               </div>
 
-              <div className="space-y-1 lg:space-y-2">
-                <Label htmlFor="service_order" className="mobile-text-xs lg:text-sm">Ordem de Serviço</Label>
-                <Input
-                  id="service_order"
-                  value={formData.service_order}
-                  onChange={(e) => handleInputChange('service_order', e.target.value)}
-                  className="mobile-input lg:h-10"
-                />
-              </div>
 
               <div className="space-y-1 lg:space-y-2">
                 <Label htmlFor="priority" className="mobile-text-xs lg:text-sm">Prioridade</Label>
@@ -227,16 +216,6 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                 </Select>
               </div>
 
-              <div className="space-y-1 lg:space-y-2">
-                <Label htmlFor="video_url" className="mobile-text-xs lg:text-sm">URL do Vídeo</Label>
-                <Input
-                  id="video_url"
-                  value={formData.video_url}
-                  onChange={(e) => handleInputChange('video_url', e.target.value)}
-                  placeholder="https://..."
-                  className="mobile-input lg:h-10"
-                />
-              </div>
 
               <div className="space-y-1 lg:space-y-2">
                 <Label htmlFor="general_observations" className="mobile-text-xs lg:text-sm">Observações Gerais</Label>

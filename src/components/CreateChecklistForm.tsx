@@ -93,10 +93,8 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         vehicle_name: `${vehicleData.vehicleName} - ${vehicleData.vehicleColor}`,
         plate: vehicleData.plate,
         customer_name: vehicleData.customerName,
-        service_order: 'N/A',
         priority: vehicleData.priority,
         general_observations: null,
-        video_url: null,
         completed_at: new Date().toISOString()
       };
 

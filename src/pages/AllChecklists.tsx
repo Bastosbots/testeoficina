@@ -25,8 +25,7 @@ const AllChecklists = () => {
     const matchesSearch = 
       checklist.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       checklist.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      checklist.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      checklist.service_order.toLowerCase().includes(searchTerm.toLowerCase());
+      checklist.customer_name.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || 
       (statusFilter === 'completed' && checklist.completed_at) ||
@@ -185,10 +184,6 @@ const AllChecklists = () => {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       <span><strong>Cliente:</strong> {checklist.customer_name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      <span><strong>OS:</strong> {checklist.service_order}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
