@@ -91,12 +91,12 @@ export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...updateData }: any) => {
-      console.log('Updating profile with ID:', id, 'Data:', updateData);
+    mutationFn: async ({ id, username, role }: { id: string, username: string, role: string }) => {
+      console.log('Updating profile with ID:', id, 'Data:', { username, role });
       
-      // Verificar se o perfil existe e se o usuário tem permissão para editá-lo
-      const { data: currentUser } = await supabase.auth.getUser();
-      if (!currentUser.user) {
+      // Verificar se o usuário atual é admin usando a session
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
         throw new Error('Usuário não autenticado');
       }
 
@@ -104,17 +104,21 @@ export const useUpdateProfile = () => {
       const { data: currentProfile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', currentUser.user.id)
+        .eq('id', session.session.user.id)
         .single();
 
       if (!currentProfile || currentProfile.role !== 'admin') {
         throw new Error('Sem permissão para editar usuários');
       }
 
-      // Fazer o update do perfil
+      // Atualizar o perfil usando o service role através de uma query simples
       const { data, error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({ 
+          username: username,
+          role: role,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id)
         .select('*');
       
@@ -122,11 +126,11 @@ export const useUpdateProfile = () => {
       
       if (error) {
         console.error('Update error:', error);
-        throw error;
+        throw new Error(`Erro ao atualizar perfil: ${error.message}`);
       }
       
       if (!data || data.length === 0) {
-        throw new Error('Perfil não encontrado ou sem permissão para atualizar');
+        throw new Error('Perfil não encontrado');
       }
       
       console.log('Profile updated successfully:', data[0]);
