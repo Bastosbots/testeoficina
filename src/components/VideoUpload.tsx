@@ -22,37 +22,60 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
 
   const startRecording = async () => {
     try {
+      console.log('Iniciando gravação...');
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
+        video: { 
+          facingMode: 'environment', // Usar câmera traseira por padrão
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }, 
         audio: true 
       });
       
+      console.log('Stream obtido:', stream);
       streamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        videoRef.current.muted = true; // Importante para evitar feedback
+        
+        // Garantir que o vídeo está carregado antes de reproduzir
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(console.error);
+          }
+        };
       }
 
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp8,opus'
+      });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (event) => {
+        console.log('Dados disponíveis:', event.data.size);
         if (event.data.size > 0) {
           chunks.push(event.data);
         }
       };
 
       recorder.onstop = () => {
+        console.log('Gravação parada, processando...');
         const blob = new Blob(chunks, { type: 'video/webm' });
         setRecordedBlob(blob);
         
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
+        // Parar todas as tracks
+        stream.getTracks().forEach(track => {
+          console.log('Parando track:', track.kind);
+          track.stop();
+        });
         
         if (videoRef.current) {
           videoRef.current.srcObject = null;
-          videoRef.current.src = URL.createObjectURL(blob);
+          const url = URL.createObjectURL(blob);
+          videoRef.current.src = url;
+          videoRef.current.muted = false; // Permitir áudio na reprodução
         }
       };
 
@@ -67,6 +90,7 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
   };
 
   const stopRecording = () => {
+    console.log('Parando gravação...');
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
       setIsRecording(false);
@@ -108,6 +132,7 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
     setRecordedBlob(null);
     if (videoRef.current) {
       videoRef.current.src = '';
+      videoRef.current.srcObject = null;
     }
     toast.success('Gravação descartada');
   };
@@ -148,9 +173,14 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
         <div className="space-y-2">
           <video 
             ref={videoRef}
-            className="w-full max-h-64 rounded-lg bg-black"
+            className="w-full max-h-64 rounded-lg border-2 border-border"
             controls={!!recordedBlob}
-            muted={isRecording}
+            playsInline
+            autoPlay={isRecording}
+            style={{
+              backgroundColor: '#000',
+              objectFit: 'cover'
+            }}
           />
           
           {recordedBlob && (
@@ -169,6 +199,15 @@ export const VideoUpload = ({ onVideoUploaded, currentVideoUrl, onVideoRemoved }
               >
                 Descartar
               </Button>
+            </div>
+          )}
+
+          {isRecording && (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                Gravando...
+              </div>
             </div>
           )}
         </div>
