@@ -69,26 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Set up realtime listener for profiles
-    const profileChannel = supabase
-      .channel('profiles-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('Realtime profile change:', payload);
-          // Se a mudança é no perfil do usuário atual, atualizar
-          if (user && payload.new && (payload.new as any)?.id === user.id) {
-            setProfile(payload.new);
-          }
-        }
-      )
-      .subscribe();
-
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session check:', session?.user?.id);
@@ -102,9 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
-      supabase.removeChannel(profileChannel);
     };
-  }, [user]);
+  }, []); // Removida a dependência [user] que causava o loop infinito
 
   const signIn = async (username: string, password: string) => {
     try {
@@ -178,11 +157,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    console.log('Signing out');
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
+    try {
+      console.log('Signing out user');
+      
+      // Limpar estados locais imediatamente
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setLoading(false);
+      
+      // Fazer logout no Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error signing out:', error);
+        // Mesmo com erro, mantenha os estados limpos
+      } else {
+        console.log('Successfully signed out');
+      }
+      
+      // Garantir que a página seja recarregada para limpar qualquer estado residual
+      window.location.reload();
+    } catch (err) {
+      console.error('Exception during signOut:', err);
+      // Mesmo com exceção, limpar estados e recarregar
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      window.location.reload();
+    }
   };
 
   const value = {
