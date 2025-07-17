@@ -94,56 +94,19 @@ export const useUpdateProfile = () => {
     mutationFn: async ({ id, username, role }: { id: string, username: string, role: string }) => {
       console.log('Updating profile with ID:', id, 'Data:', { username, role });
       
-      // Verificar se o usuário atual é admin usando a session
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // Verificar se o usuário atual é admin
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.session.user.id)
-        .single();
-
-      if (!currentProfile || currentProfile.role !== 'admin') {
-        throw new Error('Sem permissão para editar usuários');
-      }
-
-      // Primeiro, verificar se o perfil existe
-      const { data: existingProfile, error: checkError } = await supabase
-        .from('profiles')
-        .select('id, username, role')
-        .eq('id', id)
-        .single();
-
-      console.log('Existing profile check:', { existingProfile, checkError });
-
-      if (checkError) {
-        console.error('Error checking existing profile:', checkError);
-        throw new Error(`Erro ao verificar perfil: ${checkError.message}`);
-      }
-
-      if (!existingProfile) {
-        throw new Error('Usuário não encontrado');
-      }
-
       // Verificar se o username já existe em outro usuário
-      if (username !== existingProfile.username) {
-        const { data: usernameCheck } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', username)
-          .neq('id', id)
-          .maybeSingle();
+      const { data: usernameCheck } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .neq('id', id)
+        .maybeSingle();
 
-        if (usernameCheck) {
-          throw new Error('Nome de usuário já está em uso');
-        }
+      if (usernameCheck) {
+        throw new Error('Nome de usuário já está em uso');
       }
 
-      // Atualizar o perfil
+      // Atualizar o perfil (as políticas RLS agora permitem que admins atualizem qualquer perfil)
       const { data, error } = await supabase
         .from('profiles')
         .update({ 
@@ -162,7 +125,7 @@ export const useUpdateProfile = () => {
       }
       
       if (!data || data.length === 0) {
-        throw new Error('Nenhuma linha foi atualizada. Verifique as permissões.');
+        throw new Error('Nenhuma linha foi atualizada. Usuário não encontrado.');
       }
       
       console.log('Profile updated successfully:', data[0]);
