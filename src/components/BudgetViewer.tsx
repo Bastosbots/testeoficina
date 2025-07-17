@@ -27,146 +27,183 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   const generatePDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
-    const margin = 20;
-    let yPosition = margin;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 15;
+    let yPosition = 20;
 
-    // Header
-    doc.setFontSize(20);
+    // Logo placeholder (top left)
+    doc.setFillColor(255, 255, 0);
+    doc.circle(30, 25, 8, 'F');
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    doc.text(settings?.company_name || 'Oficina', margin, yPosition);
-    yPosition += 10;
+    doc.text('LOGO', 26, 26);
 
+    // Company header (centered)
     doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    const companyName = settings?.company_name || 'Nome da Empresa';
+    doc.text(companyName, pageWidth/2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     if (settings?.company_address) {
-      doc.text(settings.company_address, margin, yPosition);
-      yPosition += 6;
+      doc.text(settings.company_address, pageWidth/2, 28, { align: 'center' });
     }
+    
+    // Contact info (right side)
+    doc.setFontSize(8);
     if (settings?.company_phone) {
-      doc.text(`Tel: ${settings.company_phone}`, margin, yPosition);
-      yPosition += 6;
+      doc.text(`Telefone: ${settings.company_phone}`, pageWidth - margin, 20, { align: 'right' });
     }
     if (settings?.company_email) {
-      doc.text(`Email: ${settings.company_email}`, margin, yPosition);
-      yPosition += 6;
+      doc.text(`Email: ${settings.company_email}`, pageWidth - margin, 26, { align: 'right' });
     }
 
-    yPosition += 10;
+    yPosition = 45;
 
-    // Title
+    // Title ORÇAMENTO (centered and bold)
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('ORÇAMENTO', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text('ORÇAMENTO', pageWidth/2, yPosition, { align: 'center' });
+    
     yPosition += 15;
 
-    // Budget Info
-    doc.setFontSize(12);
+    // Two column layout for client and vehicle info
+    const leftColX = margin;
+    const rightColX = pageWidth/2 + 10;
+    
+    // Client section (left)
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Número: ${budget.budget_number}`, margin, yPosition);
-    doc.text(`Data: ${format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}`, pageWidth - margin - 60, yPosition);
-    yPosition += 15;
-
-    // Customer Info
-    doc.setFont('helvetica', 'bold');
-    doc.text('DADOS DO CLIENTE', margin, yPosition);
+    doc.text('Cliente:', leftColX, yPosition);
     yPosition += 8;
-
+    
     doc.setFont('helvetica', 'normal');
-    doc.text(`Nome: ${budget.customer_name}`, margin, yPosition);
-    yPosition += 10;
+    doc.text(`Nome: ${budget.customer_name}`, leftColX, yPosition);
+    yPosition += 6;
+    
+    // Add some spacing for additional client info if needed
+    const clientEndY = yPosition + 10;
 
-    // Vehicle Info (only if exists)
+    // Vehicle section (right) - reset yPosition for right column
+    let rightYPosition = yPosition - 14; // Start at same level as "Cliente:"
+    
     if (budget.vehicle_name || budget.vehicle_plate) {
       doc.setFont('helvetica', 'bold');
-      doc.text('DADOS DO VEÍCULO', margin, yPosition);
-      yPosition += 8;
-
+      doc.text('Veículo:', rightColX, rightYPosition);
+      rightYPosition += 8;
+      
       doc.setFont('helvetica', 'normal');
       if (budget.vehicle_name) {
-        doc.text(`Veículo: ${budget.vehicle_name}`, margin, yPosition);
-        yPosition += 6;
+        doc.text(`Modelo: ${budget.vehicle_name}`, rightColX, rightYPosition);
+        rightYPosition += 6;
       }
       if (budget.vehicle_plate) {
-        doc.text(`Placa: ${budget.vehicle_plate}`, margin, yPosition);
-        yPosition += 6;
+        doc.text(`Placa: ${budget.vehicle_plate}`, rightColX, rightYPosition);
+        rightYPosition += 6;
       }
       if (budget.vehicle_year) {
-        doc.text(`Ano: ${budget.vehicle_year}`, margin, yPosition);
-        yPosition += 6;
+        doc.text(`Ano: ${budget.vehicle_year}`, rightColX, rightYPosition);
+        rightYPosition += 6;
       }
-      yPosition += 5;
     }
 
-    // Services Table Header
+    // Move to next section after both columns
+    yPosition = Math.max(clientEndY, rightYPosition + 10);
+
+    // Services table
     doc.setFont('helvetica', 'bold');
-    doc.text('SERVIÇOS', margin, yPosition);
-    yPosition += 8;
-
-    // Table headers
-    const tableHeaders = ['Serviço', 'Categoria', 'Qtd', 'Valor Unit.', 'Total'];
-    const colWidths = [60, 40, 20, 30, 30];
-    let xPosition = margin;
-
-    doc.setFontSize(10);
-    tableHeaders.forEach((header, index) => {
-      doc.text(header, xPosition, yPosition);
-      xPosition += colWidths[index];
-    });
-    yPosition += 6;
-
-    // Table line
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 8;
-
-    // Services data
-    doc.setFont('helvetica', 'normal');
-    budgetItems.forEach((item) => {
-      xPosition = margin;
-      
-      doc.text(item.service_name.substring(0, 25), xPosition, yPosition);
-      xPosition += colWidths[0];
-      
-      doc.text(item.service_category.substring(0, 15), xPosition, yPosition);
-      xPosition += colWidths[1];
-      
-      doc.text(item.quantity.toString(), xPosition, yPosition);
-      xPosition += colWidths[2];
-      
-      doc.text(`R$ ${item.unit_price.toFixed(2)}`, xPosition, yPosition);
-      xPosition += colWidths[3];
-      
-      doc.text(`R$ ${item.total_price.toFixed(2)}`, xPosition, yPosition);
-      
-      yPosition += 6;
-    });
-
+    doc.text('Serviços:', leftColX, yPosition);
     yPosition += 10;
 
-    // Totals
+    // Table headers with borders
+    const tableY = yPosition;
+    const tableHeight = 8;
+    const colWidths = [80, 25, 35, 35];
+    const colPositions = [leftColX, leftColX + colWidths[0], leftColX + colWidths[0] + colWidths[1], leftColX + colWidths[0] + colWidths[1] + colWidths[2]];
+    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+
+    // Header background and borders
+    doc.setFillColor(240, 240, 240);
+    doc.rect(leftColX, tableY, tableWidth, tableHeight, 'F');
+    
+    // Header borders
+    doc.setLineWidth(0.3);
+    doc.rect(leftColX, tableY, tableWidth, tableHeight);
+    colPositions.slice(1).forEach(pos => {
+      doc.line(pos, tableY, pos, tableY + tableHeight);
+    });
+
+    // Header text
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Subtotal: R$ ${budget.total_amount.toFixed(2)}`, pageWidth - margin - 80, yPosition);
-    yPosition += 6;
+    doc.text('Serviço', colPositions[0] + 2, tableY + 5);
+    doc.text('Quantidade', colPositions[1] + 2, tableY + 5);
+    doc.text('Preço Unit.', colPositions[2] + 2, tableY + 5);
+    doc.text('Sub-total', colPositions[3] + 2, tableY + 5);
 
-    if (budget.discount_amount && budget.discount_amount > 0) {
-      doc.text(`Desconto: R$ ${budget.discount_amount.toFixed(2)}`, pageWidth - margin - 80, yPosition);
-      yPosition += 6;
-    }
+    yPosition = tableY + tableHeight;
 
-    doc.setFontSize(14);
-    doc.text(`TOTAL: R$ ${budget.final_amount.toFixed(2)}`, pageWidth - margin - 80, yPosition);
+    // Service rows
+    doc.setFont('helvetica', 'normal');
+    budgetItems.forEach((item, index) => {
+      const rowY = yPosition;
+      
+      // Row borders
+      doc.rect(leftColX, rowY, tableWidth, tableHeight);
+      colPositions.slice(1).forEach(pos => {
+        doc.line(pos, rowY, pos, rowY + tableHeight);
+      });
+
+      // Row data
+      doc.text(item.service_name.substring(0, 35), colPositions[0] + 2, rowY + 5);
+      doc.text(item.quantity.toString(), colPositions[1] + 2, rowY + 5);
+      doc.text(`R$ ${item.unit_price.toFixed(2)}`, colPositions[2] + 2, rowY + 5);
+      doc.text(`R$ ${item.total_price.toFixed(2)}`, colPositions[3] + 2, rowY + 5);
+      
+      yPosition += tableHeight;
+    });
+
+    // Total services row
+    yPosition += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total em Serviços:', leftColX, yPosition);
+    doc.text(`R$ ${budget.total_amount.toFixed(2)}`, colPositions[3] + 2, yPosition);
+
+    yPosition += 8;
+
+    // Final total section with border
+    const totalBoxY = yPosition;
+    const totalBoxHeight = 12;
+    
+    doc.setFillColor(240, 240, 240);
+    doc.rect(leftColX, totalBoxY, tableWidth, totalBoxHeight, 'F');
+    doc.rect(leftColX, totalBoxY, tableWidth, totalBoxHeight);
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Valor Total:', leftColX + 2, totalBoxY + 8);
+    doc.text(`R$ ${budget.final_amount.toFixed(2)}`, colPositions[3] + 2, totalBoxY + 8);
+
+    yPosition += totalBoxHeight + 15;
 
     // Observations
-    if (budget.observations) {
-      yPosition += 20;
-      doc.setFontSize(12);
+    if (budget.observations && yPosition < pageHeight - 30) {
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text('OBSERVAÇÕES', margin, yPosition);
+      doc.text('Observações:', leftColX, yPosition);
       yPosition += 8;
       
       doc.setFont('helvetica', 'normal');
       const splitObservations = doc.splitTextToSize(budget.observations, pageWidth - 2 * margin);
-      doc.text(splitObservations, margin, yPosition);
+      doc.text(splitObservations, leftColX, yPosition);
     }
+
+    // Footer with date and budget number
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Orçamento: ${budget.budget_number}`, leftColX, pageHeight - 15);
+    doc.text(`Data: ${format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
 
     // Save PDF
     doc.save(`orcamento-${budget.budget_number}.pdf`);
