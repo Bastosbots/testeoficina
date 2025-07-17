@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign } from 'lucide-react';
+import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -47,6 +48,13 @@ const navigation = [
 
 const adminNavigation = [
   {
+    title: 'Sistema Principal',
+    url: 'https://painel-srm.online/',
+    icon: ExternalLink,
+    description: 'Retornar ao sistema principal de gestão',
+    external: true
+  },
+  {
     title: 'Configurações',
     url: '/settings',
     icon: Cog,
@@ -69,6 +77,14 @@ export function AppSidebar() {
       return location.pathname === '/';
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleNavigation = (item: any) => {
+    if (item.external) {
+      window.open(item.url, '_blank');
+    } else {
+      navigate(item.url);
+    }
   };
 
   const handleLogout = async () => {
@@ -151,9 +167,9 @@ export function AppSidebar() {
                 {adminNavigation.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      onClick={() => navigate(item.url)}
+                      onClick={() => handleNavigation(item)}
                       className={`w-full justify-start touch-target ${
-                        isActive(item.url) 
+                        !item.external && isActive(item.url) 
                           ? 'bg-primary text-primary-foreground' 
                           : 'hover:bg-muted'
                       }`}
