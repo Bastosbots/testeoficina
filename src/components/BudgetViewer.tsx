@@ -9,7 +9,6 @@ import { useBudgetItems, Budget } from '@/hooks/useBudgets';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useAuth } from '@/hooks/useAuth';
 import BudgetStatus from '@/components/BudgetStatus';
-import BudgetForm from '@/components/BudgetForm';
 import jsPDF from 'jspdf';
 
 interface BudgetViewerProps {
@@ -21,7 +20,6 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   const { data: budgetItems = [] } = useBudgetItems(budget.id);
   const { data: settings } = useSystemSettings();
   const { profile } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
 
   const canEdit = profile?.role === 'admin' || 
     (profile?.role === 'mechanic' && budget.mechanic_id === profile.id && budget.status === 'Pendente');
@@ -179,27 +177,9 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   };
 
   const handleEdit = () => {
-    setIsEditing(true);
+    // For now, just show a message that edit functionality needs to be implemented
+    alert('Funcionalidade de edição será implementada em breve');
   };
-
-  const handleBackFromEdit = () => {
-    setIsEditing(false);
-  };
-
-  const handleEditComplete = () => {
-    setIsEditing(false);
-    onBack();
-  };
-
-  if (isEditing) {
-    return (
-      <BudgetForm
-        budget={budget}
-        onBack={handleBackFromEdit}
-        onComplete={handleEditComplete}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-4 lg:p-6">
