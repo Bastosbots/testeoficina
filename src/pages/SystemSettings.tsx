@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Settings, Building, Save, Loader2 } from 'lucide-react';
 import { useSystemSettings, useUpdateSystemSettings, SystemSettings } from '@/hooks/useSystemSettings';
 import { useAuth } from '@/hooks/useAuth';
+import MobileAppSettings from '@/components/MobileAppSettings';
 
 const SystemSettingsPage = () => {
   const { profile } = useAuth();
@@ -70,7 +71,7 @@ const SystemSettingsPage = () => {
           <div>
             <h1 className="text-3xl font-bold">Configurações do Sistema</h1>
             <p className="text-muted-foreground">
-              Gerencie as configurações gerais do sistema e informações da empresa
+              Gerencie as configurações gerais do sistema, informações da empresa e aplicativo móvel
             </p>
           </div>
         </div>
@@ -116,6 +117,11 @@ const SystemSettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Separator />
+
+          {/* Mobile App Settings */}
+          <MobileAppSettings register={register} />
 
           <Separator />
 
