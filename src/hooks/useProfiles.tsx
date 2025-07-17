@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,14 +49,25 @@ export const useUpdateProfile = () => {
   
   return useMutation({
     mutationFn: async ({ id, ...updateData }: any) => {
+      console.log('Updating profile with ID:', id, 'Data:', updateData);
+      
       const { data, error } = await supabase
         .from('profiles')
         .update(updateData)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Update error:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        throw new Error('Perfil não encontrado ou não foi possível atualizar');
+      }
+      
+      console.log('Profile updated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -63,6 +75,7 @@ export const useUpdateProfile = () => {
       toast.success('Perfil atualizado com sucesso!');
     },
     onError: (error: any) => {
+      console.error('Mutation error:', error);
       toast.error('Erro ao atualizar perfil: ' + error.message);
     },
   });
