@@ -44,6 +44,49 @@ export const useProfiles = () => {
   });
 };
 
+export const useUpdateUserData = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ userId, email, fullName }: { userId: string, email?: string, fullName?: string }) => {
+      console.log('Updating user data:', userId, { email, fullName });
+      
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const { data, error } = await supabase.functions.invoke('update-user-data', {
+        body: { userId, email, fullName },
+        headers: {
+          Authorization: `Bearer ${session.session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao chamar função:', error);
+        throw new Error(error.message || 'Erro ao alterar dados do usuário');
+      }
+
+      if (data.error) {
+        console.error('Erro na função:', data.error);
+        throw new Error(data.error);
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      console.log('Dados do usuário alterados com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast.success('Dados do usuário alterados com sucesso!');
+    },
+    onError: (error: any) => {
+      console.error('User data update error:', error);
+      toast.error('Erro ao alterar dados: ' + error.message);
+    },
+  });
+};
+
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
   

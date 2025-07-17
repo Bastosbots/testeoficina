@@ -5,19 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Users, Shield, Wrench, Edit, Key, AlertCircle } from "lucide-react";
+import { Plus, Users, Shield, Wrench, Edit, Key, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfiles, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfiles";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useProfiles, useUpdateProfile, useUpdatePassword, useUpdateUserData } from "@/hooks/useProfiles";
 
 const UserManagement = () => {
   const { signUp, profile } = useAuth();
   const updateProfileMutation = useUpdateProfile();
   const updatePasswordMutation = useUpdatePassword();
+  const updateUserDataMutation = useUpdateUserData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isUserDataDialogOpen, setIsUserDataDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
@@ -34,6 +35,10 @@ const UserManagement = () => {
   const [passwordData, setPasswordData] = useState({
     newPassword: '',
     confirmPassword: ''
+  });
+  const [userDataForm, setUserDataForm] = useState({
+    fullName: '',
+    email: ''
   });
 
   // Buscar todos os usuários usando o hook com realtime
@@ -130,6 +135,39 @@ const UserManagement = () => {
       setPasswordData({
         newPassword: '',
         confirmPassword: ''
+      });
+    } catch (err) {
+      // Error handled by the mutation
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserDataChange = (user: any) => {
+    setSelectedUser(user);
+    setUserDataForm({
+      fullName: user.full_name || '',
+      email: '' // Email não é armazenado no perfil, então deixamos vazio
+    });
+    setIsUserDataDialogOpen(true);
+  };
+
+  const handleUpdateUserData = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+
+    setLoading(true);
+    try {
+      await updateUserDataMutation.mutateAsync({
+        userId: selectedUser.id,
+        fullName: userDataForm.fullName || undefined,
+        email: userDataForm.email || undefined
+      });
+      setIsUserDataDialogOpen(false);
+      setSelectedUser(null);
+      setUserDataForm({
+        fullName: '',
+        email: ''
       });
     } catch (err) {
       // Error handled by the mutation
@@ -238,13 +276,6 @@ const UserManagement = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Para alterar senhas de usuários, acesse o painel administrativo do Supabase Authentication &gt; Users
-            </AlertDescription>
-          </Alert>
-
           {users.map((user) => (
             <div key={user.id} className="border rounded-lg p-4 flex items-center justify-between">
               <div>
@@ -268,6 +299,15 @@ const UserManagement = () => {
                 >
                   <Edit className="h-3 w-3" />
                   Editar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleUserDataChange(user)}
+                  className="flex items-center gap-1"
+                >
+                  <User className="h-3 w-3" />
+                  Dados
                 </Button>
                 <Button 
                   variant="outline" 
@@ -353,6 +393,47 @@ const UserManagement = () => {
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Alteração de Dados do Usuário */}
+      <Dialog open={isUserDataDialogOpen} onOpenChange={setIsUserDataDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Dados do Usuário</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateUserData} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="updateFullName">Nome Completo</Label>
+              <Input
+                id="updateFullName"
+                type="text"
+                placeholder="Digite o novo nome completo"
+                value={userDataForm.fullName}
+                onChange={(e) => setUserDataForm(prev => ({...prev, fullName: e.target.value}))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="updateEmail">Email</Label>
+              <Input
+                id="updateEmail"
+                type="email"
+                placeholder="Digite o novo email"
+                value={userDataForm.email}
+                onChange={(e) => setUserDataForm(prev => ({...prev, email: e.target.value}))}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsUserDataDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Alterando..." : "Alterar Dados"}
               </Button>
             </div>
           </form>
