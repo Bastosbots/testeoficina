@@ -94,7 +94,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground mobile-text;
   }
 }
 
@@ -111,16 +111,34 @@ All colors MUST be HSL.
   
   /* Mobile component sizing */
   .mobile-btn-sm { 
-    @apply h-8 px-2 text-xs;
+    @apply h-7 px-2 text-xs min-w-7;
   }
   .mobile-btn { 
-    @apply h-9 px-3 text-sm;
+    @apply h-8 px-3 text-xs min-w-8;
   }
   .mobile-card-padding { 
     @apply p-3;
   }
   .mobile-header-height { 
     @apply h-12;
+  }
+  .mobile-input {
+    @apply h-8 px-2 text-xs;
+  }
+  .mobile-select {
+    @apply h-8 px-2 text-xs;
+  }
+  .mobile-textarea {
+    @apply p-2 text-xs min-h-16;
+  }
+  .mobile-badge {
+    @apply px-1.5 py-0.5 text-xs;
+  }
+  .mobile-dialog {
+    @apply p-4 max-w-xs mx-auto;
+  }
+  .mobile-form-spacing {
+    @apply space-y-3;
   }
 
   /* Touch-friendly sizing */
@@ -173,6 +191,42 @@ All colors MUST be HSL.
   .mobile-dropdown {
     @apply z-50 bg-card border border-border shadow-lg;
   }
+
+  /* Mobile grid adjustments */
+  .mobile-grid-1 {
+    @apply grid-cols-1;
+  }
+  .mobile-grid-2 {
+    @apply grid-cols-2;
+  }
+  .mobile-gap-2 {
+    @apply gap-2;
+  }
+  .mobile-gap-3 {
+    @apply gap-3;
+  }
+
+  /* Mobile spacing */
+  .mobile-space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+  .mobile-space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  .mobile-space-x-2 > * + * {
+    margin-left: 0.5rem;
+  }
+
+  /* Mobile flex utilities */
+  .mobile-flex-col {
+    @apply flex-col;
+  }
+  .mobile-items-stretch {
+    @apply items-stretch;
+  }
+  .mobile-justify-start {
+    @apply justify-start;
+  }
 }
 
 /* iOS specific styles */
@@ -193,4 +247,18 @@ All colors MUST be HSL.
   .android-scroll-fix {
     overscroll-behavior: contain;
   }
+}
+
+/* Mobile-specific responsive breakpoints */
+@media (max-width: 767px) {
+  .mobile\:text-xs { font-size: 0.65rem; line-height: 0.875rem; }
+  .mobile\:text-sm { font-size: 0.75rem; line-height: 1rem; }
+  .mobile\:p-2 { padding: 0.5rem; }
+  .mobile\:p-3 { padding: 0.75rem; }
+  .mobile\:m-2 { margin: 0.5rem; }
+  .mobile\:gap-2 { gap: 0.5rem; }
+  .mobile\:space-y-2 > * + * { margin-top: 0.5rem; }
+  .mobile\:h-8 { height: 2rem; }
+  .mobile\:h-10 { height: 2.5rem; }
+  .mobile\:min-h-16 { min-height: 4rem; }
 }

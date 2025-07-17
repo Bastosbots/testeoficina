@@ -82,163 +82,156 @@ const MechanicDashboard = ({ currentUser, onLogout }: MechanicDashboardProps) =>
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background no-horizontal-scroll">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
+      <header className="bg-card border-b border-border mobile-card-padding lg:px-6 mobile-header-height lg:py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="mobile-text-2xl lg:text-2xl font-bold text-foreground">Painel do Mecânico</h1>
-            <p className="mobile-text-sm lg:text-base text-muted-foreground">Bem-vindo, {currentUser}</p>
+            <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Painel do Mecânico</h1>
+            <p className="mobile-text-xs lg:text-base text-muted-foreground">Bem-vindo, {currentUser}</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
             <Button 
               onClick={() => setActiveView('new-checklist')}
-              className="mobile-btn lg:flex items-center gap-2"
+              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
             >
-              <Plus className="h-4 w-4" />
-              Novo Checklist
+              <Plus className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="mobile-text-xs lg:text-sm">Novo</span>
             </Button>
-            <Button variant="outline" onClick={handleLogout} className="mobile-btn lg:flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              Sair
+            <Button 
+              variant="outline" 
+              onClick={handleLogout} 
+              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
+            >
+              <LogOut className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="mobile-text-xs lg:text-sm">Sair</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="p-6">
+      <div className="mobile-card-padding lg:p-6">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-6 mb-4 lg:mb-8">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Meus Concluídos</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 mobile-card-padding lg:pb-2">
+              <CardTitle className="mobile-text-xs lg:text-sm font-medium">Meus Concluídos</CardTitle>
+              <FileText className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{completedChecklists.length}</div>
+            <CardContent className="mobile-card-padding">
+              <div className="mobile-text-lg lg:text-2xl font-bold text-primary">{completedChecklists.length}</div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Meus Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-primary" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 mobile-card-padding lg:pb-2">
+              <CardTitle className="mobile-text-xs lg:text-sm font-medium">Meus Pendentes</CardTitle>
+              <Clock className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{pendingChecklists.length}</div>
+            <CardContent className="mobile-card-padding">
+              <div className="mobile-text-lg lg:text-2xl font-bold text-primary">{pendingChecklists.length}</div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 mobile-card-padding lg:pb-2">
+              <CardTitle className="mobile-text-xs lg:text-sm font-medium">Total</CardTitle>
+              <FileText className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{myChecklists.length}</div>
+            <CardContent className="mobile-card-padding">
+              <div className="mobile-text-lg lg:text-2xl font-bold text-primary">{myChecklists.length}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Meus Checklists */}
         <Card>
-          <CardHeader>
+          <CardHeader className="mobile-card-padding lg:p-6">
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Meus Checklists
+              <FileText className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+              <span className="mobile-text-sm lg:text-lg">Meus Checklists</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="mobile-card-padding lg:p-6">
+            <div className="space-y-3 lg:space-y-4">
               {myChecklists.map((checklist) => (
-                <div key={checklist.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                <div key={checklist.id} className="border rounded-lg mobile-card-padding lg:p-4 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="mobile-text-base lg:text-lg font-semibold text-foreground">
+                    <h3 className="mobile-text-sm lg:text-lg font-semibold text-foreground truncate flex-1 mr-2">
                       {checklist.vehicle_name} - {checklist.plate}
                     </h3>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}>
+                    <div className="flex items-center gap-1 lg:gap-2 flex-shrink-0">
+                      <Badge 
+                        variant={checklist.priority === 'Alta' ? 'destructive' : 'secondary'}
+                        className="mobile-text-xs lg:text-xs px-1 lg:px-2 py-0.5"
+                      >
                         {checklist.priority}
                       </Badge>
-                      <Badge variant={checklist.completed_at ? "default" : "secondary"}>
+                      <Badge 
+                        variant={checklist.completed_at ? "default" : "secondary"}
+                        className="mobile-text-xs lg:text-xs px-1 lg:px-2 py-0.5"
+                      >
                         {checklist.completed_at ? 'Concluído' : 'Pendente'}
                       </Badge>
                       
-                      {/* Desktop: Botões completos */}
-                      <div className="hidden md:flex items-center gap-1">
+                      {/* Botões de ação compactos */}
+                      <div className="flex items-center gap-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewChecklist(checklist)}
-                          className="mobile-btn-sm lg:flex items-center gap-1"
-                        >
-                          <Eye className="h-3 w-3 lg:h-4 lg:w-4" />
-                          <span className="hidden lg:inline">Ver</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditChecklist(checklist)}
-                          className="mobile-btn-sm lg:flex items-center gap-1"
-                        >
-                          <Edit className="h-3 w-3 lg:h-4 lg:w-4" />
-                          <span className="hidden lg:inline">Editar</span>
-                        </Button>
-                      </div>
-                      
-                      {/* Mobile: Botões compactos */}
-                      <div className="md:hidden flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewChecklist(checklist)}
-                          className="mobile-btn-sm"
+                          className="mobile-btn-sm lg:h-8 lg:px-2 flex items-center gap-1"
                         >
                           <Eye className="h-3 w-3" />
+                          <span className="hidden lg:inline mobile-text-xs">Ver</span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleEditChecklist(checklist)}
-                          className="mobile-btn-sm"
+                          className="mobile-btn-sm lg:h-8 lg:px-2 flex items-center gap-1"
                         >
                           <Edit className="h-3 w-3" />
+                          <span className="hidden lg:inline mobile-text-xs">Editar</span>
                         </Button>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Desktop: Informações completas */}
-                  <div className="hidden md:block text-sm text-muted-foreground grid grid-cols-2 gap-4">
-                    <div>
+                  {/* Informações responsivas */}
+                  <div className="space-y-1 mobile-text-xs lg:text-sm text-muted-foreground">
+                    {/* Mobile: Layout vertical compacto */}
+                    <div className="md:hidden space-y-1">
                       <p><strong>Cliente:</strong> {checklist.customer_name}</p>
-                      <p><strong>OS:</strong> {checklist.service_order}</p>
-                    </div>
-                    <div>
                       <p><strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>
-                      {checklist.completed_at && (
-                        <p><strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}</p>
-                      )}
                     </div>
-                  </div>
 
-                  {/* Mobile: Apenas informações essenciais */}
-                  <div className="md:hidden space-y-1 mobile-text-sm text-muted-foreground">
-                    <p><strong>Cliente:</strong> {checklist.customer_name}</p>
-                    <p><strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>
+                    {/* Desktop: Layout em grid */}
+                    <div className="hidden md:block grid grid-cols-2 gap-4">
+                      <div>
+                        <p><strong>Cliente:</strong> {checklist.customer_name}</p>
+                        <p><strong>OS:</strong> {checklist.service_order}</p>
+                      </div>
+                      <div>
+                        <p><strong>Data:</strong> {new Date(checklist.created_at).toLocaleDateString('pt-BR')}</p>
+                        {checklist.completed_at && (
+                          <p><strong>Concluído:</strong> {new Date(checklist.completed_at).toLocaleDateString('pt-BR')}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
               
               {myChecklists.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhum checklist criado ainda.</p>
+                <div className="text-center py-6 lg:py-8 text-muted-foreground">
+                  <FileText className="h-8 w-8 lg:h-12 lg:w-12 mx-auto mb-3 lg:mb-4 opacity-50" />
+                  <p className="mobile-text-sm lg:text-base">Nenhum checklist criado ainda.</p>
                   <Button 
                     onClick={() => setActiveView('new-checklist')}
-                    className="mt-4"
+                    className="mt-3 lg:mt-4 mobile-btn lg:h-10 lg:px-4"
                   >
-                    Criar Primeiro Checklist
+                    <span className="mobile-text-xs lg:text-sm">Criar Primeiro Checklist</span>
                   </Button>
                 </div>
               )}
