@@ -154,7 +154,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
             </CardHeader>
             <CardContent className="mobile-card-padding lg:p-6 space-y-3 lg:space-y-4">
               <div className="space-y-1 lg:space-y-2">
-                <Label htmlFor="vehicle_name" className="mobile-text-xs lg:text-sm">Nome do Veículo</Label>
+                <Label htmlFor="vehicle_name" className="mobile-text-xs lg:text-sm">Nome e Cor do Veículo</Label>
                 <Input
                   id="vehicle_name"
                   value={formData.vehicle_name}
@@ -182,7 +182,6 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                   className="mobile-input lg:h-10"
                 />
               </div>
-
 
               <div className="space-y-1 lg:space-y-2">
                 <Label htmlFor="priority" className="mobile-text-xs lg:text-sm">Prioridade</Label>
@@ -215,7 +214,6 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                   </SelectContent>
                 </Select>
               </div>
-
 
               <div className="space-y-1 lg:space-y-2">
                 <Label htmlFor="general_observations" className="mobile-text-xs lg:text-sm">Observações Gerais</Label>

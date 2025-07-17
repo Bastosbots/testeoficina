@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -257,12 +256,12 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
               </CardHeader>
               <CardContent className="mobile-spacing-md">
                 <div>
-                  <Label htmlFor="vehicle-name" className="mobile-text-sm">Nome do Veículo *</Label>
+                  <Label htmlFor="vehicle-name" className="mobile-text-sm">Nome e Cor do Veículo *</Label>
                   <Input
                     id="vehicle-name"
                     value={vehicleData.vehicleName}
                     onChange={(e) => setVehicleData(prev => ({ ...prev, vehicleName: e.target.value }))}
-                    placeholder="Ex: Honda Civic 2020"
+                    placeholder="Ex: Honda Civic 2020 Prata"
                     className="mobile-input-sm"
                     required
                   />
