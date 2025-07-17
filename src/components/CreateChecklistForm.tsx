@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { useCreateChecklist } from "@/hooks/useChecklists";
 import { useAuth } from "@/hooks/useAuth";
+import { VideoUpload } from "./VideoUpload";
 
 interface CreateChecklistFormProps {
   onBack: () => void;
@@ -53,6 +54,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
   ]);
 
   const [items, setItems] = useState(checklistItems);
+  const [videoUrl, setVideoUrl] = useState<string>('');
 
   const categories = Array.from(new Set(items.map(item => item.category)));
 
@@ -95,6 +97,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         customer_name: vehicleData.customerName,
         priority: vehicleData.priority,
         general_observations: null,
+        video_url: videoUrl || null,
         completed_at: new Date().toISOString()
       };
 
@@ -310,6 +313,15 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                 </div>
               </CardContent>
             </Card>
+
+            {/* Video Upload */}
+            <div className="mobile-spacing-lg">
+              <VideoUpload 
+                onVideoUploaded={setVideoUrl}
+                currentVideoUrl={videoUrl}
+                onVideoRemoved={() => setVideoUrl('')}
+              />
+            </div>
 
           </div>
         </div>

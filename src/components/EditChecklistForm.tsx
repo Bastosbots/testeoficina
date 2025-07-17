@@ -13,6 +13,7 @@ import { ArrowLeft, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { useUpdateChecklist } from "@/hooks/useChecklists";
 import { useChecklistItems } from "@/hooks/useChecklistItems";
+import { VideoUpload } from "./VideoUpload";
 
 interface EditChecklistFormProps {
   checklist: any;
@@ -31,6 +32,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     priority: checklist.priority || 'Média',
     status: checklist.status || 'Pendente',
     general_observations: checklist.general_observations || '',
+    video_url: checklist.video_url || '',
   });
 
   const [items, setItems] = useState<any[]>([]);
@@ -229,6 +231,15 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
               </div>
             </CardContent>
           </Card>
+
+          {/* Video Upload */}
+          <div className="mt-3 lg:mt-6">
+            <VideoUpload 
+              onVideoUploaded={(url) => handleInputChange('video_url', url)}
+              currentVideoUrl={formData.video_url}
+              onVideoRemoved={() => handleInputChange('video_url', '')}
+            />
+          </div>
         </div>
 
         {/* Itens do Checklist */}

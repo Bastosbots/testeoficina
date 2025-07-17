@@ -209,6 +209,27 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
               </CardContent>
             </Card>
 
+            {/* Video da Inspeção */}
+            {checklist.video_url && (
+              <Card>
+                <CardHeader className="mobile-card-padding lg:p-6">
+                  <CardTitle className="flex items-center gap-1 lg:gap-2 mobile-text-sm lg:text-lg">
+                    <Video className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                    Vídeo da Inspeção
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="mobile-card-padding lg:p-6">
+                  <video 
+                    controls 
+                    className="w-full max-h-64 rounded-lg"
+                    src={checklist.video_url}
+                  >
+                    Seu navegador não suporta a tag de vídeo.
+                  </video>
+                </CardContent>
+              </Card>
+            )}
+
             {/* General Observations */}
             {checklist.general_observations && (
               <Card>
