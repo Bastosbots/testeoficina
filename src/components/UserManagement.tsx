@@ -36,11 +36,9 @@ const UserManagement = () => {
     confirmPassword: ''
   });
   const [userDataForm, setUserDataForm] = useState({
-    fullName: '',
-    email: ''
+    fullName: ''
   });
 
-  // Buscar todos os usuários usando o hook com realtime
   const { data: users = [] } = useProfiles();
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -143,8 +141,7 @@ const UserManagement = () => {
   const handleUserDataChange = (user: any) => {
     setSelectedUser(user);
     setUserDataForm({
-      fullName: user.full_name || '',
-      email: '' // Email não é armazenado no perfil, então deixamos vazio
+      fullName: user.full_name || ''
     });
     setIsUserDataDialogOpen(true);
   };
@@ -157,14 +154,12 @@ const UserManagement = () => {
     try {
       await updateUserDataMutation.mutateAsync({
         userId: selectedUser.id,
-        fullName: userDataForm.fullName || undefined,
-        email: userDataForm.email || undefined
+        fullName: userDataForm.fullName || undefined
       });
       setIsUserDataDialogOpen(false);
       setSelectedUser(null);
       setUserDataForm({
-        fullName: '',
-        email: ''
+        fullName: ''
       });
     } catch (err) {
       // Error handled by the mutation
@@ -328,7 +323,6 @@ const UserManagement = () => {
         </div>
       </CardContent>
 
-      {/* Modal de Edição de Usuário */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -384,7 +378,6 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Alteração de Dados do Usuário */}
       <Dialog open={isUserDataDialogOpen} onOpenChange={setIsUserDataDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -402,17 +395,6 @@ const UserManagement = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="updateEmail">Email</Label>
-              <Input
-                id="updateEmail"
-                type="email"
-                placeholder="Digite o novo email"
-                value={userDataForm.email}
-                onChange={(e) => setUserDataForm(prev => ({...prev, email: e.target.value}))}
-              />
-            </div>
-
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setIsUserDataDialogOpen(false)}>
                 Cancelar
@@ -425,7 +407,6 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Alteração de Senha */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

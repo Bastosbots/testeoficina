@@ -72,8 +72,8 @@ serve(async (req) => {
       );
     }
 
-    const { userId, email, fullName, username } = await req.json();
-    console.log('Updating user data for:', userId, { email, fullName, username });
+    const { userId, fullName, username } = await req.json();
+    console.log('Updating user data for:', userId, { fullName, username });
 
     if (!userId) {
       return new Response(
@@ -83,25 +83,6 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
-    }
-
-    // Atualizar dados do usuário no Auth se email foi fornecido
-    if (email) {
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-        userId,
-        { email: email }
-      );
-
-      if (authError) {
-        console.error('Error updating user email:', authError);
-        return new Response(
-          JSON.stringify({ error: `Erro ao atualizar email: ${authError.message}` }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
     }
 
     // Se o username foi fornecido, atualizar o email temporário no Auth também

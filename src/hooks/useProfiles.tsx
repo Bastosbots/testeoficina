@@ -47,8 +47,8 @@ export const useUpdateUserData = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ userId, email, fullName, username }: { userId: string, email?: string, fullName?: string, username?: string }) => {
-      console.log('Updating user data:', userId, { email, fullName, username });
+    mutationFn: async ({ userId, fullName, username }: { userId: string, fullName?: string, username?: string }) => {
+      console.log('Updating user data:', userId, { fullName, username });
       
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
@@ -56,7 +56,7 @@ export const useUpdateUserData = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('update-user-data', {
-        body: { userId, email, fullName, username },
+        body: { userId, fullName, username },
         headers: {
           Authorization: `Bearer ${session.session.access_token}`,
         },
