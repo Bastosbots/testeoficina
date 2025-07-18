@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,8 +53,11 @@ const AllChecklists = () => {
   // Get unique mechanics for filter
   const mechanics = useMemo(() => {
     const uniqueMechanics = checklists.reduce((acc, checklist) => {
-      if (checklist.profiles && !acc.find(m => m.id === checklist.profiles.id)) {
-        acc.push(checklist.profiles);
+      if (checklist.mechanic && !acc.find(m => m.id === checklist.mechanic.id)) {
+        acc.push({
+          id: checklist.mechanic_id,
+          full_name: checklist.mechanic.full_name
+        });
       }
       return acc;
     }, [] as any[]);
@@ -318,7 +322,7 @@ const AllChecklists = () => {
                       {checklist.plate}
                     </TableCell>
                     <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
-                      {checklist.profiles?.full_name || 'N/A'}
+                      {checklist.mechanic?.full_name || 'N/A'}
                     </TableCell>
                     <TableCell className={isAdmin ? 'py-2' : 'py-3'}>
                       <Badge 

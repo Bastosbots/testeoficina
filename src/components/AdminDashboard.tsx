@@ -41,7 +41,7 @@ const AdminDashboard = () => {
       console.log('Completing checklist:', checklistId);
       await updateChecklistMutation.mutateAsync({
         id: checklistId,
-        updateData: { status: 'Concluído' }
+        status: 'Concluído'
       });
       toast.success('Checklist concluído com sucesso!');
     } catch (error) {
@@ -196,7 +196,7 @@ const AdminDashboard = () => {
                     <TableCell className="text-xs font-medium py-2">{checklist.customer_name}</TableCell>
                     <TableCell className="text-xs py-2">{checklist.vehicle_name}</TableCell>
                     <TableCell className="text-xs py-2">{checklist.plate}</TableCell>
-                    <TableCell className="text-xs py-2">{checklist.profiles?.full_name || 'N/A'}</TableCell>
+                    <TableCell className="text-xs py-2">{checklist.mechanic?.full_name || 'N/A'}</TableCell>
                     <TableCell className="text-xs py-2">
                       {format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>

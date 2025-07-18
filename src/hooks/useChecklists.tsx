@@ -22,6 +22,18 @@ export interface ChecklistData {
   };
 }
 
+export interface CreateChecklistInput {
+  customer_name: string;
+  plate: string;
+  vehicle_name: string;
+  status: string;
+  priority: string;
+  mechanic_id: string;
+  general_observations?: string;
+  video_url?: string;
+  completed_at?: string;
+}
+
 export const useChecklists = () => {
   // Setup realtime subscription
   useRealtime({
@@ -59,7 +71,7 @@ export const useCreateChecklist = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (checklistData: Omit<ChecklistData, 'id' | 'created_at' | 'updated_at' | 'completed_at' | 'mechanic'>) => {
+    mutationFn: async (checklistData: CreateChecklistInput) => {
       const { data, error } = await supabase
         .from('checklists')
         .insert(checklistData)

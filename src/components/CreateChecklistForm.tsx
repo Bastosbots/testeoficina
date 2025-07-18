@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -103,19 +104,9 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         completed_at: new Date().toISOString()
       };
 
-      const itemsData = checkedItems.map(item => ({
-        name: item.name,
-        category: item.category,
-        checked: item.checked,
-        observation: item.observation || null
-      }));
+      console.log('Saving checklist:', { checklistData });
 
-      console.log('Saving checklist:', { checklistData, itemsData });
-
-      await createChecklistMutation.mutateAsync({
-        checklistData,
-        items: itemsData
-      });
+      await createChecklistMutation.mutateAsync(checklistData);
 
       onComplete();
     } catch (error) {
