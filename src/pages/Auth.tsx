@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { toast } from 'sonner';
-import { Eye, EyeOff, User, Lock } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, AlertCircle } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,6 +20,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [inviteToken, setInviteToken] = useState('');
+  const [error, setError] = useState('');
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,23 +47,33 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       if (isLogin) {
-        await signIn(username, password);
-        navigate('/');
+        const result = await signIn(username, password);
+        if (result.error) {
+          setError(result.error.message || 'Erro ao fazer login');
+        } else {
+          navigate('/');
+        }
       } else {
-        await signUp(fullName, username, password, inviteToken);
-        toast.success('Cadastro realizado com sucesso! Faça login para continuar.');
-        setIsLogin(true);
-        setFullName('');
-        setUsername('');
-        setPassword('');
-        setInviteToken('');
+        const result = await signUp(fullName, username, password, inviteToken);
+        if (result.error) {
+          setError(result.error.message || 'Erro ao criar conta');
+        } else {
+          toast.success('Cadastro realizado com sucesso! Faça login para continuar.');
+          setIsLogin(true);
+          setFullName('');
+          setUsername('');
+          setPassword('');
+          setInviteToken('');
+          setError('');
+        }
       }
     } catch (error: any) {
       console.error('Erro na autenticação:', error);
-      toast.error(error.message || 'Erro na autenticação');
+      setError(error.message || 'Erro na autenticação');
     } finally {
       setLoading(false);
     }
@@ -73,7 +85,7 @@ const Auth = () => {
         <CardHeader className="text-center space-y-4">
           {logoUrl && (
             <div className="flex justify-center">
-              <div className="w-20 h-16">
+              <div className="w-32 h-24">
                 <img
                   src={logoUrl}
                   alt="Logo da empresa"
@@ -90,6 +102,13 @@ const Auth = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
@@ -172,6 +191,7 @@ const Auth = () => {
                     setFullName('');
                     setUsername('');
                     setPassword('');
+                    setError('');
                   }}
                   className="text-sm"
                 >
