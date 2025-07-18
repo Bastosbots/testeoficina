@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -69,11 +70,21 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
         const fileExtension = file.name.split('.').pop();
         const fileName = `checklist-image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExtension}`;
         
+        console.log('Uploading file:', fileName, 'Size:', file.size, 'Type:', file.type);
+        
         const { data, error } = await supabase.storage
           .from('checklist-videos')
-          .upload(fileName, file);
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Upload error:', error);
+          throw new Error(`Erro ao enviar ${file.name}: ${error.message}`);
+        }
+        
+        console.log('Upload successful:', data);
         
         const { data: urlData } = supabase.storage
           .from('checklist-videos')
@@ -82,12 +93,14 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
         uploadedUrls.push(urlData.publicUrl);
       }
 
-      onFilesUploaded([...currentFileUrls, ...uploadedUrls]);
+      const allUrls = [...currentFileUrls, ...uploadedUrls];
+      onFilesUploaded(allUrls);
       setSelectedFiles([]);
       toast.success(`${uploadedUrls.length} imagem(ns) enviada(s) com sucesso!`);
-    } catch (error) {
-      console.error('Erro ao fazer upload:', error);
-      toast.error('Erro ao enviar as imagens');
+      
+    } catch (error: any) {
+      console.error('Erro completo ao fazer upload:', error);
+      toast.error(error.message || 'Erro ao enviar as imagens');
     } finally {
       setIsUploading(false);
     }
@@ -99,11 +112,9 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
   };
 
   const removeCurrentFile = (index: number) => {
-    if (onFilesRemoved) {
-      const newUrls = currentFileUrls.filter((_, i) => i !== index);
-      onFilesUploaded(newUrls);
-      toast.success('Imagem removida');
-    }
+    const newUrls = currentFileUrls.filter((_, i) => i !== index);
+    onFilesUploaded(newUrls);
+    toast.success('Imagem removida');
   };
 
   const openFile = (url: string) => {
@@ -133,10 +144,15 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
                     src={url} 
                     alt={`Imagem ${index + 1}`}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Error loading image:', url);
+                      (e.target as HTMLImageElement).src = '/placeholder.svg';
+                    }}
                   />
                 </div>
                 <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button 
+                    type="button"
                     variant="secondary" 
                     size="sm"
                     className="h-6 w-6 p-0"
@@ -145,6 +161,7 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
                     <Eye className="w-3 h-3" />
                   </Button>
                   <Button 
+                    type="button"
                     variant="destructive" 
                     size="sm"
                     className="h-6 w-6 p-0"
@@ -165,16 +182,26 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
           <h4 className="text-sm font-medium text-foreground">Imagens selecionadas:</h4>
           <div className="grid grid-cols-2 gap-2">
             {selectedFiles.map((file, index) => (
-              <div key={index} className="relative group">
+              <div key={`${file.name}-${index}`} className="relative group">
                 <div className="aspect-square bg-muted rounded-lg overflow-hidden">
                   <img 
                     src={URL.createObjectURL(file)} 
                     alt={file.name}
                     className="w-full h-full object-cover"
+                    onLoad={(e) => {
+                      // Limpar URL object quando a imagem for carregada
+                      const img = e.target as HTMLImageElement;
+                      setTimeout(() => {
+                        if (img.src.startsWith('blob:')) {
+                          URL.revokeObjectURL(img.src);
+                        }
+                      }, 1000);
+                    }}
                   />
                 </div>
                 <div className="absolute top-1 right-1">
                   <Button 
+                    type="button"
                     variant="destructive" 
                     size="sm"
                     className="h-6 w-6 p-0"
@@ -192,6 +219,7 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
           </div>
           
           <Button 
+            type="button"
             onClick={uploadFiles}
             disabled={isUploading}
             className="w-full"
@@ -227,7 +255,10 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
       
       {isUploading && (
         <div className="text-center text-muted-foreground">
-          Enviando imagens...
+          <div className="flex items-center justify-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            Enviando imagens...
+          </div>
         </div>
       )}
     </Card>
