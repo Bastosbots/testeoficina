@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, Download } from 'lucide-react';
@@ -73,6 +72,14 @@ export function AppSidebar() {
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
+  
+  console.log('Sidebar render:', { 
+    userRole: profile?.role, 
+    isInstalled, 
+    canInstall, 
+    platform,
+    shouldShowButton: profile?.role !== 'admin' && !isInstalled && canInstall
+  });
   
   const isActive = (path: string) => {
     if (path === '/') {
@@ -247,8 +254,8 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               
-              {/* Install App Button - Only for mechanics and if not installed but can install */}
-              {profile?.role !== 'admin' && !isInstalled && canInstall && (
+              {/* Install App Button - Show for non-admin users when app is not installed */}
+              {profile?.role !== 'admin' && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleInstallApp}

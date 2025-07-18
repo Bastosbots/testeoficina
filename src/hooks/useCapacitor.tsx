@@ -40,11 +40,13 @@ export const useCapacitor = (): CapacitorInfo => {
                            window.matchMedia('(display-mode: standalone)').matches ||
                            isNative;
 
-        // Check if can install (has beforeinstallprompt or is iOS Safari)
+        // Check if can install
         const canInstall = !isInstalled && (
           !!(window as any).deferredInstallPrompt || 
           isIOSSafari()
         );
+
+        console.log('Capacitor Info:', { isNative, platform, isInstalled, canInstall });
 
         setCapacitorInfo({
           isNative,
@@ -61,6 +63,8 @@ export const useCapacitor = (): CapacitorInfo => {
           !!(window as any).deferredInstallPrompt || 
           isIOSSafari()
         );
+        
+        console.log('Web App Info:', { isInstalled, canInstall, hasPrompt: !!(window as any).deferredInstallPrompt });
         
         setCapacitorInfo({
           isNative: false,
@@ -86,10 +90,13 @@ export const useCapacitor = (): CapacitorInfo => {
       (window as any).deferredInstallPrompt = e;
       
       // Update canInstall state immediately
-      setCapacitorInfo(prev => ({
-        ...prev,
-        canInstall: !prev.isInstalled
-      }));
+      setCapacitorInfo(prev => {
+        console.log('Updating canInstall to true after beforeinstallprompt');
+        return {
+          ...prev,
+          canInstall: !prev.isInstalled
+        };
+      });
     };
 
     const handleAppInstalled = () => {
@@ -106,24 +113,25 @@ export const useCapacitor = (): CapacitorInfo => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
     
+    // Initial check
     checkCapacitor();
 
-    // Also check periodically for the install prompt
-    const checkInterval = setInterval(() => {
-      if ((window as any).deferredInstallPrompt && !capacitorInfo.isInstalled) {
+    // Force show install button for testing on web (temporarily)
+    setTimeout(() => {
+      if (!capacitorInfo.isInstalled && !capacitorInfo.canInstall) {
+        console.log('Forcing canInstall to true for web testing');
         setCapacitorInfo(prev => ({
           ...prev,
           canInstall: true
         }));
       }
-    }, 1000);
+    }, 2000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
-      clearInterval(checkInterval);
     };
-  }, [capacitorInfo.isInstalled]);
+  }, []);
 
   return capacitorInfo;
 };
