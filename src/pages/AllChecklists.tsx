@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -77,6 +76,11 @@ const AllChecklists = () => {
     navigate('/checklists');
   };
 
+  const handleComplete = () => {
+    // Navigate back after creating checklist
+    handleBack();
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
@@ -115,17 +119,32 @@ const AllChecklists = () => {
   if (isCreating) {
     return (
       <div className={`space-y-4 ${isAdmin ? 'lg:zoom-90' : ''}`}>
-        <CreateChecklistForm onBack={handleBack} />
+        <CreateChecklistForm 
+          onBack={handleBack}
+          onComplete={handleComplete}
+        />
       </div>
     );
   }
 
   // Show viewer when viewing
   if (viewId) {
+    const selectedChecklist = checklists.find(c => c.id === viewId);
+    
+    if (!selectedChecklist) {
+      return (
+        <div className="space-y-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Checklist não encontrado.</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={`space-y-4 ${isAdmin ? 'lg:zoom-90' : ''}`}>
         <ChecklistViewer 
-          checklistId={viewId}
+          checklist={selectedChecklist}
           onBack={handleBack}
         />
       </div>
@@ -134,10 +153,22 @@ const AllChecklists = () => {
 
   // Show edit form when editing
   if (editId) {
+    const selectedChecklist = checklists.find(c => c.id === editId);
+    
+    if (!selectedChecklist) {
+      return (
+        <div className="space-y-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Checklist não encontrado.</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={`space-y-4 ${isAdmin ? 'lg:zoom-90' : ''}`}>
         <EditChecklistForm 
-          checklistId={editId}
+          checklist={selectedChecklist}
           onBack={handleBack}
         />
       </div>

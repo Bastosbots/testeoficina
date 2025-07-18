@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,8 +51,8 @@ const Budgets = () => {
   // Get unique mechanics for filter
   const mechanics = useMemo(() => {
     const uniqueMechanics = budgets.reduce((acc, budget) => {
-      if (budget.mechanic && !acc.find(m => m.id === budget.mechanic.id)) {
-        acc.push(budget.mechanic);
+      if (budget.mechanic && !acc.find(m => m.id === budget.mechanic_id)) {
+        acc.push({ id: budget.mechanic_id, full_name: budget.mechanic.full_name });
       }
       return acc;
     }, [] as any[]);
@@ -86,10 +85,12 @@ const Budgets = () => {
 
   // Show form when creating or editing
   if (isCreating || editId) {
+    const selectedBudget = editId ? budgets.find(b => b.id === editId) : undefined;
+    
     return (
       <div className={`space-y-4 ${isAdmin ? 'lg:zoom-90' : ''}`}>
         <BudgetForm 
-          budgetId={editId || undefined}
+          budget={selectedBudget}
           onBack={handleBack}
         />
       </div>
@@ -98,10 +99,22 @@ const Budgets = () => {
 
   // Show viewer when viewing
   if (viewId) {
+    const selectedBudget = budgets.find(b => b.id === viewId);
+    
+    if (!selectedBudget) {
+      return (
+        <div className="space-y-4">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Orçamento não encontrado.</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className={`space-y-4 ${isAdmin ? 'lg:zoom-90' : ''}`}>
         <BudgetViewer 
-          budgetId={viewId}
+          budget={selectedBudget}
           onBack={handleBack}
         />
       </div>
