@@ -13,6 +13,7 @@ import { ArrowLeft, Save, CheckSquare, Square } from "lucide-react";
 import { toast } from "sonner";
 import { useUpdateChecklist } from "@/hooks/useChecklists";
 import { useChecklistItems } from "@/hooks/useChecklistItems";
+import { supabase } from '@/integrations/supabase/client';
 import { FileUpload } from "./FileUpload";
 
 interface EditChecklistFormProps {
@@ -78,6 +79,14 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
       console.log('Form data:', formData);
       console.log('Items to save:', items);
 
+      // Update checklist basic info
+      await updateChecklistMutation.mutateAsync({
+        id: checklist.id,
+        ...formData,
+        video_url: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
+      });
+
+      // Save checklist items separately using the save_checklist_items function
       const itemsForUpdate = items.map(item => ({
         name: item.item_name,
         category: item.category,
@@ -85,14 +94,17 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
         observation: item.observation || ''
       }));
 
-      console.log('Formatted items:', itemsForUpdate);
+      console.log('Formatted items for save_checklist_items:', itemsForUpdate);
 
-      await updateChecklistMutation.mutateAsync({
-        id: checklist.id,
-        ...formData,
-        video_url: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null,
-        items: itemsForUpdate
+      const { error: itemsError } = await supabase.rpc('save_checklist_items', {
+        p_checklist_id: checklist.id,
+        p_items: itemsForUpdate
       });
+
+      if (itemsError) {
+        console.error('Error saving checklist items:', itemsError);
+        throw itemsError;
+      }
 
       toast.success('Checklist atualizado com sucesso!');
       onSave();
