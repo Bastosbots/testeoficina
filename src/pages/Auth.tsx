@@ -180,23 +180,7 @@ const Auth = () => {
 
           {!inviteToken && (
             <>
-              <Separator className="my-4" />
-              <div className="text-center">
-                <Button
-                  type="button"
-                  variant="link"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setFullName('');
-                    setUsername('');
-                    setPassword('');
-                    setError('');
-                  }}
-                  className="text-sm"
-                >
-                  {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
-                </Button>
-              </div>
+              
             </>
           )}
         </CardContent>
