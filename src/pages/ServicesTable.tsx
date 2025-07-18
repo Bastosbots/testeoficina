@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -44,6 +43,7 @@ const ServicesTable = () => {
   });
 
   const isAdmin = profile?.role === 'admin';
+  const isMechanic = profile?.role === 'mechanic';
 
   // Filter services based on search and filters
   const filteredServices = useMemo(() => {
@@ -147,110 +147,112 @@ const ServicesTable = () => {
             Tabela de Serviços
           </h1>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Serviço
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className={isAdmin ? 'text-sm' : 'text-base'}>
-                {editingService ? 'Editar Serviço' : 'Novo Serviço'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                  Nome do Serviço
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ex: Troca de óleo"
-                  required
-                  className={isAdmin ? 'h-8 text-xs' : 'h-10'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                  Categoria
-                </Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Ex: Manutenção"
-                  required
-                  className={isAdmin ? 'h-8 text-xs' : 'h-10'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="unit_price" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                  Preço Unitário (R$)
-                </Label>
-                <Input
-                  id="unit_price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.unit_price}
-                  onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
-                  placeholder="0.00"
-                  required
-                  className={isAdmin ? 'h-8 text-xs' : 'h-10'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                  Descrição (opcional)
-                </Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Descrição detalhada do serviço"
-                  rows={3}
-                  className={isAdmin ? 'text-xs' : ''}
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                />
-                <Label htmlFor="is_active" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                  Serviço ativo
-                </Label>
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className={`flex-1 ${isAdmin ? 'h-8 text-xs' : 'h-10'}`}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createServiceMutation.isPending || updateServiceMutation.isPending}
-                  className={`flex-1 ${isAdmin ? 'h-8 text-xs' : 'h-10'}`}
-                >
-                  {(createServiceMutation.isPending || updateServiceMutation.isPending) ? 'Salvando...' : 'Salvar'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {isAdmin && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openCreateDialog} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Serviço
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className={isAdmin ? 'text-sm' : 'text-base'}>
+                  {editingService ? 'Editar Serviço' : 'Novo Serviço'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className={isAdmin ? 'text-xs' : 'text-sm'}>
+                    Nome do Serviço
+                  </Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ex: Troca de óleo"
+                    required
+                    className={isAdmin ? 'h-8 text-xs' : 'h-10'}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="category" className={isAdmin ? 'text-xs' : 'text-sm'}>
+                    Categoria
+                  </Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="Ex: Manutenção"
+                    required
+                    className={isAdmin ? 'h-8 text-xs' : 'h-10'}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="unit_price" className={isAdmin ? 'text-xs' : 'text-sm'}>
+                    Preço Unitário (R$)
+                  </Label>
+                  <Input
+                    id="unit_price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.unit_price}
+                    onChange={(e) => setFormData({ ...formData, unit_price: parseFloat(e.target.value) || 0 })}
+                    placeholder="0.00"
+                    required
+                    className={isAdmin ? 'h-8 text-xs' : 'h-10'}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description" className={isAdmin ? 'text-xs' : 'text-sm'}>
+                    Descrição (opcional)
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Descrição detalhada do serviço"
+                    rows={3}
+                    className={isAdmin ? 'text-xs' : ''}
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  />
+                  <Label htmlFor="is_active" className={isAdmin ? 'text-xs' : 'text-sm'}>
+                    Serviço ativo
+                  </Label>
+                </div>
+                
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className={`flex-1 ${isAdmin ? 'h-8 text-xs' : 'h-10'}`}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createServiceMutation.isPending || updateServiceMutation.isPending}
+                    className={`flex-1 ${isAdmin ? 'h-8 text-xs' : 'h-10'}`}
+                  >
+                    {(createServiceMutation.isPending || updateServiceMutation.isPending) ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Filters */}
@@ -298,16 +300,18 @@ const ServicesTable = () => {
               </SelectContent>
             </Select>
 
-            <Select value={activeFilter} onValueChange={setActiveFilter}>
-              <SelectTrigger className={isAdmin ? 'h-8 text-xs' : 'h-10'}>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Ativos</SelectItem>
-                <SelectItem value="inactive">Inativos</SelectItem>
-              </SelectContent>
-            </Select>
+            {isAdmin && (
+              <Select value={activeFilter} onValueChange={setActiveFilter}>
+                <SelectTrigger className={isAdmin ? 'h-8 text-xs' : 'h-10'}>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativos</SelectItem>
+                  <SelectItem value="inactive">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -333,57 +337,65 @@ const ServicesTable = () => {
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Nome</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Categoria</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Preço</TableHead>
-                <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Descrição</TableHead>
-                <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Status</TableHead>
-                <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Ações</TableHead>
+                {isAdmin && (
+                  <>
+                    <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Descrição</TableHead>
+                    <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Status</TableHead>
+                    <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Ações</TableHead>
+                  </>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredServices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
+                  <TableCell colSpan={isAdmin ? 6 : 3} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
                     {hasActiveFilters ? 'Nenhum serviço encontrado com os filtros aplicados.' : 'Nenhum serviço encontrado.'}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredServices.map((service) => (
                   <TableRow key={service.id}>
-                    <TableCell className={`font-medium ${isAdmin ? 'text-xs py-2' : 'text-sm py-3'}`}>
+                    <TableCell className={`font-medium ${isAdmin ? 'text-xs py-2' : isMechanic ? 'text-sm py-3' : 'text-sm py-3'}`}>
                       {service.name}
                     </TableCell>
-                    <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
+                    <TableCell className={isAdmin ? 'text-xs py-2' : isMechanic ? 'text-sm py-3' : 'text-sm py-3'}>
                       {service.category}
                     </TableCell>
-                    <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
+                    <TableCell className={isAdmin ? 'text-xs py-2' : isMechanic ? 'text-sm py-3' : 'text-sm py-3'}>
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3 text-green-600" />
                         {service.unit_price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </div>
                     </TableCell>
-                    <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
-                      <div className="max-w-xs truncate" title={service.description}>
-                        {service.description || 'N/A'}
-                      </div>
-                    </TableCell>
-                    <TableCell className={isAdmin ? 'py-2' : 'py-3'}>
-                      <Badge 
-                        variant={service.is_active ? 'default' : 'secondary'}
-                        className={isAdmin ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1'}
-                      >
-                        {service.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className={isAdmin ? 'py-2' : 'py-3'}>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => openEditDialog(service)}
-                        title="Editar serviço"
-                        className={isAdmin ? 'h-6 w-6 p-0' : 'h-8 w-8 p-0'}
-                      >
-                        <Edit className={isAdmin ? 'h-3 w-3' : 'h-4 w-4'} />
-                      </Button>
-                    </TableCell>
+                    {isAdmin && (
+                      <>
+                        <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
+                          <div className="max-w-xs truncate" title={service.description}>
+                            {service.description || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell className={isAdmin ? 'py-2' : 'py-3'}>
+                          <Badge 
+                            variant={service.is_active ? 'default' : 'secondary'}
+                            className={isAdmin ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1'}
+                          >
+                            {service.is_active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={isAdmin ? 'py-2' : 'py-3'}>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => openEditDialog(service)}
+                            title="Editar serviço"
+                            className={isAdmin ? 'h-6 w-6 p-0' : 'h-8 w-8 p-0'}
+                          >
+                            <Edit className={isAdmin ? 'h-3 w-3' : 'h-4 w-4'} />
+                          </Button>
+                        </TableCell>
+                      </>
+                    )}
                   </TableRow>
                 ))
               )}
