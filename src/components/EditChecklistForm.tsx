@@ -118,51 +118,55 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
   }, {} as Record<string, any[]>) : {};
 
   return (
-    <div className="min-h-screen bg-background mobile-card-padding lg:p-6">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 lg:mb-6 space-y-3 lg:space-y-0">
-        <div className="flex items-center gap-2 lg:gap-4">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
-          >
-            <ArrowLeft className="h-3 w-3 lg:h-4 lg:w-4" />
-            <span className="mobile-text-xs lg:text-sm">Voltar</span>
-          </Button>
-          <div>
-            <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Editar Checklist</h1>
-            <p className="mobile-text-xs lg:text-base text-muted-foreground">
-              Modificar informações e status do checklist
-            </p>
+      <header className="bg-card border-b border-border mobile-header-height lg:py-4 px-2 lg:px-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
+            >
+              <ArrowLeft className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="mobile-text-xs lg:text-sm">Voltar</span>
+            </Button>
+            <div>
+              <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Editar Checklist</h1>
+              <p className="mobile-text-xs lg:text-base text-muted-foreground">
+                Modificar informações e status do checklist
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 lg:gap-2">
+            <Badge className={`${getStatusColor(formData.status)} mobile-text-xs lg:text-sm px-1 lg:px-3 py-0.5 lg:py-1`}>
+              {formData.status}
+            </Badge>
+            <Button 
+              onClick={handleSave}
+              disabled={updateChecklistMutation.isPending}
+              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
+            >
+              <Save className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="mobile-text-xs lg:text-sm">
+                {updateChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}
+              </span>
+            </Button>
           </div>
         </div>
+      </header>
 
-        <div className="flex items-center gap-1 lg:gap-2">
-          <Badge className={`${getStatusColor(formData.status)} mobile-text-xs lg:text-sm px-1 lg:px-3 py-0.5 lg:py-1`}>
-            {formData.status}
-          </Badge>
-          <Button 
-            onClick={handleSave}
-            disabled={updateChecklistMutation.isPending}
-            className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
-          >
-            <Save className="h-3 w-3 lg:h-4 lg:w-4" />
-            <span className="mobile-text-xs lg:text-sm">
-              {updateChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}
-            </span>
-          </Button>
-        </div>
-      </div>
+      <div className="mobile-card-padding lg:p-6">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
-        {/* Informações Básicas */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader className="mobile-card-padding lg:p-6">
-              <CardTitle className="mobile-text-sm lg:text-lg">Informações Básicas</CardTitle>
-            </CardHeader>
-            <CardContent className="mobile-card-padding lg:p-6 space-y-3 lg:space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
+          {/* Informações Básicas */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader className="mobile-card-padding lg:p-6">
+                <CardTitle className="mobile-text-base lg:text-xl">Informações Básicas</CardTitle>
+              </CardHeader>
+              <CardContent className="mobile-card-padding lg:p-6 space-y-3 lg:space-y-4">
               <div className="space-y-1 lg:space-y-2">
                 <Label htmlFor="vehicle_name" className="mobile-text-xs lg:text-sm">Nome e Cor do Veículo</Label>
                 <Input
@@ -238,80 +242,81 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
             </CardContent>
           </Card>
 
-          {/* Video Upload */}
-          <div className="mt-3 lg:mt-6">
-            <FileUpload 
-              onFilesUploaded={setImageUrls}
-              currentFileUrls={imageUrls}
-              onFilesRemoved={() => setImageUrls([])}
-            />
+            {/* Video Upload */}
+            <div className="mt-3 lg:mt-6">
+              <FileUpload 
+                onFilesUploaded={setImageUrls}
+                currentFileUrls={imageUrls}
+                onFilesRemoved={() => setImageUrls([])}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Itens do Checklist */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader className="mobile-card-padding lg:p-6">
-              <CardTitle className="mobile-text-sm lg:text-lg">Itens do Checklist</CardTitle>
-            </CardHeader>
-            <CardContent className="mobile-card-padding lg:p-6">
-              <div className="space-y-4 lg:space-y-6">
-                {Object.entries(itemsByCategory).map(([category, categoryItems]) => {
-                  const categoryItemsArray = Array.isArray(categoryItems) ? categoryItems : [];
-                  return (
-                    <div key={category}>
-                      <h3 className="mobile-text-sm lg:text-lg font-semibold text-foreground mb-2 lg:mb-3 flex items-center gap-1 lg:gap-2">
-                        {category}
-                        <Badge variant="outline" className="mobile-text-xs lg:text-xs px-1 lg:px-2 py-0.5">
-                          {categoryItemsArray.filter(item => item.checked).length}/{categoryItemsArray.length}
-                        </Badge>
-                      </h3>
-                      
-                      <div className="space-y-2 lg:space-y-3">
-                        {categoryItemsArray.map((item) => (
-                          <div key={item.id} className="border rounded-lg mobile-card-padding lg:p-4 bg-card">
-                            <div className="flex items-start gap-2 lg:gap-3">
-                              <Checkbox
-                                checked={item.checked || false}
-                                onCheckedChange={(checked) => 
-                                  handleItemChange(item.id, 'checked', checked)
-                                }
-                                className="mt-1"
-                              />
-                              <div className="flex-1 space-y-1 lg:space-y-2">
-                                <div className="mobile-text-xs lg:text-sm font-medium text-foreground">
-                                  {item.item_name}
-                                </div>
-                                <Textarea
-                                  value={item.observation || ''}
-                                  onChange={(e) => 
-                                    handleItemChange(item.id, 'observation', e.target.value)
+          {/* Itens do Checklist */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="mobile-card-padding lg:p-6">
+                <CardTitle className="mobile-text-base lg:text-xl">Itens do Checklist</CardTitle>
+              </CardHeader>
+              <CardContent className="mobile-card-padding lg:p-6">
+                <div className="space-y-4 lg:space-y-6">
+                  {Object.entries(itemsByCategory).map(([category, categoryItems]) => {
+                    const categoryItemsArray = Array.isArray(categoryItems) ? categoryItems : [];
+                    return (
+                      <div key={category}>
+                        <h3 className="mobile-text-sm lg:text-lg font-semibold text-foreground mb-2 lg:mb-3 flex items-center gap-1 lg:gap-2">
+                          <Badge variant="outline" className="mobile-text-xs lg:text-sm px-1 lg:px-2 py-0.5">{category}</Badge>
+                          <span className="mobile-text-xs lg:text-sm text-muted-foreground">
+                            ({categoryItemsArray.filter(item => item.checked).length}/{categoryItemsArray.length})
+                          </span>
+                        </h3>
+                        
+                        <div className="space-y-2 lg:space-y-3">
+                          {categoryItemsArray.map((item) => (
+                            <div key={item.id} className="border rounded-lg mobile-card-padding lg:p-4 bg-card hover:bg-muted/50 transition-colors">
+                              <div className="flex items-start gap-2 lg:gap-3">
+                                <Checkbox
+                                  checked={item.checked || false}
+                                  onCheckedChange={(checked) => 
+                                    handleItemChange(item.id, 'checked', checked)
                                   }
-                                  placeholder="Observações sobre este item..."
-                                  rows={2}
-                                  className="mobile-text-xs lg:text-sm min-h-12 lg:min-h-16"
+                                  className="mt-1 mobile-touch-target"
                                 />
+                                <div className="flex-1 space-y-1 lg:space-y-2">
+                                  <div className="mobile-text-sm lg:text-base font-medium text-foreground">
+                                    {item.item_name}
+                                  </div>
+                                  <Textarea
+                                    value={item.observation || ''}
+                                    onChange={(e) => 
+                                      handleItemChange(item.id, 'observation', e.target.value)
+                                    }
+                                    placeholder="Observações sobre este item..."
+                                    rows={2}
+                                    className="mobile-text-xs lg:text-sm min-h-12 lg:min-h-16"
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                        
+                        {category !== Object.keys(itemsByCategory)[Object.keys(itemsByCategory).length - 1] && (
+                          <Separator className="mt-4 lg:mt-6" />
+                        )}
                       </div>
-                      
-                      {category !== Object.keys(itemsByCategory)[Object.keys(itemsByCategory).length - 1] && (
-                        <Separator className="mt-4 lg:mt-6" />
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-                {Object.keys(itemsByCategory).length === 0 && (
-                  <div className="text-center py-6 lg:py-8 text-muted-foreground">
-                    <p className="mobile-text-xs lg:text-base">Nenhum item encontrado para este checklist.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  {Object.keys(itemsByCategory).length === 0 && (
+                    <div className="text-center py-6 lg:py-8 text-muted-foreground">
+                      <p className="mobile-text-xs lg:text-base">Nenhum item encontrado para este checklist.</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

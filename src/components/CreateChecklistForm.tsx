@@ -133,96 +133,95 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border mobile-spacing-x mobile-spacing-y">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center mobile-spacing-sm">
-            <Button variant="outline" onClick={onBack} className="mobile-btn-sm flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Voltar</span>
+      <header className="bg-card border-b border-border mobile-header-height lg:py-4 px-2 lg:px-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
+            <Button variant="outline" onClick={onBack} className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2">
+              <ArrowLeft className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="mobile-text-xs lg:text-sm">Voltar</span>
             </Button>
             <div>
-              <h1 className="mobile-text-lg font-bold text-foreground">Criar Novo Checklist</h1>
-              <p className="mobile-text-sm text-muted-foreground">
+              <h1 className="mobile-text-lg lg:text-2xl font-bold text-foreground">Criar Novo Checklist</h1>
+              <p className="mobile-text-xs lg:text-base text-muted-foreground">
                 Inspeção antes do início do serviço
               </p>
             </div>
           </div>
-          <div className="flex items-center mobile-spacing-sm flex-wrap">
+          <div className="flex items-center gap-2 lg:gap-4">
             <div className="text-right">
-              <p className="mobile-text-xs text-muted-foreground">Progresso</p>
-              <p className="mobile-text-sm font-semibold text-primary">{checkedCount}/{totalItems} itens</p>
+              <p className="mobile-text-xs lg:text-sm text-muted-foreground">Progresso</p>
+              <p className="mobile-text-sm lg:text-base font-semibold text-primary">{checkedCount}/{totalItems} itens</p>
             </div>
             <Button 
               onClick={handleSave} 
-              className="mobile-btn-sm flex items-center gap-2"
+              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
               disabled={createChecklistMutation.isPending}
             >
-              <Save className="h-4 w-4" />
-              <span className="hidden sm:inline">{createChecklistMutation.isPending ? 'Salvando...' : 'Salvar Checklist'}</span>
-              <span className="sm:hidden">Salvar</span>
+              <Save className="h-3 w-3 lg:h-4 lg:w-4" />
+              <span className="mobile-text-xs lg:text-sm">{createChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="mobile-spacing-full">
+      <div className="mobile-card-padding lg:p-6">
         {/* Progress Bar */}
-        <Card className="mobile-card mb-4">
-          <CardContent className="mobile-spacing-card">
+        <Card className="mb-3 lg:mb-6">
+          <CardContent className="mobile-card-padding lg:p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="mobile-text-sm font-medium text-foreground">Progresso do Checklist</span>
-              <span className="mobile-text-sm text-muted-foreground">{Math.round(progress)}%</span>
+              <span className="mobile-text-sm lg:text-base font-medium text-foreground">Progresso do Checklist</span>
+              <span className="mobile-text-sm lg:text-base text-muted-foreground">{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2 lg:h-3">
               <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                className="bg-primary h-2 lg:h-3 rounded-full transition-all duration-300" 
                 style={{ width: `${progress}%` }}
               />
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 mobile-spacing-grid">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
           {/* Checklist Items */}
           <div className="lg:col-span-2">
-            <Card className="mobile-card">
-              <CardHeader className="mobile-spacing-card-header">
-                <CardTitle className="mobile-text-base flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+            <Card>
+              <CardHeader className="mobile-card-padding lg:p-6">
+                <CardTitle className="mobile-text-base lg:text-xl flex items-center gap-2">
+                  <FileText className="h-4 w-4 lg:h-5 lg:w-5" />
                   Itens de Verificação
                 </CardTitle>
               </CardHeader>
-              <CardContent className="mobile-spacing-card">
+              <CardContent className="mobile-card-padding lg:p-6">
                 {categories.map(category => (
-                  <div key={category} className="mobile-spacing-lg">
-                    <h3 className="mobile-text-sm font-semibold text-foreground mobile-spacing-xs flex items-center gap-2">
-                      <Badge variant="outline" className="mobile-text-xs">{category}</Badge>
-                      <span className="mobile-text-xs text-muted-foreground">
+                  <div key={category} className="mb-4 lg:mb-6">
+                    <h3 className="mobile-text-sm lg:text-lg font-semibold text-foreground mb-2 lg:mb-3 flex items-center gap-1 lg:gap-2">
+                      <Badge variant="outline" className="mobile-text-xs lg:text-sm px-1 lg:px-2 py-0.5">{category}</Badge>
+                      <span className="mobile-text-xs lg:text-sm text-muted-foreground">
                         ({items.filter(item => item.category === category && item.checked).length}/
                         {items.filter(item => item.category === category).length})
                       </span>
                     </h3>
                     
-                    <div className="mobile-spacing-md">
+                    <div className="space-y-2 lg:space-y-3">
                       {items.filter(item => item.category === category).map(item => (
-                        <div key={item.id} className="border rounded-lg mobile-spacing-card hover:bg-muted/50 transition-colors">
-                          <div className="flex items-start mobile-spacing-xs">
+                        <div key={item.id} className="border rounded-lg mobile-card-padding lg:p-4 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-start gap-2 lg:gap-3">
                             <Checkbox
                               id={item.id}
                               checked={item.checked}
                               onCheckedChange={(checked) => handleItemCheck(item.id, !!checked)}
-                              className="mt-1"
+                              className="mt-1 mobile-touch-target"
                             />
-                            <div className="flex-1">
-                              <label htmlFor={item.id} className="cursor-pointer">
-                                <div className="flex items-center gap-2 mobile-spacing-xs">
-                                  <span className={`mobile-text-sm font-medium ${getStatusColor(item.checked)}`}>
+                            <div className="flex-1 space-y-1 lg:space-y-2">
+                              <label htmlFor={item.id} className="cursor-pointer block">
+                                <div className="flex items-center gap-1 lg:gap-2">
+                                  <span className={`mobile-text-sm lg:text-base font-medium ${getStatusColor(item.checked)}`}>
                                     {item.name}
                                   </span>
                                   {item.checked ? (
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <CheckCircle className="h-3 w-3 lg:h-4 lg:w-4 text-green-600" />
                                   ) : (
-                                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                                    <AlertCircle className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground" />
                                   )}
                                 </div>
                               </label>
@@ -230,7 +229,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                                 placeholder="Observações específicas (opcional)..."
                                 value={item.observation}
                                 onChange={(e) => handleItemObservation(item.id, e.target.value)}
-                                className="mobile-input-sm mobile-text-xs"
+                                className="mobile-text-xs lg:text-sm min-h-12 lg:min-h-16"
                                 rows={2}
                               />
                             </div>
@@ -245,64 +244,64 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
           </div>
 
           {/* Sidebar - Vehicle Data & Additional Info */}
-          <div className="mobile-spacing-lg">
+          <div className="space-y-3 lg:space-y-6">
             {/* Vehicle Information Form */}
-            <Card className="mobile-card">
-              <CardHeader className="mobile-spacing-card-header">
-                <CardTitle className="mobile-text-base flex items-center gap-2">
-                  <Car className="h-5 w-5 text-primary" />
+            <Card>
+              <CardHeader className="mobile-card-padding lg:p-6">
+                <CardTitle className="mobile-text-base lg:text-xl flex items-center gap-2">
+                  <Car className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
                   Dados do Veículo
                 </CardTitle>
               </CardHeader>
-              <CardContent className="mobile-spacing-md">
-                <div>
-                  <Label htmlFor="vehicle-name" className="mobile-text-sm">Nome e Cor do Veículo *</Label>
+              <CardContent className="mobile-card-padding lg:p-6 space-y-3 lg:space-y-4">
+                <div className="space-y-1 lg:space-y-2">
+                  <Label htmlFor="vehicle-name" className="mobile-text-xs lg:text-sm">Nome e Cor do Veículo *</Label>
                   <Input
                     id="vehicle-name"
                     value={vehicleData.vehicleName}
                     onChange={(e) => setVehicleData(prev => ({ ...prev, vehicleName: e.target.value }))}
                     placeholder="Ex: Honda Civic 2020 Prata"
-                    className="mobile-input-sm"
+                    className="mobile-input lg:h-10"
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="plate" className="mobile-text-sm">Placa *</Label>
+                <div className="space-y-1 lg:space-y-2">
+                  <Label htmlFor="plate" className="mobile-text-xs lg:text-sm">Placa *</Label>
                   <Input
                     id="plate"
                     value={vehicleData.plate}
                     onChange={(e) => setVehicleData(prev => ({ ...prev, plate: e.target.value.toUpperCase() }))}
                     placeholder="ABC-1234"
-                    className="mobile-input-sm"
+                    className="mobile-input lg:h-10"
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="customer-name" className="mobile-text-sm">Nome do Cliente *</Label>
+                <div className="space-y-1 lg:space-y-2">
+                  <Label htmlFor="customer-name" className="mobile-text-xs lg:text-sm">Nome do Cliente *</Label>
                   <Input
                     id="customer-name"
                     value={vehicleData.customerName}
                     onChange={(e) => setVehicleData(prev => ({ ...prev, customerName: e.target.value }))}
                     placeholder="João da Silva"
-                    className="mobile-input-sm"
+                    className="mobile-input lg:h-10"
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="priority" className="mobile-text-sm">Prioridade *</Label>
+                <div className="space-y-1 lg:space-y-2">
+                  <Label htmlFor="priority" className="mobile-text-xs lg:text-sm">Prioridade *</Label>
                   <Select value={vehicleData.priority} onValueChange={(value) => setVehicleData(prev => ({ ...prev, priority: value }))}>
-                    <SelectTrigger className="mobile-input-sm">
+                    <SelectTrigger className="mobile-input lg:h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Baixa" className="mobile-text-sm">Baixa</SelectItem>
-                      <SelectItem value="Média" className="mobile-text-sm">Média</SelectItem>
-                      <SelectItem value="Alta" className="mobile-text-sm">Alta</SelectItem>
+                      <SelectItem value="Baixa" className="mobile-text-xs lg:text-sm">Baixa</SelectItem>
+                      <SelectItem value="Média" className="mobile-text-xs lg:text-sm">Média</SelectItem>
+                      <SelectItem value="Alta" className="mobile-text-xs lg:text-sm">Alta</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="general-observations" className="mobile-text-sm">Observações Gerais</Label>
+                <div className="space-y-1 lg:space-y-2">
+                  <Label htmlFor="general-observations" className="mobile-text-xs lg:text-sm">Observações Gerais</Label>
                   <Textarea
                     id="general-observations"
                     value={generalObservations}
@@ -316,14 +315,11 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
             </Card>
 
             {/* Video Upload */}
-            <div className="mobile-spacing-lg">
-              <FileUpload 
-                onFilesUploaded={setImageUrls}
-                currentFileUrls={imageUrls}
-                onFilesRemoved={() => setImageUrls([])}
-              />
-            </div>
-
+            <FileUpload 
+              onFilesUploaded={setImageUrls}
+              currentFileUrls={imageUrls}
+              onFilesRemoved={() => setImageUrls([])}
+            />
           </div>
         </div>
       </div>
