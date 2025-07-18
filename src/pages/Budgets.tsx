@@ -241,7 +241,7 @@ const Budgets = () => {
                       </Button>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 text-xs sm:text-sm">
                       <div>
                         <p className="text-muted-foreground">Cliente</p>
                         <p className="font-medium truncate">{budget.customer_name}</p>
@@ -253,6 +253,12 @@ const Budgets = () => {
                             ? `${budget.vehicle_name} - ${budget.vehicle_plate}`
                             : budget.vehicle_name || budget.vehicle_plate || 'Não informado'
                           }
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Mecânico</p>
+                        <p className="font-medium truncate">
+                          {budget.mechanic?.full_name || 'Não informado'}
                         </p>
                       </div>
                       <div>

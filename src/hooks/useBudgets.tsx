@@ -18,6 +18,9 @@ export interface Budget {
   status: string;
   created_at: string;
   updated_at: string;
+  mechanic?: {
+    full_name: string;
+  };
 }
 
 export interface BudgetItem {
@@ -38,7 +41,10 @@ export const useBudgets = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('budgets')
-        .select('*')
+        .select(`
+          *,
+          mechanic:profiles!budgets_mechanic_id_fkey(full_name)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
