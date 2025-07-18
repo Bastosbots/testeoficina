@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   };
 
   const handleViewChecklist = (checklistId: string) => {
-    navigate(`/checklists/${checklistId}`);
+    navigate(`/checklists?view=${checklistId}`);
   };
 
   const handleViewBudget = (budgetId: string) => {
