@@ -31,19 +31,20 @@ const Budgets = () => {
   const isCreating = searchParams.get('create') === 'true';
   
   const isAdmin = profile?.role === 'admin';
+  const isMechanic = profile?.role === 'mechanic';
 
   // Filter budgets based on search, filters, and user role
   const filteredBudgets = useMemo(() => {
     let filteredData = budgets;
 
-    // If user is not admin, only show their own budgets
-    if (!isAdmin && profile?.id) {
+    // If user is mechanic, only show their own budgets
+    if (isMechanic && profile?.id) {
       filteredData = budgets.filter(budget => budget.mechanic_id === profile.id);
     }
 
     return filteredData.filter(budget => {
       const matchesSearch = searchTerm === '' || 
-        budget.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (budget.customer_name && budget.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (budget.vehicle_name && budget.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || budget.status === statusFilter;
@@ -53,7 +54,7 @@ const Budgets = () => {
 
       return matchesSearch && matchesStatus && matchesMechanic;
     });
-  }, [budgets, searchTerm, statusFilter, mechanicFilter, isAdmin, profile?.id]);
+  }, [budgets, searchTerm, statusFilter, mechanicFilter, isMechanic, profile?.id]);
 
   // Get unique mechanics for filter (only show for admins)
   const mechanics = useMemo(() => {
@@ -102,6 +103,11 @@ const Budgets = () => {
     if (!isAdmin && profile?.id !== budget.mechanic_id) return false;
     return budget.status === 'Pendente';
   };
+
+  // Get total count for display
+  const totalBudgetsCount = isMechanic && profile?.id 
+    ? budgets.filter(b => b.mechanic_id === profile.id).length 
+    : budgets.length;
 
   // Show form when creating or editing
   if (isCreating || editId) {
@@ -159,7 +165,7 @@ const Budgets = () => {
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />
           <h1 className={`font-bold ${isAdmin ? 'text-lg lg:text-xl' : 'text-xl lg:text-2xl'}`}>
-            Orçamentos
+            {isMechanic ? 'Meus Orçamentos' : 'Orçamentos'}
           </h1>
         </div>
         <Button 
@@ -236,7 +242,7 @@ const Budgets = () => {
       {/* Results Summary */}
       <div className={`flex items-center gap-2 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
         <span>
-          Mostrando {filteredBudgets.length} de {isAdmin ? budgets.length : budgets.filter(b => b.mechanic_id === profile?.id).length} orçamentos
+          Mostrando {filteredBudgets.length} de {totalBudgetsCount} orçamentos
         </span>
         {hasActiveFilters && (
           <span className="text-primary">
@@ -264,14 +270,19 @@ const Budgets = () => {
               {filteredBudgets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={isAdmin ? 7 : 6} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
-                    {hasActiveFilters ? 'Nenhum orçamento encontrado com os filtros aplicados.' : 'Nenhum orçamento encontrado.'}
+                    {hasActiveFilters 
+                      ? 'Nenhum orçamento encontrado com os filtros aplicados.' 
+                      : isMechanic 
+                        ? 'Você ainda não criou nenhum orçamento.' 
+                        : 'Nenhum orçamento encontrado.'
+                    }
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredBudgets.map((budget) => (
                   <TableRow key={budget.id}>
                     <TableCell className={`font-medium ${isAdmin ? 'text-xs py-2' : 'text-sm py-3'}`}>
-                      {budget.customer_name}
+                      {budget.customer_name || 'Cliente não informado'}
                     </TableCell>
                     <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
                       {budget.vehicle_name || 'N/A'}
