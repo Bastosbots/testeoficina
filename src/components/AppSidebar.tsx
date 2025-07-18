@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
@@ -16,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { InstallPWA } from '@/components/InstallPWA';
 import { toast } from 'sonner';
 
 const navigation = [
@@ -126,16 +126,6 @@ export function AppSidebar() {
               </p>
             </div>
           </div>
-          
-          {/* Install PWA Component - Show for non-admin users */}
-          {profile?.role !== 'admin' && state !== 'collapsed' && (
-            <div className="mt-3">
-              <InstallPWA 
-                buttonText="Instalar App"
-                className="w-full text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-              />
-            </div>
-          )}
         </div>
 
         {/* Navigation */}
