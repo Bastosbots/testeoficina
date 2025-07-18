@@ -113,10 +113,7 @@ export function AppSidebar() {
                 />
               </div>
             )}
-            <div className="flex flex-col min-w-0">
-              <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground truncate">{systemName}</h2>
-              <p className="mobile-text-xs lg:text-xs text-muted-foreground truncate">{systemDescription}</p>
-            </div>
+            
           </div>
         )}
         {state === 'collapsed' && logoUrl && (
