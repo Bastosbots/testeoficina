@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, Download } from 'lucide-react';
@@ -17,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { useCapacitor } from '@/hooks/useCapacitor';
+import { useCapacitor, triggerInstallPrompt } from '@/hooks/useCapacitor';
 import { toast } from 'sonner';
 
 const navigation = [
@@ -69,7 +68,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const { data: settings } = useSystemSettings();
-  const { isInstalled, canInstall, platform, isNative } = useCapacitor();
+  const { isInstalled, canInstall, platform, isNative, deferredPrompt } = useCapacitor();
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
@@ -80,6 +79,7 @@ export function AppSidebar() {
     canInstall, 
     platform,
     isNative,
+    hasDeferredPrompt: !!deferredPrompt,
     shouldShowButton: profile?.role !== 'admin' && !isInstalled
   });
   
@@ -113,7 +113,7 @@ export function AppSidebar() {
   };
 
   const handleInstallApp = async () => {
-    console.log('Install button clicked, platform:', platform, 'isNative:', isNative);
+    console.log('Install button clicked, platform:', platform, 'isNative:', isNative, 'deferredPrompt:', !!deferredPrompt);
     
     try {
       // Import Capacitor modules dynamically
@@ -132,36 +132,15 @@ export function AppSidebar() {
         return;
       }
 
-      // Try to use beforeinstallprompt for direct installation
-      const deferredPrompt = (window as any).deferredInstallPrompt;
+      // Try to use the centralized install function
+      const installed = await triggerInstallPrompt();
       
-      if (deferredPrompt) {
-        console.log('Using beforeinstallprompt for direct installation');
-        try {
-          // Show the install prompt
-          const result = await deferredPrompt.prompt();
-          console.log('Install prompt result:', result);
-          
-          // Wait for the user to respond to the prompt
-          const choiceResult = await deferredPrompt.userChoice;
-          console.log('User choice result:', choiceResult);
-          
-          if (choiceResult.outcome === 'accepted') {
-            toast.success('Aplicativo instalado com sucesso!');
-          } else {
-            toast.info('Instalação cancelada pelo usuário');
-          }
-          
-          // Clear the deferredPrompt
-          (window as any).deferredPrompt = null;
-          return;
-        } catch (error) {
-          console.error('Error during installation:', error);
-          toast.error('Erro durante a instalação');
-        }
+      if (installed) {
+        toast.success('Aplicativo instalado com sucesso!');
+        return;
       }
 
-      // Fallback: Show platform-specific instructions
+      // Fallback: Show platform-specific instructions if no prompt available
       const userAgent = window.navigator.userAgent;
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       const isAndroid = /Android/.test(userAgent);
@@ -293,7 +272,9 @@ export function AppSidebar() {
                     {state !== 'collapsed' && (
                       <div className="flex flex-col items-start ml-2">
                         <span className="mobile-text-sm lg:text-sm font-medium">Instalar App</span>
-                        <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">Adicionar à tela inicial</span>
+                        <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">
+                          {deferredPrompt ? 'Clique para instalar' : 'Adicionar à tela inicial'}
+                        </span>
                       </div>
                     )}
                   </SidebarMenuButton>

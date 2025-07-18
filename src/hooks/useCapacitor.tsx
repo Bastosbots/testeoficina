@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 interface CapacitorInfo {
@@ -5,6 +6,7 @@ interface CapacitorInfo {
   platform: 'web' | 'ios' | 'android';
   isInstalled: boolean;
   canInstall: boolean;
+  deferredPrompt?: any;
 }
 
 // Extend the Navigator interface to include the standalone property
@@ -22,7 +24,8 @@ export const useCapacitor = (): CapacitorInfo => {
     isNative: false,
     platform: 'web',
     isInstalled: false,
-    canInstall: false
+    canInstall: false,
+    deferredPrompt: null
   });
 
   useEffect(() => {
@@ -39,36 +42,36 @@ export const useCapacitor = (): CapacitorInfo => {
                            window.matchMedia('(display-mode: standalone)').matches ||
                            isNative;
 
-        // Check if can install - more permissive for testing
-        const canInstall = !isInstalled && (
-          !!(window as any).deferredInstallPrompt || 
-          isIOSSafari() ||
-          !isNative // Allow install button on web even without prompt for testing
-        );
+        // Check if can install
+        const canInstall = !isInstalled && !isNative;
 
         console.log('Capacitor Info:', { isNative, platform, isInstalled, canInstall });
 
-        setCapacitorInfo({
+        setCapacitorInfo(prev => ({
+          ...prev,
           isNative,
           platform,
           isInstalled,
-          canInstall
-        });
+          canInstall,
+          deferredPrompt: (window as any).deferredInstallPrompt || null
+        }));
       } catch (error) {
         // Capacitor not available, running as regular web app
         const isInstalled = (window.navigator.standalone === true) || 
                            window.matchMedia('(display-mode: standalone)').matches;
         
-        const canInstall = !isInstalled; // Always allow install attempt on web
+        const canInstall = !isInstalled;
         
         console.log('Web App Info:', { isInstalled, canInstall, hasPrompt: !!(window as any).deferredInstallPrompt });
         
-        setCapacitorInfo({
+        setCapacitorInfo(prev => ({
+          ...prev,
           isNative: false,
           platform: 'web',
           isInstalled,
-          canInstall
-        });
+          canInstall,
+          deferredPrompt: (window as any).deferredInstallPrompt || null
+        }));
       }
     };
 
@@ -80,18 +83,20 @@ export const useCapacitor = (): CapacitorInfo => {
     };
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('beforeinstallprompt event captured');
+      console.log('beforeinstallprompt event captured:', e);
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
+      
       // Save the event so it can be triggered later
       (window as any).deferredInstallPrompt = e;
       
-      // Update canInstall state immediately
+      // Update state immediately with the new prompt
       setCapacitorInfo(prev => {
-        console.log('Updating canInstall to true after beforeinstallprompt');
+        console.log('Updating state with deferredPrompt');
         return {
           ...prev,
-          canInstall: !prev.isInstalled
+          canInstall: !prev.isInstalled,
+          deferredPrompt: e
         };
       });
     };
@@ -102,7 +107,8 @@ export const useCapacitor = (): CapacitorInfo => {
       setCapacitorInfo(prev => ({
         ...prev,
         isInstalled: true,
-        canInstall: false
+        canInstall: false,
+        deferredPrompt: null
       }));
     };
 
@@ -110,14 +116,57 @@ export const useCapacitor = (): CapacitorInfo => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
     
+    // Check periodically if the deferredPrompt is available
+    const checkPromptInterval = setInterval(() => {
+      const currentPrompt = (window as any).deferredInstallPrompt;
+      if (currentPrompt && !capacitorInfo.deferredPrompt) {
+        console.log('Found deferredInstallPrompt in interval check');
+        setCapacitorInfo(prev => ({
+          ...prev,
+          deferredPrompt: currentPrompt,
+          canInstall: !prev.isInstalled
+        }));
+      }
+    }, 1000);
+    
     // Initial check
     checkCapacitor();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearInterval(checkPromptInterval);
     };
   }, []);
 
   return capacitorInfo;
+};
+
+// Export function to trigger install prompt
+export const triggerInstallPrompt = async (): Promise<boolean> => {
+  const deferredPrompt = (window as any).deferredInstallPrompt;
+  
+  if (!deferredPrompt) {
+    console.log('No deferred install prompt available');
+    return false;
+  }
+
+  try {
+    console.log('Triggering install prompt');
+    // Show the install prompt
+    const result = await deferredPrompt.prompt();
+    console.log('Install prompt result:', result);
+    
+    // Wait for the user to respond to the prompt
+    const choiceResult = await deferredPrompt.userChoice;
+    console.log('User choice result:', choiceResult);
+    
+    // Clear the deferredPrompt
+    (window as any).deferredInstallPrompt = null;
+    
+    return choiceResult.outcome === 'accepted';
+  } catch (error) {
+    console.error('Error during installation:', error);
+    return false;
+  }
 };
