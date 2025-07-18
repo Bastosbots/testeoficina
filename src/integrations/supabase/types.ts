@@ -279,6 +279,39 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          resource: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           category: string
@@ -464,6 +497,24 @@ export type Database = {
       generate_budget_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_security_audit_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          user_id: string
+          action: string
+          resource: string
+          details: Json
+          ip_address: unknown
+          user_agent: string
+          created_at: string
+          user_name: string
+        }[]
+      }
+      log_security_event: {
+        Args: { p_action: string; p_resource: string; p_details?: Json }
+        Returns: undefined
       }
       save_checklist_items: {
         Args: { p_checklist_id: string; p_items: Json }
