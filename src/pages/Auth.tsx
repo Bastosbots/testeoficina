@@ -85,7 +85,7 @@ const Auth = () => {
         <CardHeader className="text-center space-y-4">
           {logoUrl && (
             <div className="flex justify-center">
-              <div className="w-64 h-48">
+              <div className="w-48 h-24">
                 <img
                   src={logoUrl}
                   alt="Logo da empresa"
