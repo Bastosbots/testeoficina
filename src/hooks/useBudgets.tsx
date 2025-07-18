@@ -1,6 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export interface Budget {
   id: string;
@@ -35,6 +37,52 @@ export interface BudgetItem {
 }
 
 export const useBudgets = () => {
+  const queryClient = useQueryClient();
+
+  // Setup realtime subscription
+  useEffect(() => {
+    console.log('Setting up realtime subscription for budgets');
+    
+    const channel = supabase
+      .channel('budgets-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'budgets'
+        },
+        (payload) => {
+          console.log('Budget change detected:', payload);
+          queryClient.invalidateQueries({ queryKey: ['budgets'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'budget_items'
+        },
+        (payload) => {
+          console.log('Budget items change detected:', payload);
+          queryClient.invalidateQueries({ queryKey: ['budgets'] });
+          if (payload.new?.budget_id) {
+            queryClient.invalidateQueries({ queryKey: ['budget-items', payload.new.budget_id] });
+          }
+          if (payload.old?.budget_id) {
+            queryClient.invalidateQueries({ queryKey: ['budget-items', payload.old.budget_id] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up realtime subscription for budgets');
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['budgets'],
     queryFn: async () => {
@@ -65,6 +113,37 @@ export const useBudgets = () => {
 };
 
 export const useBudgetItems = (budgetId: string) => {
+  const queryClient = useQueryClient();
+
+  // Setup realtime subscription for budget items
+  useEffect(() => {
+    if (!budgetId) return;
+
+    console.log('Setting up realtime subscription for budget items:', budgetId);
+    
+    const channel = supabase
+      .channel(`budget-items-${budgetId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'budget_items',
+          filter: `budget_id=eq.${budgetId}`
+        },
+        (payload) => {
+          console.log('Budget item change detected for budget:', budgetId, payload);
+          queryClient.invalidateQueries({ queryKey: ['budget-items', budgetId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up realtime subscription for budget items:', budgetId);
+      supabase.removeChannel(channel);
+    };
+  }, [budgetId, queryClient]);
+
   return useQuery({
     queryKey: ['budget-items', budgetId],
     queryFn: async () => {
@@ -112,7 +191,7 @@ export const useCreateBudget = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      // No need to manually invalidate as realtime will handle it
       toast.success('Orçamento criado com sucesso!');
     },
     onError: (error) => {
@@ -138,7 +217,7 @@ export const useUpdateBudget = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      // No need to manually invalidate as realtime will handle it
       toast.success('Orçamento atualizado com sucesso!');
     },
     onError: (error) => {
@@ -164,10 +243,9 @@ export const useCreateBudgetItems = () => {
 
       return data;
     },
-    onSuccess: (_, variables) => {
-      if (variables.length > 0) {
-        queryClient.invalidateQueries({ queryKey: ['budget-items', variables[0].budget_id] });
-      }
+    onSuccess: () => {
+      // No need to manually invalidate as realtime will handle it
+      toast.success('Itens do orçamento adicionados com sucesso!');
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';

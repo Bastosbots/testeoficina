@@ -1,34 +1,28 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRealtime } from './useRealtime';
+
+export interface Vehicle {
+  id: string;
+  customer_name: string;
+  vehicle_name: string;
+  plate: string;
+  status: string;
+  priority: string;
+  service_order: string;
+  scheduled_time?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useVehicles = () => {
-  const queryClient = useQueryClient();
-
-  // Configurar listener de realtime
-  useEffect(() => {
-    const channel = supabase
-      .channel('vehicles-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vehicles'
-        },
-        (payload) => {
-          console.log('Realtime vehicle change:', payload);
-          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+  // Setup realtime subscription
+  useRealtime({
+    table: 'vehicles',
+    queryKey: ['vehicles']
+  });
 
   return useQuery({
     queryKey: ['vehicles'],
@@ -37,58 +31,80 @@ export const useVehicles = () => {
         .from('vehicles')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      return data;
+      return data as Vehicle[];
     },
   });
 };
 
 export const useCreateVehicle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (vehicleData: any) => {
+    mutationFn: async (vehicleData: Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('vehicles')
-        .insert([vehicleData])
+        .insert(vehicleData)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success('Veículo criado com sucesso!');
     },
-    onError: (error: any) => {
-      toast.error('Erro ao criar veículo: ' + error.message);
+    onError: (error) => {
+      console.error('Erro ao criar veículo:', error);
+      toast.error('Erro ao criar veículo');
     },
   });
 };
 
 export const useUpdateVehicle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ id, ...updateData }: any) => {
+    mutationFn: async ({ id, ...vehicleData }: Partial<Vehicle> & { id: string }) => {
       const { data, error } = await supabase
         .from('vehicles')
-        .update(updateData)
+        .update(vehicleData)
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success('Veículo atualizado com sucesso!');
     },
-    onError: (error: any) => {
-      toast.error('Erro ao atualizar veículo: ' + error.message);
+    onError: (error) => {
+      console.error('Erro ao atualizar veículo:', error);
+      toast.error('Erro ao atualizar veículo');
+    },
+  });
+};
+
+export const useDeleteVehicle = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('vehicles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Veículo excluído com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir veículo:', error);
+      toast.error('Erro ao excluir veículo');
     },
   });
 };

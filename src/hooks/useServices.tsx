@@ -2,24 +2,29 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRealtime } from './useRealtime';
 
 export interface Service {
   id: string;
   name: string;
   category: string;
-  unit_price: number;
   description?: string;
+  unit_price: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export const useServices = () => {
+  // Setup realtime subscription
+  useRealtime({
+    table: 'services',
+    queryKey: ['services']
+  });
+
   return useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      console.log('Buscando serviços cadastrados pela administração...');
-      
       const { data, error } = await supabase
         .from('services')
         .select('*')
@@ -27,16 +32,31 @@ export const useServices = () => {
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
-      if (error) {
-        console.error('Erro ao buscar serviços:', error);
-        throw new Error(`Erro ao carregar serviços: ${error.message}`);
-      }
-      
-      console.log('Serviços carregados:', data);
+      if (error) throw error;
       return data as Service[];
     },
-    retry: 3,
-    retryDelay: 1000,
+  });
+};
+
+export const useAllServices = () => {
+  // Setup realtime subscription
+  useRealtime({
+    table: 'services',
+    queryKey: ['all-services']
+  });
+
+  return useQuery({
+    queryKey: ['all-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data as Service[];
+    },
   });
 };
 
@@ -55,7 +75,6 @@ export const useCreateService = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
       toast.success('Serviço criado com sucesso!');
     },
     onError: (error) => {
@@ -81,12 +100,33 @@ export const useUpdateService = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['services'] });
       toast.success('Serviço atualizado com sucesso!');
     },
     onError: (error) => {
       console.error('Erro ao atualizar serviço:', error);
       toast.error('Erro ao atualizar serviço');
+    },
+  });
+};
+
+export const useDeleteService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Serviço excluído com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir serviço:', error);
+      toast.error('Erro ao excluir serviço');
     },
   });
 };
