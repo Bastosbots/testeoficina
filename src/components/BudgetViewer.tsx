@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,35 +34,27 @@ const BudgetViewer = ({ budget, onBack, onEdit }: BudgetViewerProps) => {
     const margin = 15;
     let yPosition = 20;
 
-    // Logo placeholder (top left)
-    doc.setFillColor(255, 255, 0);
-    doc.circle(30, 25, 8, 'F');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('LOGO', 26, 26);
-
     // Company header (centered)
-    doc.setFontSize(12);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     const companyName = settings?.company_name || 'Nome da Empresa';
-    doc.text(companyName, pageWidth/2, 20, { align: 'center' });
+    doc.text(companyName, pageWidth/2, yPosition, { align: 'center' });
+    
+    yPosition += 8;
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     if (settings?.company_address) {
-      doc.text(settings.company_address, pageWidth/2, 28, { align: 'center' });
+      doc.text(settings.company_address, pageWidth/2, yPosition, { align: 'center' });
+      yPosition += 6;
     }
     
-    // Contact info (right side)
-    doc.setFontSize(8);
     if (settings?.company_phone) {
-      doc.text(`Telefone: ${settings.company_phone}`, pageWidth - margin, 20, { align: 'right' });
-    }
-    if (settings?.company_email) {
-      doc.text(`Email: ${settings.company_email}`, pageWidth - margin, 26, { align: 'right' });
+      doc.text(`Telefone: ${settings.company_phone}`, pageWidth/2, yPosition, { align: 'center' });
+      yPosition += 6;
     }
 
-    yPosition = 45;
+    yPosition += 10;
 
     // Title ORÇAMENTO (centered and bold)
     doc.setFontSize(16);
@@ -231,28 +224,8 @@ const BudgetViewer = ({ budget, onBack, onEdit }: BudgetViewerProps) => {
               background: white;
             }
             .header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              margin-bottom: 30px;
-              position: relative;
-            }
-            .logo {
-              width: 60px;
-              height: 60px;
-              background: #ffff00;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-              font-size: 10px;
-            }
-            .company-info {
-              position: absolute;
-              left: 50%;
-              transform: translateX(-50%);
               text-align: center;
+              margin-bottom: 30px;
             }
             .company-name {
               font-size: 16px;
@@ -261,12 +234,11 @@ const BudgetViewer = ({ budget, onBack, onEdit }: BudgetViewerProps) => {
             }
             .company-address {
               font-size: 12px;
-              color: #666;
+              margin-bottom: 4px;
             }
-            .contact-info {
-              text-align: right;
-              font-size: 10px;
-              color: #666;
+            .company-phone {
+              font-size: 12px;
+              margin-bottom: 4px;
             }
             .title {
               text-align: center;
@@ -336,15 +308,9 @@ const BudgetViewer = ({ budget, onBack, onEdit }: BudgetViewerProps) => {
         </head>
         <body>
           <div class="header">
-            <div class="logo">LOGO</div>
-            <div class="company-info">
-              <div class="company-name">${settings?.company_name || 'Nome da Empresa'}</div>
-              ${settings?.company_address ? `<div class="company-address">${settings.company_address}</div>` : ''}
-            </div>
-            <div class="contact-info">
-              ${settings?.company_phone ? `<div>Telefone: ${settings.company_phone}</div>` : ''}
-              ${settings?.company_email ? `<div>Email: ${settings.company_email}</div>` : ''}
-            </div>
+            <div class="company-name">${settings?.company_name || 'Nome da Empresa'}</div>
+            ${settings?.company_address ? `<div class="company-address">${settings.company_address}</div>` : ''}
+            ${settings?.company_phone ? `<div class="company-phone">Telefone: ${settings.company_phone}</div>` : ''}
           </div>
 
           <div class="title">ORÇAMENTO</div>
