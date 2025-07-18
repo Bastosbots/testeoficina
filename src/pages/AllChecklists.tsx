@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,8 +18,8 @@ import { useAuth } from "@/hooks/useAuth";
 const AllChecklists = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { data: checklists = [], isLoading } = useChecklists();
-  const { profile } = useAuth();
+  const { data: allChecklists = [], isLoading } = useChecklists();
+  const { profile, user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -32,6 +31,17 @@ const AllChecklists = () => {
   const isCreating = searchParams.get('create') === 'true';
   
   const isAdmin = profile?.role === 'admin';
+
+  // Filter checklists based on user role
+  const checklists = useMemo(() => {
+    if (isAdmin) {
+      // Admins can see all checklists
+      return allChecklists;
+    } else {
+      // Mechanics can only see their own checklists
+      return allChecklists.filter(checklist => checklist.mechanic_id === user?.id);
+    }
+  }, [allChecklists, isAdmin, user?.id]);
 
   // Filter checklists based on search and filters
   const filteredChecklists = useMemo(() => {
@@ -50,8 +60,10 @@ const AllChecklists = () => {
     });
   }, [checklists, searchTerm, statusFilter, mechanicFilter]);
 
-  // Get unique mechanics for filter
+  // Get unique mechanics for filter (only show mechanics filter for admins)
   const mechanics = useMemo(() => {
+    if (!isAdmin) return [];
+    
     const uniqueMechanics = checklists.reduce((acc, checklist) => {
       if (checklist.mechanic && !acc.find(m => m.mechanic_id === checklist.mechanic_id)) {
         acc.push({
@@ -62,7 +74,7 @@ const AllChecklists = () => {
       return acc;
     }, [] as any[]);
     return uniqueMechanics;
-  }, [checklists]);
+  }, [checklists, isAdmin]);
 
   const handleView = (checklistId: string) => {
     navigate(`/checklists?view=${checklistId}`);
@@ -202,7 +214,7 @@ const AllChecklists = () => {
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5 text-primary" />
           <h1 className={`font-bold ${isAdmin ? 'text-lg lg:text-xl' : 'text-xl lg:text-2xl'}`}>
-            Todos os Checklists
+            {isAdmin ? 'Todos os Checklists' : 'Meus Checklists'}
           </h1>
         </div>
         <Button 
@@ -234,7 +246,7 @@ const AllChecklists = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className={`grid gap-3 md:grid-cols-2 ${isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
@@ -258,19 +270,22 @@ const AllChecklists = () => {
               </SelectContent>
             </Select>
 
-            <Select value={mechanicFilter} onValueChange={setMechanicFilter}>
-              <SelectTrigger className={isAdmin ? 'h-8 text-xs' : 'h-10'}>
-                <SelectValue placeholder="Mecânico" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Mecânicos</SelectItem>
-                {mechanics.map((mechanic) => (
-                  <SelectItem key={mechanic.mechanic_id} value={mechanic.mechanic_id}>
-                    {mechanic.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Only show mechanic filter for admins */}
+            {isAdmin && (
+              <Select value={mechanicFilter} onValueChange={setMechanicFilter}>
+                <SelectTrigger className={isAdmin ? 'h-8 text-xs' : 'h-10'}>
+                  <SelectValue placeholder="Mecânico" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Mecânicos</SelectItem>
+                  {mechanics.map((mechanic) => (
+                    <SelectItem key={mechanic.mechanic_id} value={mechanic.mechanic_id}>
+                      {mechanic.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -296,7 +311,8 @@ const AllChecklists = () => {
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Cliente</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Veículo</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Placa</TableHead>
-                <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Mecânico</TableHead>
+                {/* Only show mechanic column for admins */}
+                {isAdmin && <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Mecânico</TableHead>}
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Status</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Data</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Ações</TableHead>
@@ -305,7 +321,7 @@ const AllChecklists = () => {
             <TableBody>
               {filteredChecklists.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
+                  <TableCell colSpan={isAdmin ? 7 : 6} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
                     {hasActiveFilters ? 'Nenhum checklist encontrado com os filtros aplicados.' : 'Nenhum checklist encontrado.'}
                   </TableCell>
                 </TableRow>
@@ -321,9 +337,12 @@ const AllChecklists = () => {
                     <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
                       {checklist.plate}
                     </TableCell>
-                    <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
-                      {checklist.mechanic?.full_name || 'N/A'}
-                    </TableCell>
+                    {/* Only show mechanic column for admins */}
+                    {isAdmin && (
+                      <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
+                        {checklist.mechanic?.full_name || 'N/A'}
+                      </TableCell>
+                    )}
                     <TableCell className={isAdmin ? 'py-2' : 'py-3'}>
                       <Badge 
                         variant="outline" 
