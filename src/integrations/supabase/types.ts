@@ -69,7 +69,7 @@ export type Database = {
         Row: {
           budget_number: string
           created_at: string
-          customer_name: string
+          customer_name: string | null
           discount_amount: number | null
           final_amount: number
           id: string
@@ -85,7 +85,7 @@ export type Database = {
         Insert: {
           budget_number: string
           created_at?: string
-          customer_name: string
+          customer_name?: string | null
           discount_amount?: number | null
           final_amount?: number
           id?: string
@@ -101,7 +101,7 @@ export type Database = {
         Update: {
           budget_number?: string
           created_at?: string
-          customer_name?: string
+          customer_name?: string | null
           discount_amount?: number | null
           final_amount?: number
           id?: string
