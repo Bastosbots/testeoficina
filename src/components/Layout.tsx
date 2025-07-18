@@ -27,6 +27,21 @@ function MobileMenuButton() {
   );
 }
 
+function DesktopMenuButton() {
+  const { toggleSidebar } = useSidebar();
+  
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleSidebar}
+      className="mr-4 h-8 w-8"
+    >
+      <Menu className="h-4 w-4" />
+    </Button>
+  );
+}
+
 export function Layout({ children }: LayoutProps) {
   const { data: settings } = useSystemSettings();
   const { profile } = useAuth();
@@ -56,6 +71,7 @@ export function Layout({ children }: LayoutProps) {
 
           {/* Desktop Header - Mantido para admins */}
           <header className="hidden lg:flex h-14 items-center px-6 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <DesktopMenuButton />
             <div className="flex items-center gap-2">
               <h1 className={`font-semibold ${isAdmin ? 'text-sm' : 'text-lg'}`}>
                 {systemName} - {systemDescription}
