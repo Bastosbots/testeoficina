@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, X } from "lucide-react";
+import { ArrowLeft, Save, CheckSquare, Square } from "lucide-react";
 import { toast } from "sonner";
 import { useUpdateChecklist } from "@/hooks/useChecklists";
 import { useChecklistItems } from "@/hooks/useChecklistItems";
@@ -62,6 +63,14 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     setItems(prev => prev.map(item => 
       item.id === itemId ? { ...item, [field]: value } : item
     ));
+  };
+
+  const handleMarkAll = () => {
+    setItems(prev => prev.map(item => ({ ...item, checked: true })));
+  };
+
+  const handleUnmarkAll = () => {
+    setItems(prev => prev.map(item => ({ ...item, checked: false })));
   };
 
   const handleSave = async () => {
@@ -118,6 +127,10 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     return acc;
   }, {} as Record<string, any[]>) : {};
 
+  const checkedItemsCount = items.filter(item => item.checked).length;
+  const totalItemsCount = items.length;
+  const allItemsChecked = totalItemsCount > 0 && checkedItemsCount === totalItemsCount;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -155,10 +168,10 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2 lg:mb-3">
               <span className="mobile-text-sm lg:text-base font-medium text-foreground">Progresso do Checklist</span>
               <span className="mobile-text-sm lg:text-base text-muted-foreground">
-                {items.filter(item => item.checked).length}/{items.length} itens ({Math.round(items.length > 0 ? (items.filter(item => item.checked).length / items.length) * 100 : 0)}%)
+                {checkedItemsCount}/{totalItemsCount} itens ({Math.round(totalItemsCount > 0 ? (checkedItemsCount / totalItemsCount) * 100 : 0)}%)
               </span>
             </div>
-            <Progress value={items.length > 0 ? (items.filter(item => item.checked).length / items.length) * 100 : 0} className="h-2 lg:h-3" />
+            <Progress value={totalItemsCount > 0 ? (checkedItemsCount / totalItemsCount) * 100 : 0} className="h-2 lg:h-3" />
           </CardContent>
         </Card>
 
@@ -259,7 +272,31 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
           <div className="lg:col-span-2">
             <Card>
               <CardHeader className="mobile-card-padding lg:p-6">
-                <CardTitle className="mobile-text-base lg:text-xl">Itens do Checklist</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 lg:gap-4">
+                  <CardTitle className="mobile-text-base lg:text-xl">Itens do Checklist</CardTitle>
+                  <div className="flex gap-1 lg:gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleMarkAll}
+                      disabled={allItemsChecked}
+                      className="mobile-btn flex items-center gap-1 lg:gap-2"
+                    >
+                      <CheckSquare className="h-3 w-3 lg:h-4 lg:w-4" />
+                      <span className="mobile-text-xs lg:text-sm">Marcar Todos</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUnmarkAll}
+                      disabled={checkedItemsCount === 0}
+                      className="mobile-btn flex items-center gap-1 lg:gap-2"
+                    >
+                      <Square className="h-3 w-3 lg:h-4 lg:w-4" />
+                      <span className="mobile-text-xs lg:text-sm">Desmarcar Todos</span>
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="mobile-card-padding lg:p-6">
                 <div className="space-y-4 lg:space-y-6">
