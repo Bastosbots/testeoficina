@@ -157,22 +157,20 @@ export const FileUpload = ({ onFileUploaded, currentFileUrl, onFileRemoved }: Fi
       {/* Botão de seleção de arquivo */}
       {!currentFileUrl && !selectedFile && (
         <div className="space-y-2">
-          <div className="relative">
+          <label htmlFor="file-input" className="block cursor-pointer">
             <input
+              id="file-input"
               ref={fileInputRef}
               type="file"
               accept="video/*,image/*"
               onChange={handleFileSelect}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              className="sr-only"
             />
-            <Button 
-              variant="outline"
-              className="w-full flex items-center justify-center relative pointer-events-none"
-            >
+            <div className="w-full flex items-center justify-center px-4 py-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
               <Upload className="w-4 h-4 mr-2" />
               Anexar Vídeo
-            </Button>
-          </div>
+            </div>
+          </label>
           <p className="text-xs text-muted-foreground text-center">
             Formatos aceitos: MP4, MOV, AVI, WebM (máximo 100MB)
           </p>
