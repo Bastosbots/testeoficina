@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, Download } from 'lucide-react';
@@ -68,7 +69,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const { data: settings } = useSystemSettings();
-  const { isInstalled, canInstall, platform } = useCapacitor();
+  const { isInstalled, canInstall, platform, isNative } = useCapacitor();
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
@@ -78,7 +79,8 @@ export function AppSidebar() {
     isInstalled, 
     canInstall, 
     platform,
-    shouldShowButton: profile?.role !== 'admin' && !isInstalled && canInstall
+    isNative,
+    shouldShowButton: profile?.role !== 'admin' && !isInstalled
   });
   
   const isActive = (path: string) => {
@@ -111,36 +113,55 @@ export function AppSidebar() {
   };
 
   const handleInstallApp = async () => {
-    console.log('Install button clicked, platform:', platform);
+    console.log('Install button clicked, platform:', platform, 'isNative:', isNative);
     
-    // Check if beforeinstallprompt event is available (Android/Chrome)
-    const deferredPrompt = (window as any).deferredInstallPrompt;
-    
-    if (deferredPrompt) {
-      console.log('Using beforeinstallprompt for direct installation');
-      try {
-        // Show the install prompt
-        const result = await deferredPrompt.prompt();
-        console.log('Install prompt result:', result);
-        
-        // Wait for the user to respond to the prompt
-        const choiceResult = await deferredPrompt.userChoice;
-        console.log('User choice result:', choiceResult);
-        
-        if (choiceResult.outcome === 'accepted') {
-          toast.success('Aplicativo instalado com sucesso!');
-        } else {
-          toast.info('Instalação cancelada pelo usuário');
-        }
-        
-        // Clear the deferredPrompt
-        (window as any).deferredInstallPrompt = null;
-      } catch (error) {
-        console.error('Error during installation:', error);
-        toast.error('Erro durante a instalação');
+    try {
+      // Import Capacitor modules dynamically
+      const { Capacitor } = await import('@capacitor/core');
+      
+      if (Capacitor.isNativePlatform()) {
+        console.log('Already running as native app');
+        toast.info('O aplicativo já está instalado');
+        return;
       }
-    } else {
-      // Fallback for browsers that don't support beforeinstallprompt
+
+      // Check if running as PWA
+      if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+        console.log('Already running as PWA');
+        toast.info('O aplicativo já está instalado');
+        return;
+      }
+
+      // Try to use beforeinstallprompt for direct installation
+      const deferredPrompt = (window as any).deferredInstallPrompt;
+      
+      if (deferredPrompt) {
+        console.log('Using beforeinstallprompt for direct installation');
+        try {
+          // Show the install prompt
+          const result = await deferredPrompt.prompt();
+          console.log('Install prompt result:', result);
+          
+          // Wait for the user to respond to the prompt
+          const choiceResult = await deferredPrompt.userChoice;
+          console.log('User choice result:', choiceResult);
+          
+          if (choiceResult.outcome === 'accepted') {
+            toast.success('Aplicativo instalado com sucesso!');
+          } else {
+            toast.info('Instalação cancelada pelo usuário');
+          }
+          
+          // Clear the deferredPrompt
+          (window as any).deferredPrompt = null;
+          return;
+        } catch (error) {
+          console.error('Error during installation:', error);
+          toast.error('Erro durante a instalação');
+        }
+      }
+
+      // Fallback: Show platform-specific instructions
       const userAgent = window.navigator.userAgent;
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       const isAndroid = /Android/.test(userAgent);
@@ -193,6 +214,13 @@ export function AppSidebar() {
           );
         }
       }
+    } catch (error) {
+      console.error('Error loading Capacitor:', error);
+      // Fallback to web installation instructions
+      toast.info(
+        'Para instalar: Use o menu do seu navegador e procure pela opção "Instalar app" ou "Adicionar à tela inicial"',
+        { duration: 6000 }
+      );
     }
   };
 
@@ -255,7 +283,7 @@ export function AppSidebar() {
               ))}
               
               {/* Install App Button - Show for non-admin users when app is not installed */}
-              {profile?.role !== 'admin' && (
+              {profile?.role !== 'admin' && !isInstalled && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleInstallApp}

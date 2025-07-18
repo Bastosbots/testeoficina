@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface CapacitorInfo {
@@ -40,10 +39,11 @@ export const useCapacitor = (): CapacitorInfo => {
                            window.matchMedia('(display-mode: standalone)').matches ||
                            isNative;
 
-        // Check if can install
+        // Check if can install - more permissive for testing
         const canInstall = !isInstalled && (
           !!(window as any).deferredInstallPrompt || 
-          isIOSSafari()
+          isIOSSafari() ||
+          !isNative // Allow install button on web even without prompt for testing
         );
 
         console.log('Capacitor Info:', { isNative, platform, isInstalled, canInstall });
@@ -59,10 +59,7 @@ export const useCapacitor = (): CapacitorInfo => {
         const isInstalled = (window.navigator.standalone === true) || 
                            window.matchMedia('(display-mode: standalone)').matches;
         
-        const canInstall = !isInstalled && (
-          !!(window as any).deferredInstallPrompt || 
-          isIOSSafari()
-        );
+        const canInstall = !isInstalled; // Always allow install attempt on web
         
         console.log('Web App Info:', { isInstalled, canInstall, hasPrompt: !!(window as any).deferredInstallPrompt });
         
@@ -115,17 +112,6 @@ export const useCapacitor = (): CapacitorInfo => {
     
     // Initial check
     checkCapacitor();
-
-    // Force show install button for testing on web (temporarily)
-    setTimeout(() => {
-      if (!capacitorInfo.isInstalled && !capacitorInfo.canInstall) {
-        console.log('Forcing canInstall to true for web testing');
-        setCapacitorInfo(prev => ({
-          ...prev,
-          canInstall: true
-        }));
-      }
-    }, 2000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
