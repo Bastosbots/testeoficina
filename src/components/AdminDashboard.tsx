@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,7 +12,8 @@ import {
   FileText, 
   DollarSign, 
   Eye,
-  Calendar
+  Calendar,
+  UserCog
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfiles } from "@/hooks/useProfiles";
@@ -35,10 +37,6 @@ const AdminDashboard = () => {
   const pendingChecklists = checklists.filter(c => c.status === 'Pendente').length;
   const completedChecklists = checklists.filter(c => c.status === 'Concluído').length;
   const totalBudgets = budgets.length;
-
-  const handleViewProfile = (userId: string) => {
-    navigate(`/profiles/${userId}`);
-  };
 
   const handleViewChecklist = (checklistId: string) => {
     navigate(`/checklists?view=${checklistId}`);
@@ -67,8 +65,23 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUserManagement = () => {
+    navigate('/user-management');
+  };
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 relative">
+      {/* Botão de gerenciamento de usuários no canto superior direito */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleUserManagement}
+        className="absolute top-4 right-4 flex items-center gap-2"
+      >
+        <UserCog className="h-4 w-4" />
+        Usuários
+      </Button>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -126,41 +139,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Usuários Recentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles.slice(0, 5).map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.id}</TableCell>
-                  <TableCell>{user.full_name}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => handleViewProfile(user.id)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
