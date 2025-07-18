@@ -9,11 +9,13 @@ import { useChecklists } from "@/hooks/useChecklists";
 import { useBudgets } from "@/hooks/useBudgets";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 import UserManagement from "./UserManagement";
 import SecurityAuditLog from "./SecurityAuditLog";
 import BudgetStatus from "./BudgetStatus";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { data: profiles = [] } = useProfiles();
   const { data: checklists = [] } = useChecklists();
   const { data: budgets = [] } = useBudgets();
@@ -23,6 +25,26 @@ const AdminDashboard = () => {
   const inProgressChecklists = checklists.filter(c => c.status === 'Em Andamento');
   const totalBudgets = budgets.length;
   const pendingBudgets = budgets.filter(b => b.status === 'Pendente');
+
+  const handleViewChecklist = (checklistId: string) => {
+    console.log('Viewing checklist:', checklistId);
+    navigate(`/all-checklists?view=${checklistId}`);
+  };
+
+  const handleEditChecklist = (checklistId: string) => {
+    console.log('Editing checklist:', checklistId);
+    navigate(`/all-checklists?edit=${checklistId}`);
+  };
+
+  const handleViewBudget = (budgetId: string) => {
+    console.log('Viewing budget:', budgetId);
+    navigate(`/budgets?view=${budgetId}`);
+  };
+
+  const handleEditBudget = (budgetId: string) => {
+    console.log('Editing budget:', budgetId);
+    navigate(`/budgets?edit=${budgetId}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -151,10 +173,20 @@ const AdminDashboard = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewChecklist(checklist.id)}
+                          title="Visualizar checklist"
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditChecklist(checklist.id)}
+                          title="Editar checklist"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -204,10 +236,20 @@ const AdminDashboard = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewBudget(budget.id)}
+                          title="Visualizar orçamento"
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleEditBudget(budget.id)}
+                          title="Editar orçamento"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
