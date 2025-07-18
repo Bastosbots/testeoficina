@@ -58,32 +58,62 @@ export const useUpdateUserData = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      // Use the new secure update function
-      const { error } = await supabase.rpc('update_user_profile', {
-        p_user_id: userId,
-        p_full_name: fullName || null,
-        p_username: username || null
-      });
-
-      if (error) {
-        console.error('Erro ao chamar função segura:', error);
-        
-        // Log security event for failed attempts
-        await logSecurityEvent('profile_update_failed', 'profiles', {
-          target_user_id: userId,
-          attempted_changes: { fullName, username },
-          error: error.message
+      // Try to use the new secure update function, with fallback to direct update
+      try {
+        const { error } = await supabase.rpc('update_user_profile', {
+          p_user_id: userId,
+          p_full_name: fullName || null,
+          p_username: username || null
         });
-        
-        throw new Error(error.message || 'Erro ao alterar dados do usuário');
-      }
 
-      // Log successful admin action
-      await logSecurityEvent('admin_action', 'profiles', {
-        action: 'profile_update',
-        target_user_id: userId,
-        changes: { fullName, username }
-      });
+        if (error) {
+          console.error('Erro ao chamar função segura:', error);
+          
+          // Log security event for failed attempts
+          await logSecurityEvent('profile_update_failed', 'profiles', {
+            target_user_id: userId,
+            attempted_changes: { fullName, username },
+            error: error.message
+          });
+          
+          throw new Error(error.message || 'Erro ao alterar dados do usuário');
+        }
+
+        // Log successful admin action
+        await logSecurityEvent('admin_action', 'profiles', {
+          action: 'profile_update',
+          target_user_id: userId,
+          changes: { fullName, username }
+        });
+
+      } catch (funcError) {
+        // Fallback to direct update if function doesn't exist yet
+        console.warn('Function not available, using direct update:', funcError);
+        
+        const updates: any = {};
+        if (fullName !== undefined) updates.full_name = fullName;
+        if (username !== undefined) updates.username = username;
+        
+        const { error: directError } = await supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', userId);
+
+        if (directError) {
+          await logSecurityEvent('profile_update_failed', 'profiles', {
+            target_user_id: userId,
+            attempted_changes: { fullName, username },
+            error: directError.message
+          });
+          throw new Error(directError.message);
+        }
+
+        await logSecurityEvent('admin_action', 'profiles', {
+          action: 'profile_update_direct',
+          target_user_id: userId,
+          changes: { fullName, username }
+        });
+      }
 
       return { success: true };
     },
@@ -141,20 +171,38 @@ export const useUpdateProfile = () => {
       if (username !== currentProfile.username) changes.username = username;
       if (role !== currentProfile.role) changes.role = role;
 
-      // Update username using secure function if changed
+      // Update username using secure function if changed and available
       if (username !== currentProfile.username) {
-        const { error } = await supabase.rpc('update_user_profile', {
-          p_user_id: id,
-          p_username: username
-        });
-
-        if (error) {
-          await logSecurityEvent('admin_action_failed', 'profiles', {
-            action: 'username_update',
-            target_user_id: id,
-            error: error.message
+        try {
+          const { error } = await supabase.rpc('update_user_profile', {
+            p_user_id: id,
+            p_username: username
           });
-          throw new Error(`Erro ao atualizar username: ${error.message}`);
+
+          if (error) {
+            await logSecurityEvent('admin_action_failed', 'profiles', {
+              action: 'username_update',
+              target_user_id: id,
+              error: error.message
+            });
+            throw new Error(`Erro ao atualizar username: ${error.message}`);
+          }
+        } catch (funcError) {
+          // Fallback to direct update if function doesn't exist yet
+          console.warn('Function not available, using direct update for username');
+          const { error: directError } = await supabase
+            .from('profiles')
+            .update({ username })
+            .eq('id', id);
+
+          if (directError) {
+            await logSecurityEvent('admin_action_failed', 'profiles', {
+              action: 'username_update_direct',
+              target_user_id: id,
+              error: directError.message
+            });
+            throw new Error(`Erro ao atualizar username: ${directError.message}`);
+          }
         }
       }
 

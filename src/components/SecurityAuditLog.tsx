@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, AlertTriangle, Eye } from "lucide-react";
 import { useSecurityAudit } from "@/hooks/useSecurityAudit";
 import { useAuth } from "@/hooks/useAuth";
+import type { SecurityAuditLog as SecurityAuditLogType } from "@/types/security";
 
 const SecurityAuditLog = () => {
   const { profile } = useAuth();
@@ -25,7 +26,7 @@ const SecurityAuditLog = () => {
     }
   };
 
-  const getActionColor = (action: string) => {
+  const getActionColor = (action: string): "default" | "secondary" | "destructive" => {
     switch (action.toLowerCase()) {
       case 'privilege_escalation_attempt':
         return 'destructive';
@@ -54,14 +55,14 @@ const SecurityAuditLog = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {auditLogs.map((log) => (
+            {auditLogs.map((log: SecurityAuditLogType) => (
               <div key={log.id} className="border rounded-lg p-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     {getActionIcon(log.action)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={getActionColor(log.action) as any}>
+                        <Badge variant={getActionColor(log.action)}>
                           {log.action}
                         </Badge>
                         <span className="text-sm font-medium">{log.resource}</span>
