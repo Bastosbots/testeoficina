@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -137,7 +138,7 @@ const AdminDashboard = () => {
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -147,7 +148,7 @@ const AdminDashboard = () => {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.id}</TableCell>
                   <TableCell>{user.full_name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.username}</TableCell>
                   <TableCell>{user.role}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="outline" size="sm" onClick={() => handleViewProfile(user.id)}>
@@ -171,7 +172,7 @@ const AdminDashboard = () => {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Título</TableHead>
+                <TableHead>Cliente</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data de Criação</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -181,7 +182,7 @@ const AdminDashboard = () => {
               {checklists.filter(c => c.status === 'Pendente').slice(0, 5).map((checklist) => (
                 <TableRow key={checklist.id}>
                   <TableCell className="font-medium">{checklist.id}</TableCell>
-                  <TableCell>{checklist.title}</TableCell>
+                  <TableCell>{checklist.customer_name}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">Pendente</Badge>
                   </TableCell>
@@ -192,7 +193,7 @@ const AdminDashboard = () => {
                       Ver
                     </Button>
                     <Button 
-                      variant="primary" 
+                      variant="default" 
                       size="sm" 
                       className="ml-2"
                       onClick={() => handleCompleteChecklist(checklist.id)}
