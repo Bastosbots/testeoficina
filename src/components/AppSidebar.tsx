@@ -110,10 +110,13 @@ export function AppSidebar() {
                   src={logoUrl}
                   alt="Logo da empresa"
                   className="w-full h-full object-contain rounded"
-                />
+                /><br></br>
               </div>
             )}
-            
+            <div className="flex flex-col min-w-0">
+      
+              <p className="mobile-text-xs lg:text-xs text-muted-foreground truncate">{systemDescription}</p>
+            </div>
           </div>
         )}
         {state === 'collapsed' && logoUrl && (
