@@ -67,6 +67,23 @@ const AdminDashboard = () => {
     }
   };
 
+  const getVehicleColor = (vehicleName: string) => {
+    // Simple color mapping based on vehicle name
+    const colors = [
+      'text-blue-600',
+      'text-green-600', 
+      'text-purple-600',
+      'text-red-600',
+      'text-yellow-600',
+      'text-pink-600',
+      'text-indigo-600',
+      'text-cyan-600'
+    ];
+    
+    const hash = vehicleName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -170,8 +187,9 @@ const AdminDashboard = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead>Veículo</TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Mecânico</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data de Criação</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -180,8 +198,13 @@ const AdminDashboard = () => {
             <TableBody>
               {checklists.filter(c => c.status === 'Em Andamento').slice(0, 5).map((checklist) => (
                 <TableRow key={checklist.id}>
-                  <TableCell className="font-medium">{checklist.id}</TableCell>
+                  <TableCell>
+                    <span className={`font-medium ${getVehicleColor(checklist.vehicle_name)}`}>
+                      {checklist.vehicle_name}
+                    </span>
+                  </TableCell>
                   <TableCell>{checklist.customer_name}</TableCell>
+                  <TableCell>{checklist.mechanic?.full_name || 'N/A'}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">Em Andamento</Badge>
                   </TableCell>
@@ -216,7 +239,7 @@ const AdminDashboard = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Número</TableHead>
+                <TableHead>Mecânico</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data de Criação</TableHead>
@@ -226,7 +249,7 @@ const AdminDashboard = () => {
             <TableBody>
               {budgets.slice(0, 5).map((budget) => (
                 <TableRow key={budget.id}>
-                  <TableCell className="font-medium">{budget.budget_number}</TableCell>
+                  <TableCell className="font-medium">{budget.mechanic?.full_name || 'N/A'}</TableCell>
                   <TableCell>{budget.customer_name}</TableCell>
                   <TableCell>
                     <BudgetStatus budget={budget} />
