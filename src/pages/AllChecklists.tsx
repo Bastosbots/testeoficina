@@ -81,6 +81,11 @@ const AllChecklists = () => {
     handleBack();
   };
 
+  const handleSave = () => {
+    // Navigate back after saving checklist
+    handleBack();
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
@@ -170,6 +175,7 @@ const AllChecklists = () => {
         <EditChecklistForm 
           checklist={selectedChecklist}
           onBack={handleBack}
+          onSave={handleSave}
         />
       </div>
     );

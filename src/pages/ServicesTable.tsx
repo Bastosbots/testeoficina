@@ -111,7 +111,7 @@ const ServicesTable = () => {
       if (editingService) {
         await updateServiceMutation.mutateAsync({
           id: editingService.id,
-          updateData: formData
+          ...formData
         });
         toast.success('Serviço atualizado com sucesso!');
       } else {

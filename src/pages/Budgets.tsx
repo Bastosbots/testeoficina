@@ -75,6 +75,11 @@ const Budgets = () => {
     navigate('/budgets');
   };
 
+  const handleComplete = () => {
+    // Navigate back after creating/editing budget
+    handleBack();
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
@@ -82,6 +87,12 @@ const Budgets = () => {
   };
 
   const hasActiveFilters = searchTerm !== '' || statusFilter !== 'all' || mechanicFilter !== 'all';
+
+  // Can user edit budget? (admin or mechanic who created it, and budget is pending)
+  const canEditBudget = (budget: any) => {
+    if (!isAdmin && profile?.id !== budget.mechanic_id) return false;
+    return budget.status === 'Pendente';
+  };
 
   // Show form when creating or editing
   if (isCreating || editId) {
@@ -92,6 +103,7 @@ const Budgets = () => {
         <BudgetForm 
           budget={selectedBudget}
           onBack={handleBack}
+          onComplete={handleComplete}
         />
       </div>
     );
@@ -131,12 +143,6 @@ const Budgets = () => {
       </div>
     );
   }
-
-  // Can user edit budget? (admin or mechanic who created it, and budget is pending)
-  const canEditBudget = (budget: any) => {
-    if (!isAdmin && profile?.id !== budget.mechanic_id) return false;
-    return budget.status === 'Pendente';
-  };
 
   return (
     <div className={`space-y-4 ${isAdmin ? 'lg:zoom-90' : ''}`}>
