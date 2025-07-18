@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +17,7 @@ import VehicleSelector from './VehicleSelector';
 import ServiceSelector from './ServiceSelector';
 
 const budgetSchema = z.object({
-  customer_name: z.string().min(2, 'Nome do cliente é obrigatório'),
+  customer_name: z.string().optional(),
   vehicle_name: z.string().optional(),
   vehicle_plate: z.string().optional(),
   discount_amount: z.number().min(0, 'Desconto não pode ser negativo').optional(),
@@ -139,7 +138,7 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
         // Update existing budget
         const updatedBudgetData = {
           id: budget.id,
-          customer_name: data.customer_name,
+          customer_name: data.customer_name || null,
           vehicle_name: data.vehicle_name || null,
           vehicle_plate: data.vehicle_plate || null,
           total_amount: totalAmount,
@@ -154,7 +153,7 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
         // Create new budget
         const budgetData = {
           mechanic_id: user.id,
-          customer_name: data.customer_name,
+          customer_name: data.customer_name || null,
           vehicle_name: data.vehicle_name || null,
           vehicle_plate: data.vehicle_plate || null,
           total_amount: totalAmount,
@@ -220,9 +219,9 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
                   name="customer_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm sm:text-base">Nome do Cliente *</FormLabel>
+                      <FormLabel className="text-sm sm:text-base">Nome do Cliente</FormLabel>
                       <FormControl>
-                        <Input {...field} className="text-sm sm:text-base" />
+                        <Input {...field} placeholder="Opcional" className="text-sm sm:text-base" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
