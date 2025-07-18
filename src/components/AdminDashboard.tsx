@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -250,7 +251,7 @@ const AdminDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Número</TableHead>
+                  <TableHead>Mecânico</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Veículo</TableHead>
                   <TableHead>Valor Total</TableHead>
@@ -262,7 +263,7 @@ const AdminDashboard = () => {
               <TableBody>
                 {pendingBudgets.map((budget) => (
                   <TableRow key={budget.id}>
-                    <TableCell className="font-medium">{budget.budget_number}</TableCell>
+                    <TableCell className="font-medium">{budget.mechanic?.full_name || 'N/A'}</TableCell>
                     <TableCell>{budget.customer_name}</TableCell>
                     <TableCell>{budget.vehicle_name || 'N/A'}</TableCell>
                     <TableCell>R$ {budget.final_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
