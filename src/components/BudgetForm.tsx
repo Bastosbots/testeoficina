@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Minus, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useCreateBudget, useCreateBudgetItems } from '@/hooks/useBudgets';
+import { useCreateBudget, useCreateBudgetItems, useUpdateBudget, useBudgetItems } from '@/hooks/useBudgets';
 import { Service } from '@/hooks/useServices';
 import { toast } from 'sonner';
 import VehicleSelector from './VehicleSelector';
@@ -36,14 +37,17 @@ interface ServiceItem {
 }
 
 interface BudgetFormProps {
+  budget?: any;
   onBack: () => void;
   onComplete: () => void;
 }
 
-const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
+const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
   const { user } = useAuth();
   const createBudget = useCreateBudget();
   const createBudgetItems = useCreateBudgetItems();
+  const updateBudget = useUpdateBudget();
+  const { data: existingBudgetItems = [] } = useBudgetItems(budget?.id || '');
   
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -51,13 +55,28 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
   const form = useForm<BudgetFormData>({
     resolver: zodResolver(budgetSchema),
     defaultValues: {
-      customer_name: '',
-      vehicle_name: '',
-      vehicle_plate: '',
-      discount_amount: 0,
-      observations: '',
+      customer_name: budget?.customer_name || '',
+      vehicle_name: budget?.vehicle_name || '',
+      vehicle_plate: budget?.vehicle_plate || '',
+      discount_amount: budget?.discount_amount || 0,
+      observations: budget?.observations || '',
     },
   });
+
+  // Load existing budget items when editing
+  useEffect(() => {
+    if (budget && existingBudgetItems.length > 0) {
+      const loadedServices = existingBudgetItems.map(item => ({
+        service_id: item.service_id || '',
+        service_name: item.service_name,
+        service_category: item.service_category,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+      }));
+      setServices(loadedServices);
+    }
+  }, [budget, existingBudgetItems]);
 
   const handleVehicleSelect = (vehicle: { customer_name: string; vehicle_name: string; plate: string }) => {
     form.setValue('customer_name', vehicle.customer_name);
@@ -116,43 +135,61 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
       const discountAmount = data.discount_amount || 0;
       const finalAmount = totalAmount - discountAmount;
 
-      const budgetData = {
-        mechanic_id: user.id,
-        customer_name: data.customer_name,
-        vehicle_name: data.vehicle_name || null,
-        vehicle_plate: data.vehicle_plate || null,
-        total_amount: totalAmount,
-        discount_amount: discountAmount,
-        final_amount: finalAmount,
-        observations: data.observations || null,
-        status: 'Pendente',
-      };
+      if (budget) {
+        // Update existing budget
+        const updatedBudgetData = {
+          id: budget.id,
+          customer_name: data.customer_name,
+          vehicle_name: data.vehicle_name || null,
+          vehicle_plate: data.vehicle_plate || null,
+          total_amount: totalAmount,
+          discount_amount: discountAmount,
+          final_amount: finalAmount,
+          observations: data.observations || null,
+        };
 
-      // Criar o orçamento
-      const budget = await createBudget.mutateAsync(budgetData);
+        await updateBudget.mutateAsync(updatedBudgetData);
+        toast.success('Orçamento atualizado com sucesso!');
+      } else {
+        // Create new budget
+        const budgetData = {
+          mechanic_id: user.id,
+          customer_name: data.customer_name,
+          vehicle_name: data.vehicle_name || null,
+          vehicle_plate: data.vehicle_plate || null,
+          total_amount: totalAmount,
+          discount_amount: discountAmount,
+          final_amount: finalAmount,
+          observations: data.observations || null,
+          status: 'Pendente',
+        };
 
-      // Preparar itens do orçamento
-      const budgetItems = services.map(service => ({
-        budget_id: budget.id,
-        service_id: service.service_id,
-        service_name: service.service_name,
-        service_category: service.service_category,
-        quantity: service.quantity,
-        unit_price: service.unit_price,
-        total_price: service.total_price,
-      }));
+        // Criar o orçamento
+        const newBudget = await createBudget.mutateAsync(budgetData);
 
-      // Criar itens do orçamento
-      await createBudgetItems.mutateAsync(budgetItems);
+        // Preparar itens do orçamento
+        const budgetItems = services.map(service => ({
+          budget_id: newBudget.id,
+          service_id: service.service_id,
+          service_name: service.service_name,
+          service_category: service.service_category,
+          quantity: service.quantity,
+          unit_price: service.unit_price,
+          total_price: service.total_price,
+        }));
+
+        // Criar itens do orçamento
+        await createBudgetItems.mutateAsync(budgetItems);
+        toast.success('Orçamento criado com sucesso!');
+      }
       
-      toast.success('Orçamento criado com sucesso!');
       onComplete();
     } catch (error) {
-      console.error('Erro ao criar orçamento:', error);
+      console.error('Erro ao salvar orçamento:', error);
       if (error && typeof error === 'object' && 'message' in error) {
-        toast.error(`Erro ao criar orçamento: ${error.message}`);
+        toast.error(`Erro ao salvar orçamento: ${error.message}`);
       } else {
-        toast.error('Erro ao criar orçamento. Tente novamente.');
+        toast.error('Erro ao salvar orçamento. Tente novamente.');
       }
     }
   };
@@ -165,7 +202,9 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline ml-2">Voltar</span>
           </Button>
-          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Novo Orçamento</h1>
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">
+            {budget ? 'Editar Orçamento' : 'Novo Orçamento'}
+          </h1>
         </div>
 
         <Form {...form}>
@@ -197,9 +236,11 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
               <CardHeader className="pb-3 sm:pb-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <CardTitle className="text-base sm:text-lg">Dados do Veículo (Opcional)</CardTitle>
-                  <div className="w-full sm:w-auto">
-                    <VehicleSelector onVehicleSelect={handleVehicleSelect} />
-                  </div>
+                  {!budget && (
+                    <div className="w-full sm:w-auto">
+                      <VehicleSelector onVehicleSelect={handleVehicleSelect} />
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -376,10 +417,13 @@ const BudgetForm = ({ onBack, onComplete }: BudgetFormProps) => {
               </Button>
               <Button
                 type="submit"
-                disabled={createBudget.isPending || createBudgetItems.isPending}
+                disabled={createBudget.isPending || createBudgetItems.isPending || updateBudget.isPending}
                 className="flex-1 h-10 sm:h-12"
               >
-                {createBudget.isPending || createBudgetItems.isPending ? 'Criando...' : 'Criar Orçamento'}
+                {createBudget.isPending || createBudgetItems.isPending || updateBudget.isPending 
+                  ? 'Salvando...' 
+                  : budget ? 'Atualizar Orçamento' : 'Criar Orçamento'
+                }
               </Button>
             </div>
           </form>
