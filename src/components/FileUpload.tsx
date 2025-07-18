@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Upload, FileVideo, X, Eye } from "lucide-react";
+import { Upload, FileImage, X, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,16 +19,16 @@ export const FileUpload = ({ onFileUploaded, currentFileUrl, onFileRemoved }: Fi
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Verificar se é um arquivo de vídeo
-      if (!file.type.startsWith('video/')) {
-        toast.error('Por favor, selecione um arquivo de vídeo válido');
+      // Verificar se é um arquivo de imagem
+      if (!file.type.startsWith('image/')) {
+        toast.error('Por favor, selecione uma imagem válida');
         return;
       }
 
-      // Verificar tamanho (máximo 100MB)
-      const maxSize = 100 * 1024 * 1024; // 100MB
+      // Verificar tamanho (máximo 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        toast.error('Arquivo muito grande. Máximo permitido: 100MB');
+        toast.error('Imagem muito grande. Máximo permitido: 10MB');
         return;
       }
 
@@ -44,7 +44,7 @@ export const FileUpload = ({ onFileUploaded, currentFileUrl, onFileRemoved }: Fi
     
     try {
       const fileExtension = selectedFile.name.split('.').pop();
-      const fileName = `checklist-video-${Date.now()}.${fileExtension}`;
+      const fileName = `checklist-image-${Date.now()}.${fileExtension}`;
       
       const { data, error } = await supabase.storage
         .from('checklist-videos')
@@ -97,9 +97,9 @@ export const FileUpload = ({ onFileUploaded, currentFileUrl, onFileRemoved }: Fi
       {currentFileUrl && !selectedFile && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-            <FileVideo className="w-5 h-5 text-muted-foreground" />
+            <FileImage className="w-5 h-5 text-muted-foreground" />
             <span className="text-sm text-muted-foreground flex-1">
-              Arquivo de vídeo anexado
+              Imagem anexada
             </span>
             <Button 
               variant="outline" 
@@ -126,7 +126,7 @@ export const FileUpload = ({ onFileUploaded, currentFileUrl, onFileRemoved }: Fi
       {selectedFile && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-            <FileVideo className="w-5 h-5 text-muted-foreground" />
+            <FileImage className="w-5 h-5 text-muted-foreground" />
             <div className="flex-1">
               <p className="text-sm font-medium">{selectedFile.name}</p>
               <p className="text-xs text-muted-foreground">
@@ -162,17 +162,17 @@ export const FileUpload = ({ onFileUploaded, currentFileUrl, onFileRemoved }: Fi
               id="file-input"
               ref={fileInputRef}
               type="file"
-              accept="video/*,image/*"
+              accept="image/*"
               onChange={handleFileSelect}
               className="sr-only"
             />
             <div className="w-full flex items-center justify-center px-4 py-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
               <Upload className="w-4 h-4 mr-2" />
-              Anexar Vídeo
+              Anexar Imagem
             </div>
           </label>
           <p className="text-xs text-muted-foreground text-center">
-            Formatos aceitos: MP4, MOV, AVI, WebM (máximo 100MB)
+            Formatos aceitos: JPG, PNG, GIF, WebP (máximo 10MB)
           </p>
         </div>
       )}
