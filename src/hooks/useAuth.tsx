@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,11 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Tentando fazer login com username:', username);
       
-      // Buscar o perfil pelo username para verificar se existe
+      // Buscar o perfil pelo username usando ILIKE para busca case-insensitive
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id, username')
-        .eq('username', username)
+        .ilike('username', username)
         .maybeSingle();
 
       console.log('Resultado da busca do perfil:', { profileData, profileError });
@@ -108,8 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: { message: 'Usuário não encontrado' } };
       }
 
-      // Usar o email temporário baseado no username para fazer login
-      const tempEmail = `${username}@mecsys.local`;
+      // Usar o email temporário baseado no username real (com case original) para fazer login
+      const tempEmail = `${profileData.username}@mecsys.local`;
       console.log('Tentando login com email temporário:', tempEmail);
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
