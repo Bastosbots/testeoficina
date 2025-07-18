@@ -19,7 +19,7 @@ function MobileMenuButton() {
     <Button
       variant="outline"
       size="icon"
-      className="fixed top-4 left-4 z-50 lg:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-lg hover:shadow-xl transition-shadow h-10 w-10 rounded-full"
+      className="fixed top-4 left-4 z-50 md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-lg hover:shadow-xl transition-shadow h-10 w-10 rounded-full"
       onClick={toggleSidebar}
     >
       <Menu className="h-4 w-4" />
