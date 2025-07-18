@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -165,7 +164,7 @@ const AdminDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Checklists Pendentes Recentes</CardTitle>
+          <CardTitle>Checklists Em Andamento</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -179,12 +178,12 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {checklists.filter(c => c.status === 'Pendente').slice(0, 5).map((checklist) => (
+              {checklists.filter(c => c.status === 'Em Andamento').slice(0, 5).map((checklist) => (
                 <TableRow key={checklist.id}>
                   <TableCell className="font-medium">{checklist.id}</TableCell>
                   <TableCell>{checklist.customer_name}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">Pendente</Badge>
+                    <Badge variant="secondary">Em Andamento</Badge>
                   </TableCell>
                   <TableCell>{format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
                   <TableCell className="text-right">
