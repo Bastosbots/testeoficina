@@ -3,20 +3,22 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Users, ClipboardCheck, Calculator, Settings, Shield, Clock, AlertCircle, Eye, Edit, UserCog } from "lucide-react";
+import { Users, ClipboardCheck, Calculator, Settings, Shield, Clock, AlertCircle, Eye, Edit, UserCog, CheckCircle } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
-import { useChecklists } from "@/hooks/useChecklists";
+import { useChecklists, useUpdateChecklist } from "@/hooks/useChecklists";
 import { useBudgets } from "@/hooks/useBudgets";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import BudgetStatus from "./BudgetStatus";
+import { toast } from "sonner";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { data: profiles = [] } = useProfiles();
   const { data: checklists = [] } = useChecklists();
   const { data: budgets = [] } = useBudgets();
+  const updateChecklistMutation = useUpdateChecklist();
 
   const totalMechanics = profiles.filter(p => p.role === 'mechanic').length;
   const completedChecklists = checklists.filter(c => c.status === 'Concluído').length;
@@ -32,6 +34,20 @@ const AdminDashboard = () => {
   const handleEditChecklist = (checklistId: string) => {
     console.log('Navigating to edit checklist:', checklistId);
     navigate(`/checklists?edit=${checklistId}`);
+  };
+
+  const handleCompleteChecklist = async (checklistId: string) => {
+    try {
+      console.log('Completing checklist:', checklistId);
+      await updateChecklistMutation.mutateAsync({
+        id: checklistId,
+        updateData: { status: 'Concluído' }
+      });
+      toast.success('Checklist concluído com sucesso!');
+    } catch (error) {
+      console.error('Error completing checklist:', error);
+      toast.error('Erro ao concluir checklist');
+    }
   };
 
   const handleViewBudget = (budgetId: string) => {
@@ -201,6 +217,16 @@ const AdminDashboard = () => {
                           title="Editar checklist"
                         >
                           <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="default"
+                          onClick={() => handleCompleteChecklist(checklist.id)}
+                          title="Concluir checklist"
+                          disabled={updateChecklistMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
