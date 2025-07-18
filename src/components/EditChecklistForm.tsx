@@ -31,7 +31,14 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     priority: checklist.priority || 'Média',
     status: checklist.status || 'Em Andamento',
     general_observations: checklist.general_observations || '',
-    video_url: checklist.video_url || '',
+  });
+
+  const [imageUrls, setImageUrls] = useState<string[]>(() => {
+    try {
+      return checklist.video_url ? JSON.parse(checklist.video_url) : [];
+    } catch {
+      return checklist.video_url ? [checklist.video_url] : [];
+    }
   });
 
   const [items, setItems] = useState<any[]>([]);
@@ -73,7 +80,10 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
       await updateChecklistMutation.mutateAsync({
         id: checklist.id,
-        updateData: formData,
+        updateData: {
+          ...formData,
+          video_url: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
+        },
         items: itemsForUpdate
       });
 
@@ -231,9 +241,9 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
           {/* Video Upload */}
           <div className="mt-3 lg:mt-6">
             <FileUpload 
-              onFileUploaded={(url) => handleInputChange('video_url', url)}
-              currentFileUrl={formData.video_url}
-              onFileRemoved={() => handleInputChange('video_url', '')}
+              onFilesUploaded={setImageUrls}
+              currentFileUrls={imageUrls}
+              onFilesRemoved={() => setImageUrls([])}
             />
           </div>
         </div>

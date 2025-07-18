@@ -54,7 +54,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
   ]);
 
   const [items, setItems] = useState(checklistItems);
-  const [videoUrl, setVideoUrl] = useState<string>('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   const categories = Array.from(new Set(items.map(item => item.category)));
 
@@ -98,7 +98,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         priority: vehicleData.priority,
         status: 'Em Andamento',
         general_observations: generalObservations || null,
-        video_url: videoUrl || null,
+        video_url: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null,
         completed_at: new Date().toISOString()
       };
 
@@ -318,9 +318,9 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
             {/* Video Upload */}
             <div className="mobile-spacing-lg">
               <FileUpload 
-                onFileUploaded={setVideoUrl}
-                currentFileUrl={videoUrl}
-                onFileRemoved={() => setVideoUrl('')}
+                onFilesUploaded={setImageUrls}
+                currentFileUrls={imageUrls}
+                onFilesRemoved={() => setImageUrls([])}
               />
             </div>
 
