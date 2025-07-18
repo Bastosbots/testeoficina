@@ -10,9 +10,10 @@ interface FileUploadProps {
   onFilesUploaded: (fileUrls: string[]) => void;
   currentFileUrls?: string[];
   onFilesRemoved?: () => void;
+  onImageUploaded?: () => void; // Nova prop para callback após upload bem-sucedido
 }
 
-export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemoved }: FileUploadProps) => {
+export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemoved, onImageUploaded }: FileUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +72,7 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
           .from('checklist-videos')
           .upload(fileName, file, {
             cacheControl: '3600',
+
             upsert: false
           });
         
@@ -135,6 +137,11 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
         const allUrls = [...currentFileUrls, ...uploadedUrls];
         onFilesUploaded(allUrls);
         setSelectedFiles([]);
+        
+        // Chamar callback após upload bem-sucedido
+        if (onImageUploaded) {
+          onImageUploaded();
+        }
         
         if (errorCount === 0) {
           toast.success(`${uploadedUrls.length} imagem(ns) enviada(s) com sucesso!`);

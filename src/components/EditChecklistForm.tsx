@@ -95,6 +95,12 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
     }
   };
 
+  const handleImageUploaded = async () => {
+    // Auto salvar quando imagens são enviadas
+    console.log('Auto-saving checklist after image upload...');
+    await handleSave();
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Em Andamento': return 'bg-blue-100 text-blue-800';
@@ -244,6 +250,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
               onFilesUploaded={setImageUrls}
               currentFileUrls={imageUrls}
               onFilesRemoved={() => setImageUrls([])}
+              onImageUploaded={handleImageUploaded}
             />
           </div>
         </div>
