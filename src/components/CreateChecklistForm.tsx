@@ -148,12 +148,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 lg:gap-4">
-            <div className="text-right">
-              <p className="mobile-text-xs lg:text-sm text-muted-foreground">Progresso</p>
-              <p className="mobile-text-sm lg:text-base font-semibold text-primary">{checkedCount}/{totalItems} itens</p>
-            </div>
-          </div>
+          
         </div>
       </header>
 
