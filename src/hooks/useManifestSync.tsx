@@ -21,18 +21,18 @@ export const useManifestSync = () => {
             orientation: 'portrait',
             icons: [
               {
-                src: '/favicon.ico',
+                src: settings.app_icon_url || 'https://painel-srm.online/assets/uploads/5b7c4c249721b8823833fae1ee885a4d.png',
                 sizes: '64x64 32x32 24x24 16x16',
-                type: 'image/x-icon'
+                type: 'image/png'
               },
               {
-                src: settings.app_icon_url || '/placeholder.svg',
-                type: settings.app_icon_url?.endsWith('.png') ? 'image/png' : 'image/svg+xml',
+                src: settings.app_icon_url || 'https://painel-srm.online/assets/uploads/5b7c4c249721b8823833fae1ee885a4d.png',
+                type: 'image/png',
                 sizes: '192x192'
               },
               {
-                src: settings.app_icon_url || '/placeholder.svg',
-                type: settings.app_icon_url?.endsWith('.png') ? 'image/png' : 'image/svg+xml',
+                src: settings.app_icon_url || 'https://painel-srm.online/assets/uploads/5b7c4c249721b8823833fae1ee885a4d.png',
+                type: 'image/png',
                 sizes: '512x512'
               }
             ]
