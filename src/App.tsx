@@ -65,6 +65,7 @@ const AppContent = () => {
         <Route path="/checklists" element={<AllChecklists />} />
         <Route path="/budgets" element={<Budgets />} />
         <Route path="/services" element={<ServicesTable />} />
+        <Route path="/settings" element={<SystemSettings />} />
         <Route path="/system-settings" element={<SystemSettings />} />
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="*" element={<NotFound />} />
