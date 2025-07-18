@@ -21,7 +21,7 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   const { profile } = useAuth();
 
   const canEdit = profile?.role === 'admin' || 
-    (profile?.role === 'mechanic' && budget.mechanic_id === profile.id && budget.status === 'Pendente');
+    (profile?.role === 'mechanic' && budget.mechanic_id === profile.id);
 
   const isAdmin = profile?.role === 'admin';
 
@@ -424,14 +424,18 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   };
 
   const handleEdit = () => {
-    // Navigate to edit mode by updating the URL
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('edit', budget.id);
-    currentUrl.searchParams.delete('view');
-    window.history.pushState({}, '', currentUrl.toString());
+    onBack(); // Volta para a lista primeiro
     
-    // Trigger a page refresh or navigation event
-    window.location.reload();
+    // Atualiza a URL para incluir o parâmetro de edição
+    setTimeout(() => {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('edit', budget.id);
+      newUrl.searchParams.delete('view');
+      window.history.pushState({}, '', newUrl.toString());
+      
+      // Força atualização da página para carregar o modo de edição
+      window.location.reload();
+    }, 100);
   };
 
   return (
@@ -447,7 +451,7 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
           </div>
           
           <div className="flex gap-2 w-full sm:w-auto">
-            {canEdit && (
+            {canEdit && budget.status === 'Pendente' && (
               <Button variant="outline" onClick={handleEdit} className="flex-1 sm:flex-none h-9 sm:h-10 text-xs sm:text-sm">
                 <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="ml-1 sm:ml-2">Editar</span>
