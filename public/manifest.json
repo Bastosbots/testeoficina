@@ -1,7 +1,7 @@
 
 {
   "name": "MecSys - Checklists e Orçamentos",
-  "short_name": "Auto Center Dez",
+  "short_name": "Painel do Mecanico - MecSys",
   "description": "MecSys - Checklists e Orçamentos",
   "start_url": "/",
   "display": "standalone",
