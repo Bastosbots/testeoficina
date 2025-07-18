@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -31,12 +32,18 @@ const Budgets = () => {
   
   const isAdmin = profile?.role === 'admin';
 
-  // Filter budgets based on search and filters
+  // Filter budgets based on search, filters, and user role
   const filteredBudgets = useMemo(() => {
-    return budgets.filter(budget => {
+    let filteredData = budgets;
+
+    // If user is not admin, only show their own budgets
+    if (!isAdmin && profile?.id) {
+      filteredData = budgets.filter(budget => budget.mechanic_id === profile.id);
+    }
+
+    return filteredData.filter(budget => {
       const matchesSearch = searchTerm === '' || 
         budget.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        budget.budget_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (budget.vehicle_name && budget.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || budget.status === statusFilter;
@@ -46,10 +53,12 @@ const Budgets = () => {
 
       return matchesSearch && matchesStatus && matchesMechanic;
     });
-  }, [budgets, searchTerm, statusFilter, mechanicFilter]);
+  }, [budgets, searchTerm, statusFilter, mechanicFilter, isAdmin, profile?.id]);
 
-  // Get unique mechanics for filter
+  // Get unique mechanics for filter (only show for admins)
   const mechanics = useMemo(() => {
+    if (!isAdmin) return [];
+    
     const uniqueMechanics = budgets.reduce((acc, budget) => {
       if (budget.mechanic && !acc.find(m => m.id === budget.mechanic_id)) {
         acc.push({ id: budget.mechanic_id, full_name: budget.mechanic.full_name });
@@ -57,7 +66,7 @@ const Budgets = () => {
       return acc;
     }, [] as any[]);
     return uniqueMechanics;
-  }, [budgets]);
+  }, [budgets, isAdmin]);
 
   const handleView = (budgetId: string) => {
     navigate(`/budgets?view=${budgetId}`);
@@ -182,11 +191,11 @@ const Budgets = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className={`grid gap-3 ${isAdmin ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2'}`}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
-                placeholder="Buscar por cliente, número..."
+                placeholder="Buscar por cliente..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`pl-9 ${isAdmin ? 'h-8 text-xs' : 'h-10'}`}
@@ -205,19 +214,21 @@ const Budgets = () => {
               </SelectContent>
             </Select>
 
-            <Select value={mechanicFilter} onValueChange={setMechanicFilter}>
-              <SelectTrigger className={isAdmin ? 'h-8 text-xs' : 'h-10'}>
-                <SelectValue placeholder="Mecânico" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Mecânicos</SelectItem>
-                {mechanics.map((mechanic) => (
-                  <SelectItem key={mechanic.id} value={mechanic.id}>
-                    {mechanic.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isAdmin && (
+              <Select value={mechanicFilter} onValueChange={setMechanicFilter}>
+                <SelectTrigger className={isAdmin ? 'h-8 text-xs' : 'h-10'}>
+                  <SelectValue placeholder="Mecânico" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Mecânicos</SelectItem>
+                  {mechanics.map((mechanic) => (
+                    <SelectItem key={mechanic.id} value={mechanic.id}>
+                      {mechanic.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -225,7 +236,7 @@ const Budgets = () => {
       {/* Results Summary */}
       <div className={`flex items-center gap-2 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
         <span>
-          Mostrando {filteredBudgets.length} de {budgets.length} orçamentos
+          Mostrando {filteredBudgets.length} de {isAdmin ? budgets.length : budgets.filter(b => b.mechanic_id === profile?.id).length} orçamentos
         </span>
         {hasActiveFilters && (
           <span className="text-primary">
@@ -240,10 +251,9 @@ const Budgets = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Número</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Cliente</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Veículo</TableHead>
-                <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Mecânico</TableHead>
+                {isAdmin && <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Mecânico</TableHead>}
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Valor</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Status</TableHead>
                 <TableHead className={isAdmin ? 'text-xs h-8' : 'text-sm h-10'}>Data</TableHead>
@@ -253,7 +263,7 @@ const Budgets = () => {
             <TableBody>
               {filteredBudgets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
+                  <TableCell colSpan={isAdmin ? 7 : 6} className={`text-center py-8 text-muted-foreground ${isAdmin ? 'text-xs' : 'text-sm'}`}>
                     {hasActiveFilters ? 'Nenhum orçamento encontrado com os filtros aplicados.' : 'Nenhum orçamento encontrado.'}
                   </TableCell>
                 </TableRow>
@@ -261,17 +271,16 @@ const Budgets = () => {
                 filteredBudgets.map((budget) => (
                   <TableRow key={budget.id}>
                     <TableCell className={`font-medium ${isAdmin ? 'text-xs py-2' : 'text-sm py-3'}`}>
-                      {budget.budget_number}
-                    </TableCell>
-                    <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
                       {budget.customer_name}
                     </TableCell>
                     <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
                       {budget.vehicle_name || 'N/A'}
                     </TableCell>
-                    <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
-                      {budget.mechanic?.full_name || 'N/A'}
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
+                        {budget.mechanic?.full_name || 'N/A'}
+                      </TableCell>
+                    )}
                     <TableCell className={isAdmin ? 'text-xs py-2' : 'text-sm py-3'}>
                       R$ {budget.final_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </TableCell>
