@@ -4,13 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Download, Smartphone, X } from 'lucide-react';
-import { useCapacitor } from '@/hooks/useCapacitor';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const InstallPrompt = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const { isInstalled, platform } = useCapacitor();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -18,9 +16,9 @@ const InstallPrompt = () => {
       e.preventDefault();
       setDeferredPrompt(e);
       
-      // Show install prompt after 30 seconds if not installed and on mobile
+      // Show install prompt after 30 seconds if on mobile
       setTimeout(() => {
-        if (!isInstalled && isMobile) {
+        if (isMobile) {
           setShowPrompt(true);
         }
       }, 30000);
@@ -31,7 +29,7 @@ const InstallPrompt = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, [isInstalled, isMobile]);
+  }, [isMobile]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -51,8 +49,8 @@ const InstallPrompt = () => {
     localStorage.setItem('installPromptClosed', Date.now().toString());
   };
 
-  // Don't show if not on mobile, already installed, or if user closed recently
-  if (!isMobile || isInstalled) return null;
+  // Don't show if not on mobile
+  if (!isMobile) return null;
   
   const lastClosed = localStorage.getItem('installPromptClosed');
   if (lastClosed && Date.now() - parseInt(lastClosed) < 24 * 60 * 60 * 1000) {
@@ -60,6 +58,9 @@ const InstallPrompt = () => {
   }
 
   if (!showPrompt) return null;
+
+  // Detect iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   return (
     <Dialog open={showPrompt} onOpenChange={setShowPrompt}>
@@ -119,7 +120,7 @@ const InstallPrompt = () => {
             </Button>
           </div>
 
-          {platform === 'ios' && !deferredPrompt && (
+          {isIOS && !deferredPrompt && (
             <div className="text-xs text-muted-foreground p-3 bg-muted rounded-md">
               <p className="font-medium mb-1">Para instalar no iOS:</p>
               <p>1. Toque no botão compartilhar (□↗)</p>
