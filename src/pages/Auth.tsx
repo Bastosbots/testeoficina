@@ -1,108 +1,187 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Car } from "lucide-react";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { toast } from 'sonner';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
 
 const Auth = () => {
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [inviteToken, setInviteToken] = useState('');
 
-  const [signInData, setSignInData] = useState({
-    username: '',
-    password: ''
-  });
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { signIn, signUp, user } = useAuth();
+  const { data: settings } = useSystemSettings();
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const systemName = settings?.system_name || 'Oficina Check';
+  const logoUrl = settings?.company_logo_url;
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      setInviteToken(token);
+      setIsLogin(false);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(signInData.username, signInData.password);
-    
-    if (error) {
-      toast.error('Erro ao fazer login: ' + error.message);
-    } else {
-      toast.success('Login realizado com sucesso!');
-      navigate('/');
+    try {
+      if (isLogin) {
+        await signIn(username, password);
+        navigate('/');
+      } else {
+        await signUp(fullName, username, password, inviteToken);
+        toast.success('Cadastro realizado com sucesso! Faça login para continuar.');
+        setIsLogin(true);
+        setFullName('');
+        setUsername('');
+        setPassword('');
+        setInviteToken('');
+      }
+    } catch (error: any) {
+      console.error('Erro na autenticação:', error);
+      toast.error(error.message || 'Erro na autenticação');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="shadow-2xl border-border bg-card backdrop-blur-sm">
-          <CardHeader className="text-center pb-2">
-            <div className="flex justify-center mb-4">
-              <div className="bg-primary p-3 rounded-full">
-                <Car className="h-8 w-8 text-primary-foreground" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center space-y-4">
+          {logoUrl && (
+            <div className="flex justify-center">
+              <div className="w-20 h-16">
+                <img
+                  src={logoUrl}
+                  alt="Logo da empresa"
+                  className="w-full h-full object-contain"
+                />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-primary">
-              MECSYS
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Sistema de Checklist Digital
+          )}
+          <div>
+            <CardTitle className="text-2xl font-bold">{systemName}</CardTitle>
+            <CardDescription>
+              {isLogin ? 'Entre com suas credenciais' : 'Crie sua conta'}
             </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSignIn} className="space-y-4">
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="signin-username">Usuário</Label>
+                <Label htmlFor="fullName">Nome Completo</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Digite seu nome completo"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required={!isLogin}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Nome de Usuário</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="signin-username"
+                  id="username"
                   type="text"
-                  placeholder="Seu nome de usuário"
-                  value={signInData.username}
-                  onChange={(e) => setSignInData(prev => ({...prev, username: e.target.value}))}
+                  placeholder="Digite seu nome de usuário"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
+                  className="pl-10"
                 />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signin-password">Senha</Label>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="signin-password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={signInData.password}
-                  onChange={(e) => setSignInData(prev => ({...prev, password: e.target.value}))}
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Digite sua senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="pl-10 pr-10"
+                  minLength={6}
                 />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Entrando..." : "Entrar"}
-              </Button>
-            </form>
-
-            <div className="mt-4 text-center">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => navigate('/signup')}
-              >
-                Criar Nova Conta
-              </Button>
-            </div>
-
-            <div className="mt-6 p-4 bg-muted rounded-lg border border-border">
-              <div className="text-center space-y-1">
-                <p className="text-sm font-semibold text-primary">MecSys</p>
-                <p className="text-xs text-muted-foreground">Desenvolvido por Aliffer</p>
-                <p className="text-xs text-muted-foreground">© 2025 - Todos os direitos reservados</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Aguarde...' : (isLogin ? 'Entrar' : 'Cadastrar')}
+            </Button>
+          </form>
+
+          {!inviteToken && (
+            <>
+              <Separator className="my-4" />
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setFullName('');
+                    setUsername('');
+                    setPassword('');
+                  }}
+                  className="text-sm"
+                >
+                  {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

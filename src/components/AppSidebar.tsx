@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
@@ -69,6 +70,7 @@ export function AppSidebar() {
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
+  const logoUrl = settings?.company_logo_url;
   
   const isActive = (path: string) => {
     if (path === '/') {
@@ -101,16 +103,36 @@ export function AppSidebar() {
     <Sidebar className={`${state === 'collapsed' ? 'w-16' : 'w-64'} mobile-dropdown safe-top`}>
       <div className="flex items-center justify-between mobile-card-padding lg:p-4 border-b border-border touch-target">
         {state !== 'collapsed' && (
-          <div className="flex flex-col">
-            <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground">{systemName}</h2>
-            <p className="mobile-text-xs lg:text-xs text-muted-foreground">{systemDescription}</p>
+          <div className="flex items-center gap-3">
+            {logoUrl && (
+              <div className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0">
+                <img
+                  src={logoUrl}
+                  alt="Logo da empresa"
+                  className="w-full h-full object-contain rounded"
+                />
+              </div>
+            )}
+            <div className="flex flex-col min-w-0">
+              <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground truncate">{systemName}</h2>
+              <p className="mobile-text-xs lg:text-xs text-muted-foreground truncate">{systemDescription}</p>
+            </div>
+          </div>
+        )}
+        {state === 'collapsed' && logoUrl && (
+          <div className="w-6 h-6 mx-auto">
+            <img
+              src={logoUrl}
+              alt="Logo da empresa"
+              className="w-full h-full object-contain rounded"
+            />
           </div>
         )}
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="ml-auto touch-target h-7 w-7"
+          className={`${state === 'collapsed' ? 'mx-auto' : 'ml-auto'} touch-target h-7 w-7`}
         >
           <Menu className="h-4 w-4" />
         </Button>

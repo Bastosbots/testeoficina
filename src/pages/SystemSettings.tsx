@@ -9,6 +9,7 @@ import { Settings, Save, Building, Smartphone, Palette, Info } from "lucide-reac
 import { useSystemSettings, useUpdateSystemSettings } from "@/hooks/useSystemSettings";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { LogoUpload } from "@/components/LogoUpload";
 
 const SystemSettings = () => {
   const { data: settings, isLoading } = useSystemSettings();
@@ -24,10 +25,8 @@ const SystemSettings = () => {
     company_address: '',
     company_cnpj: '',
     company_website: '',
-    company_logo_url: '',
     app_name: '',
     app_description: '',
-    app_icon_url: '',
     app_theme_color: '',
     app_background_color: ''
   });
@@ -45,10 +44,8 @@ const SystemSettings = () => {
         company_address: settings.company_address || '',
         company_cnpj: settings.company_cnpj || '',
         company_website: settings.company_website || '',
-        company_logo_url: settings.company_logo_url || '',
         app_name: settings.app_name || '',
         app_description: settings.app_description || '',
-        app_icon_url: settings.app_icon_url || '',
         app_theme_color: settings.app_theme_color || '',
         app_background_color: settings.app_background_color || ''
       });
@@ -140,6 +137,11 @@ const SystemSettings = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
+            {/* Logomarca da Empresa */}
+            <div className="md:col-span-2">
+              <LogoUpload isAdmin={isAdmin} />
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="company_name" className={isAdmin ? 'text-xs' : 'text-sm'}>
                 Nome da Empresa
@@ -201,18 +203,6 @@ const SystemSettings = () => {
                 className={isAdmin ? 'h-8 text-xs' : 'h-10'}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="company_logo_url" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                URL do Logo
-              </Label>
-              <Input
-                id="company_logo_url"
-                value={formData.company_logo_url}
-                onChange={(e) => handleInputChange('company_logo_url', e.target.value)}
-                placeholder="https://exemplo.com/logo.png"
-                className={isAdmin ? 'h-8 text-xs' : 'h-10'}
-              />
-            </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="company_address" className={isAdmin ? 'text-xs' : 'text-sm'}>
                 Endereço
@@ -246,18 +236,6 @@ const SystemSettings = () => {
                 value={formData.app_name}
                 onChange={(e) => handleInputChange('app_name', e.target.value)}
                 placeholder="Nome do aplicativo"
-                className={isAdmin ? 'h-8 text-xs' : 'h-10'}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="app_icon_url" className={isAdmin ? 'text-xs' : 'text-sm'}>
-                URL do Ícone do App
-              </Label>
-              <Input
-                id="app_icon_url"
-                value={formData.app_icon_url}
-                onChange={(e) => handleInputChange('app_icon_url', e.target.value)}
-                placeholder="https://exemplo.com/icon.png"
                 className={isAdmin ? 'h-8 text-xs' : 'h-10'}
               />
             </div>
