@@ -520,6 +520,10 @@ export type Database = {
         Args: { p_checklist_id: string; p_items: Json }
         Returns: undefined
       }
+      update_user_profile: {
+        Args: { p_user_id: string; p_full_name?: string; p_username?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
