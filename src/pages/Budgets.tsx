@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Eye, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Search, Eye, FileText, Clock, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useBudgets } from '@/hooks/useBudgets';
@@ -88,6 +89,13 @@ const Budgets = () => {
 
   const handleStatusChange = () => {
     refetch();
+  };
+
+  // Check if user can edit the budget
+  const canEditBudget = (budget: any) => {
+    return budget.status === 'Pendente' && (
+      profile?.role === 'admin' || budget.mechanic_id === profile?.id
+    );
   };
 
   if (activeView === 'new') {
@@ -230,15 +238,28 @@ const Budgets = () => {
                         <h3 className="font-semibold text-sm sm:text-base">#{budget.budget_number}</h3>
                         <BudgetStatus budget={budget} onStatusChange={handleStatusChange} />
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewBudget(budget)}
-                        className="w-full sm:w-auto text-xs sm:text-sm"
-                      >
-                        <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Ver
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewBudget(budget)}
+                          className="flex-1 sm:flex-none text-xs sm:text-sm"
+                        >
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                          Ver
+                        </Button>
+                        {canEditBudget(budget) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditBudget(budget)}
+                            className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          >
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Editar
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 text-xs sm:text-sm">
