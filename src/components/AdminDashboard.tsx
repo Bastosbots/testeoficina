@@ -65,75 +65,75 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:zoom-90">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
-        <div className="flex items-center gap-4">
+        <h1 className="text-xl lg:text-2xl font-bold">Dashboard Administrativo</h1>
+        <div className="flex items-center gap-3">
           <Button 
             variant="outline" 
             size="sm"
             onClick={handleUserManagement}
-            className="flex items-center gap-2 transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary"
+            className="flex items-center gap-2 transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary text-xs"
           >
-            <UserCog className="h-4 w-4" />
+            <UserCog className="h-3 w-3" />
             Usuários
           </Button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Shield className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Shield className="h-3 w-3" />
             Acesso Administrativo
           </div>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Mecânicos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium">Total de Mecânicos</CardTitle>
+            <Users className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalMechanics}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-lg font-bold">{totalMechanics}</div>
+            <p className="text-[10px] text-muted-foreground">
               +{profiles.length - totalMechanics} admin(s)
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Checklists Concluídos</CardTitle>
-            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium">Checklists Concluídos</CardTitle>
+            <ClipboardCheck className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedChecklists}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-lg font-bold">{completedChecklists}</div>
+            <p className="text-[10px] text-muted-foreground">
               Total de checklists finalizados
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Orçamentos</CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium">Total de Orçamentos</CardTitle>
+            <Calculator className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalBudgets}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-lg font-bold">{totalBudgets}</div>
+            <p className="text-[10px] text-muted-foreground">
               Total de orçamentos criados
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sistema</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium">Sistema</CardTitle>
+            <Settings className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">Ativo</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-1">
+            <div className="text-lg font-bold text-green-600">Ativo</div>
+            <p className="text-[10px] text-muted-foreground">
               Todos os sistemas operacionais
             </p>
           </CardContent>
@@ -141,28 +141,28 @@ const AdminDashboard = () => {
       </div>
 
       {/* Priority Cards - Em Andamento e Pendente */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <Card className="border-orange-200 bg-orange-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-800">Checklists Em Andamento</CardTitle>
-            <Clock className="h-4 w-4 text-orange-600" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-orange-800">Checklists Em Andamento</CardTitle>
+            <Clock className="h-3 w-3 text-orange-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-700">{inProgressChecklists.length}</div>
-            <p className="text-xs text-orange-600">
+          <CardContent className="pt-1">
+            <div className="text-lg font-bold text-orange-700">{inProgressChecklists.length}</div>
+            <p className="text-[10px] text-orange-600">
               Checklists que necessitam atenção
             </p>
           </CardContent>
         </Card>
 
         <Card className="border-red-200 bg-red-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-red-800">Orçamentos Pendentes</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-600" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-red-800">Orçamentos Pendentes</CardTitle>
+            <AlertCircle className="h-3 w-3 text-red-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">{pendingBudgets.length}</div>
-            <p className="text-xs text-red-600">
+          <CardContent className="pt-1">
+            <div className="text-lg font-bold text-red-700">{pendingBudgets.length}</div>
+            <p className="text-[10px] text-red-600">
               Orçamentos aguardando aprovação
             </p>
           </CardContent>
@@ -172,51 +172,53 @@ const AdminDashboard = () => {
       {/* Checklists Em Andamento */}
       {inProgressChecklists.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4 text-orange-600" />
               Checklists Em Andamento
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Veículo</TableHead>
-                  <TableHead>Placa</TableHead>
-                  <TableHead>Mecânico</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="text-xs h-8">Cliente</TableHead>
+                  <TableHead className="text-xs h-8">Veículo</TableHead>
+                  <TableHead className="text-xs h-8">Placa</TableHead>
+                  <TableHead className="text-xs h-8">Mecânico</TableHead>
+                  <TableHead className="text-xs h-8">Data</TableHead>
+                  <TableHead className="text-xs h-8">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {inProgressChecklists.map((checklist) => (
                   <TableRow key={checklist.id}>
-                    <TableCell className="font-medium">{checklist.customer_name}</TableCell>
-                    <TableCell>{checklist.vehicle_name}</TableCell>
-                    <TableCell>{checklist.plate}</TableCell>
-                    <TableCell>{checklist.profiles?.full_name || 'N/A'}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-xs font-medium py-2">{checklist.customer_name}</TableCell>
+                    <TableCell className="text-xs py-2">{checklist.vehicle_name}</TableCell>
+                    <TableCell className="text-xs py-2">{checklist.plate}</TableCell>
+                    <TableCell className="text-xs py-2">{checklist.profiles?.full_name || 'N/A'}</TableCell>
+                    <TableCell className="text-xs py-2">
                       {format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                    <TableCell className="py-2">
+                      <div className="flex gap-1">
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => handleViewChecklist(checklist.id)}
                           title="Visualizar checklist"
+                          className="h-6 w-6 p-0"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3" />
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => handleEditChecklist(checklist.id)}
                           title="Editar checklist"
+                          className="h-6 w-6 p-0"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3" />
                         </Button>
                         <Button 
                           size="sm" 
@@ -224,9 +226,9 @@ const AdminDashboard = () => {
                           onClick={() => handleCompleteChecklist(checklist.id)}
                           title="Concluir checklist"
                           disabled={updateChecklistMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 h-6 w-6 p-0"
                         >
-                          <CheckCircle className="h-4 w-4" />
+                          <CheckCircle className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
@@ -241,55 +243,57 @@ const AdminDashboard = () => {
       {/* Orçamentos Pendentes */}
       {pendingBudgets.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <AlertCircle className="h-4 w-4 text-red-600" />
               Orçamentos Pendentes
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mecânico</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Veículo</TableHead>
-                  <TableHead>Valor Total</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="text-xs h-8">Mecânico</TableHead>
+                  <TableHead className="text-xs h-8">Cliente</TableHead>
+                  <TableHead className="text-xs h-8">Veículo</TableHead>
+                  <TableHead className="text-xs h-8">Valor Total</TableHead>
+                  <TableHead className="text-xs h-8">Data</TableHead>
+                  <TableHead className="text-xs h-8">Status</TableHead>
+                  <TableHead className="text-xs h-8">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pendingBudgets.map((budget) => (
                   <TableRow key={budget.id}>
-                    <TableCell className="font-medium">{budget.mechanic?.full_name || 'N/A'}</TableCell>
-                    <TableCell>{budget.customer_name}</TableCell>
-                    <TableCell>{budget.vehicle_name || 'N/A'}</TableCell>
-                    <TableCell>R$ {budget.final_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-xs font-medium py-2">{budget.mechanic?.full_name || 'N/A'}</TableCell>
+                    <TableCell className="text-xs py-2">{budget.customer_name}</TableCell>
+                    <TableCell className="text-xs py-2">{budget.vehicle_name || 'N/A'}</TableCell>
+                    <TableCell className="text-xs py-2">R$ {budget.final_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-xs py-2">
                       {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <BudgetStatus budget={budget} />
                     </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
+                    <TableCell className="py-2">
+                      <div className="flex gap-1">
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => handleViewBudget(budget.id)}
                           title="Visualizar orçamento"
+                          className="h-6 w-6 p-0"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3" />
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => handleEditBudget(budget.id)}
                           title="Editar orçamento"
+                          className="h-6 w-6 p-0"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
