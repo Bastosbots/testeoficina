@@ -14,13 +14,6 @@ export interface SystemSettings {
   company_email: string | null;
   company_website: string | null;
   company_logo_url: string | null;
-  // Configurações do aplicativo móvel
-  app_name: string | null;
-  app_id: string | null;
-  app_icon_url: string | null;
-  app_description: string | null;
-  app_theme_color: string | null;
-  app_background_color: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
