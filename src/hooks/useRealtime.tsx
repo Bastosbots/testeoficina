@@ -39,5 +39,5 @@ export const useRealtime = ({ table, queryKey, filter, channelName }: UseRealtim
       console.log(`Cleaning up realtime subscription for ${table}`);
       supabase.removeChannel(subscription);
     };
-  }, [table, queryKey, filter, channelName, queryClient]);
+  }, [table, JSON.stringify(queryKey), filter, channelName, queryClient]);
 };
