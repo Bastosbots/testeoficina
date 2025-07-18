@@ -203,9 +203,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
     doc.text(`Checklist: ${checklist.vehicle_name} - ${checklist.plate}`, leftColX, pageHeight - 15);
     doc.text(`Data: ${new Date(checklist.created_at).toLocaleDateString('pt-BR')}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
     
-    if (checklist.completed_at) {
-      doc.text(`Concluído em: ${new Date(checklist.completed_at).toLocaleDateString('pt-BR')}`, pageWidth/2, pageHeight - 15, { align: 'center' });
-    }
+ 
 
     // Generate filename
     const fileName = `checklist-${checklist.plate}-${new Date().toISOString().split('T')[0]}.pdf`;
