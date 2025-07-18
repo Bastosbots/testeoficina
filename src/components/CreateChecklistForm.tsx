@@ -152,14 +152,6 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
               <p className="mobile-text-xs lg:text-sm text-muted-foreground">Progresso</p>
               <p className="mobile-text-sm lg:text-base font-semibold text-primary">{checkedCount}/{totalItems} itens</p>
             </div>
-            <Button 
-              onClick={handleSave} 
-              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
-              disabled={createChecklistMutation.isPending}
-            >
-              <Save className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="mobile-text-xs lg:text-sm">{createChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}</span>
-            </Button>
           </div>
         </div>
       </header>
@@ -321,6 +313,21 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
               onFilesRemoved={() => setImageUrls([])}
             />
           </div>
+        </div>
+
+        {/* Botão Salvar no Final */}
+        <div className="mt-6 lg:mt-8 flex justify-end">
+          <Button 
+            onClick={handleSave} 
+            className="mobile-btn lg:h-12 lg:px-8 flex items-center gap-2 lg:gap-3 w-full sm:w-auto"
+            disabled={createChecklistMutation.isPending}
+            size="lg"
+          >
+            <Save className="h-4 w-4 lg:h-5 lg:w-5" />
+            <span className="mobile-text-sm lg:text-base font-medium">
+              {createChecklistMutation.isPending ? 'Salvando Checklist...' : 'Salvar Checklist'}
+            </span>
+          </Button>
         </div>
       </div>
     </div>

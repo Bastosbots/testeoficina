@@ -143,16 +143,6 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
             <Badge className={`${getStatusColor(formData.status)} mobile-text-xs lg:text-sm px-1 lg:px-3 py-0.5 lg:py-1`}>
               {formData.status}
             </Badge>
-            <Button 
-              onClick={handleSave}
-              disabled={updateChecklistMutation.isPending}
-              className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2"
-            >
-              <Save className="h-3 w-3 lg:h-4 lg:w-4" />
-              <span className="mobile-text-xs lg:text-sm">
-                {updateChecklistMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </span>
-            </Button>
           </div>
         </div>
       </header>
@@ -316,9 +306,24 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
                 </div>
               </CardContent>
             </Card>
-          </div>
+        </div>
+
+        {/* Botão Salvar no Final */}
+        <div className="mt-6 lg:mt-8 flex justify-end">
+          <Button 
+            onClick={handleSave}
+            disabled={updateChecklistMutation.isPending}
+            className="mobile-btn lg:h-12 lg:px-8 flex items-center gap-2 lg:gap-3 w-full sm:w-auto"
+            size="lg"
+          >
+            <Save className="h-4 w-4 lg:h-5 lg:w-5" />
+            <span className="mobile-text-sm lg:text-base font-medium">
+              {updateChecklistMutation.isPending ? 'Salvando Alterações...' : 'Salvar Alterações'}
+            </span>
+          </Button>
         </div>
       </div>
+    </div>
     </div>
   );
 };
