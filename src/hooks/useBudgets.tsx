@@ -67,10 +67,14 @@ export const useBudgets = () => {
         (payload) => {
           console.log('Budget items change detected:', payload);
           queryClient.invalidateQueries({ queryKey: ['budgets'] });
-          if (payload.new?.budget_id) {
+          
+          // Type guard para verificar se payload tem new
+          if (payload.new && typeof payload.new === 'object' && 'budget_id' in payload.new) {
             queryClient.invalidateQueries({ queryKey: ['budget-items', payload.new.budget_id] });
           }
-          if (payload.old?.budget_id) {
+          
+          // Type guard para verificar se payload tem old
+          if (payload.old && typeof payload.old === 'object' && 'budget_id' in payload.old) {
             queryClient.invalidateQueries({ queryKey: ['budget-items', payload.old.budget_id] });
           }
         }
@@ -165,7 +169,7 @@ export const useCreateBudget = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (budgetData: Omit<Budget, 'id' | 'created_at' | 'updated_at' | 'budget_number'>) => {
+    mutationFn: async (budgetData: Omit<Budget, 'id' | 'created_at' | 'updated_at' | 'budget_number' | 'mechanic'>) => {
       // Gerar número do orçamento
       const { data: budgetNumber, error: numberError } = await supabase.rpc('generate_budget_number');
       

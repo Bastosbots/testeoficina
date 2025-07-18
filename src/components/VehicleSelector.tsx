@@ -102,9 +102,9 @@ const VehicleSelector = ({ onVehicleSelect }: VehicleSelectorProps) => {
                       <p className="text-sm text-muted-foreground">
                         {checklist.vehicle_name} - {checklist.plate}
                       </p>
-                      {profile?.role === 'admin' && checklist.profiles?.full_name && (
+                      {profile?.role === 'admin' && checklist.mechanic?.full_name && (
                         <p className="text-xs text-muted-foreground">
-                          Mecânico: {checklist.profiles.full_name}
+                          Mecânico: {checklist.mechanic.full_name}
                         </p>
                       )}
                     </div>

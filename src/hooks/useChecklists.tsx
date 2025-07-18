@@ -59,7 +59,7 @@ export const useCreateChecklist = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (checklistData: Omit<ChecklistData, 'id' | 'created_at' | 'updated_at' | 'completed_at'>) => {
+    mutationFn: async (checklistData: Omit<ChecklistData, 'id' | 'created_at' | 'updated_at' | 'completed_at' | 'mechanic'>) => {
       const { data, error } = await supabase
         .from('checklists')
         .insert(checklistData)
