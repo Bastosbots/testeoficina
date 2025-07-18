@@ -164,7 +164,7 @@ const AdminDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Checklists Em Andamento</CardTitle>
+          <CardTitle>Checklists Recentes</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {checklists.filter(c => c.status === 'Em Andamento').slice(0, 5).map((checklist) => (
+              {checklists.slice(0, 5).map((checklist) => (
                 <TableRow key={checklist.id}>
                   <TableCell>
                     <span className="font-medium">
@@ -189,7 +189,9 @@ const AdminDashboard = () => {
                   <TableCell>{checklist.customer_name}</TableCell>
                   <TableCell>{checklist.mechanic?.full_name || 'N/A'}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">Em Andamento</Badge>
+                    <Badge variant={checklist.status === 'Concluído' ? 'default' : checklist.status === 'Em Andamento' ? 'secondary' : 'outline'}>
+                      {checklist.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>{format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}</TableCell>
                   <TableCell className="text-right">
@@ -197,15 +199,17 @@ const AdminDashboard = () => {
                       <Eye className="h-4 w-4 mr-2" />
                       Ver
                     </Button>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="ml-2"
-                      onClick={() => handleCompleteChecklist(checklist.id)}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Concluir
-                    </Button>
+                    {checklist.status === 'Em Andamento' && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="ml-2"
+                        onClick={() => handleCompleteChecklist(checklist.id)}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Concluir
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -224,6 +228,7 @@ const AdminDashboard = () => {
               <TableRow>
                 <TableHead>Mecânico</TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Valor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data de Criação</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -234,6 +239,7 @@ const AdminDashboard = () => {
                 <TableRow key={budget.id}>
                   <TableCell className="font-medium">{budget.mechanic?.full_name || 'N/A'}</TableCell>
                   <TableCell>{budget.customer_name}</TableCell>
+                  <TableCell>R$ {budget.final_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
                   <TableCell>
                     <BudgetStatus budget={budget} />
                   </TableCell>
