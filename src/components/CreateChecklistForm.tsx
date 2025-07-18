@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { useCreateChecklist } from "@/hooks/useChecklists";
 import { useAuth } from "@/hooks/useAuth";
-import { VideoUpload } from "./VideoUpload";
+import { FileUpload } from "./FileUpload";
 
 interface CreateChecklistFormProps {
   onBack: () => void;
@@ -317,10 +317,10 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
 
             {/* Video Upload */}
             <div className="mobile-spacing-lg">
-              <VideoUpload 
-                onVideoUploaded={setVideoUrl}
-                currentVideoUrl={videoUrl}
-                onVideoRemoved={() => setVideoUrl('')}
+              <FileUpload 
+                onFileUploaded={setVideoUrl}
+                currentFileUrl={videoUrl}
+                onFileRemoved={() => setVideoUrl('')}
               />
             </div>
 
