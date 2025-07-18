@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Settings, Plus, Edit, Search, Filter, X, DollarSign } from "lucide-react";
-import { useServices, useCreateService, useUpdateService } from "@/hooks/useServices";
+import { useAllServices, useCreateService, useUpdateService } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -23,7 +24,7 @@ interface ServiceFormData {
 }
 
 const ServicesTable = () => {
-  const { data: services = [], isLoading } = useServices();
+  const { data: services = [], isLoading } = useAllServices();
   const createServiceMutation = useCreateService();
   const updateServiceMutation = useUpdateService();
   const { profile } = useAuth();
@@ -113,10 +114,8 @@ const ServicesTable = () => {
           id: editingService.id,
           ...formData
         });
-        toast.success('Serviço atualizado com sucesso!');
       } else {
         await createServiceMutation.mutateAsync(formData);
-        toast.success('Serviço criado com sucesso!');
       }
       
       setIsDialogOpen(false);

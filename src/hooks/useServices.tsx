@@ -75,6 +75,9 @@ export const useCreateService = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas a serviços
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['all-services'] });
       toast.success('Serviço criado com sucesso!');
     },
     onError: (error) => {
@@ -100,6 +103,9 @@ export const useUpdateService = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas a serviços
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['all-services'] });
       toast.success('Serviço atualizado com sucesso!');
     },
     onError: (error) => {
@@ -122,6 +128,9 @@ export const useDeleteService = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidar todas as queries relacionadas a serviços
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      queryClient.invalidateQueries({ queryKey: ['all-services'] });
       toast.success('Serviço excluído com sucesso!');
     },
     onError: (error) => {
