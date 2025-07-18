@@ -13,9 +13,10 @@ import jsPDF from 'jspdf';
 interface BudgetViewerProps {
   budget: Budget;
   onBack: () => void;
+  onEdit?: (budget: Budget) => void;
 }
 
-const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
+const BudgetViewer = ({ budget, onBack, onEdit }: BudgetViewerProps) => {
   const { data: budgetItems = [] } = useBudgetItems(budget.id);
   const { data: settings } = useSystemSettings();
   const { profile } = useAuth();
@@ -424,18 +425,16 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   };
 
   const handleEdit = () => {
-    onBack(); // Volta para a lista primeiro
-    
-    // Atualiza a URL para incluir o parâmetro de edição
-    setTimeout(() => {
+    if (onEdit) {
+      onEdit(budget);
+    } else {
+      // Fallback: navigate to the edit URL
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.set('edit', budget.id);
       newUrl.searchParams.delete('view');
       window.history.pushState({}, '', newUrl.toString());
-      
-      // Força atualização da página para carregar o modo de edição
-      window.location.reload();
-    }, 100);
+      onBack(); // This should trigger the parent to handle the URL change
+    }
   };
 
   return (
