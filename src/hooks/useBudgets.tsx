@@ -55,6 +55,9 @@ export const useBudgets = () => {
         (payload) => {
           console.log('Budget change detected:', payload);
           queryClient.invalidateQueries({ queryKey: ['budgets'] });
+          
+          // Also invalidate checklists as they might be related
+          queryClient.invalidateQueries({ queryKey: ['checklists'] });
         }
       )
       .on(
@@ -195,12 +198,16 @@ export const useCreateBudget = () => {
       return data;
     },
     onSuccess: () => {
-      // No need to manually invalidate as realtime will handle it
+      // Invalidate queries to ensure immediate UI update
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['checklists'] });
       toast.success('Orçamento criado com sucesso!');
+      console.log('Budget created successfully, queries invalidated');
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error(`Erro ao criar orçamento: ${errorMessage}`);
+      console.error('Error creating budget:', error);
     },
   });
 };
@@ -221,8 +228,11 @@ export const useUpdateBudget = () => {
       return data;
     },
     onSuccess: () => {
-      // No need to manually invalidate as realtime will handle it
+      // Invalidate queries to ensure immediate UI update
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['checklists'] });
       toast.success('Orçamento atualizado com sucesso!');
+      console.log('Budget updated successfully, queries invalidated');
     },
     onError: (error) => {
       console.error('Erro ao atualizar orçamento:', error);
@@ -248,12 +258,15 @@ export const useCreateBudgetItems = () => {
       return data;
     },
     onSuccess: () => {
-      // No need to manually invalidate as realtime will handle it
+      // Invalidate queries to ensure immediate UI update
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       toast.success('Itens do orçamento adicionados com sucesso!');
+      console.log('Budget items created successfully, queries invalidated');
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error(`Erro ao adicionar itens ao orçamento: ${errorMessage}`);
+      console.error('Error creating budget items:', error);
     },
   });
 };
