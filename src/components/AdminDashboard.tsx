@@ -1,12 +1,17 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ClipboardCheck, Calculator, Settings, Shield, Clock, AlertCircle } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Users, ClipboardCheck, Calculator, Settings, Shield, Clock, AlertCircle, Eye, Edit } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useBudgets } from "@/hooks/useBudgets";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import UserManagement from "./UserManagement";
 import SecurityAuditLog from "./SecurityAuditLog";
+import BudgetStatus from "./BudgetStatus";
 
 const AdminDashboard = () => {
   const { data: profiles = [] } = useProfiles();
@@ -15,9 +20,9 @@ const AdminDashboard = () => {
 
   const totalMechanics = profiles.filter(p => p.role === 'mechanic').length;
   const completedChecklists = checklists.filter(c => c.status === 'Concluído').length;
-  const inProgressChecklists = checklists.filter(c => c.status === 'Em Andamento').length;
+  const inProgressChecklists = checklists.filter(c => c.status === 'Em Andamento');
   const totalBudgets = budgets.length;
-  const pendingBudgets = budgets.filter(b => b.status === 'Pendente').length;
+  const pendingBudgets = budgets.filter(b => b.status === 'Pendente');
 
   return (
     <div className="space-y-6">
@@ -92,7 +97,7 @@ const AdminDashboard = () => {
             <Clock className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-700">{inProgressChecklists}</div>
+            <div className="text-2xl font-bold text-orange-700">{inProgressChecklists.length}</div>
             <p className="text-xs text-orange-600">
               Checklists que necessitam atenção
             </p>
@@ -105,13 +110,115 @@ const AdminDashboard = () => {
             <AlertCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-700">{pendingBudgets}</div>
+            <div className="text-2xl font-bold text-red-700">{pendingBudgets.length}</div>
             <p className="text-xs text-red-600">
               Orçamentos aguardando aprovação
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Checklists Em Andamento */}
+      {inProgressChecklists.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-orange-600" />
+              Checklists Em Andamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Veículo</TableHead>
+                  <TableHead>Placa</TableHead>
+                  <TableHead>Mecânico</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inProgressChecklists.map((checklist) => (
+                  <TableRow key={checklist.id}>
+                    <TableCell className="font-medium">{checklist.customer_name}</TableCell>
+                    <TableCell>{checklist.vehicle_name}</TableCell>
+                    <TableCell>{checklist.plate}</TableCell>
+                    <TableCell>{checklist.profiles?.full_name || 'N/A'}</TableCell>
+                    <TableCell>
+                      {format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Orçamentos Pendentes */}
+      {pendingBudgets.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              Orçamentos Pendentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Número</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Veículo</TableHead>
+                  <TableHead>Valor Total</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingBudgets.map((budget) => (
+                  <TableRow key={budget.id}>
+                    <TableCell className="font-medium">{budget.budget_number}</TableCell>
+                    <TableCell>{budget.customer_name}</TableCell>
+                    <TableCell>{budget.vehicle_name || 'N/A'}</TableCell>
+                    <TableCell>R$ {budget.final_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell>
+                      {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell>
+                      <BudgetStatus budget={budget} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* User Management */}
       <UserManagement />
