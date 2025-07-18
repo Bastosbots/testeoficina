@@ -424,8 +424,14 @@ const BudgetViewer = ({ budget, onBack }: BudgetViewerProps) => {
   };
 
   const handleEdit = () => {
-    // For now, just show a message that edit functionality needs to be implemented
-    alert('Funcionalidade de edição será implementada em breve');
+    // Navigate to edit mode by updating the URL
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('edit', budget.id);
+    currentUrl.searchParams.delete('view');
+    window.history.pushState({}, '', currentUrl.toString());
+    
+    // Trigger a page refresh or navigation event
+    window.location.reload();
   };
 
   return (
