@@ -9,13 +9,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Settings, Building, Save, Loader2 } from 'lucide-react';
 import { useSystemSettings, useUpdateSystemSettings, SystemSettings } from '@/hooks/useSystemSettings';
+import { useManifestSync } from '@/hooks/useManifestSync';
+import { useCapacitorSync } from '@/hooks/useCapacitorSync';
 import { useAuth } from '@/hooks/useAuth';
 import MobileAppSettings from '@/components/MobileAppSettings';
+import MobileAppPreview from '@/components/MobileAppPreview';
 
 const SystemSettingsPage = () => {
   const { profile } = useAuth();
   const { data: settings, isLoading } = useSystemSettings();
   const updateSettings = useUpdateSystemSettings();
+
+  // Sincronizar configurações com manifest e capacitor
+  useManifestSync();
+  useCapacitorSync();
 
   const { register, handleSubmit, reset, formState: { isDirty } } = useForm<Partial<SystemSettings>>();
 
@@ -64,7 +71,7 @@ const SystemSettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <div className="max-w-6xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Settings className="h-8 w-8 text-primary" />
@@ -76,151 +83,160 @@ const SystemSettingsPage = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* System Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configurações do Sistema
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="system_name">Nome do Sistema</Label>
-                  <Input
-                    id="system_name"
-                    {...register('system_name')}
-                    placeholder="Ex: Oficina Check"
-                  />
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              {/* System Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Configurações do Sistema
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="system_name">Nome do Sistema</Label>
+                      <Input
+                        id="system_name"
+                        {...register('system_name')}
+                        placeholder="Ex: Oficina Check"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="company_logo_url">URL do Logo</Label>
+                      <Input
+                        id="company_logo_url"
+                        {...register('company_logo_url')}
+                        placeholder="https://exemplo.com/logo.png"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="system_description">Descrição do Sistema</Label>
+                    <Textarea
+                      id="system_description"
+                      {...register('system_description')}
+                      placeholder="Descreva brevemente o propósito do sistema"
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* Mobile App Settings */}
+              <MobileAppSettings register={register} />
+
+              <Separator />
+
+              {/* Company Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-5 w-5" />
+                    Dados da Empresa
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="company_name">Nome da Empresa</Label>
+                      <Input
+                        id="company_name"
+                        {...register('company_name')}
+                        placeholder="Nome da sua oficina"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="company_cnpj">CNPJ</Label>
+                      <Input
+                        id="company_cnpj"
+                        {...register('company_cnpj')}
+                        placeholder="00.000.000/0000-00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company_address">Endereço</Label>
+                    <Textarea
+                      id="company_address"
+                      {...register('company_address')}
+                      placeholder="Endereço completo da empresa"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="company_phone">Telefone</Label>
+                      <Input
+                        id="company_phone"
+                        {...register('company_phone')}
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="company_email">E-mail</Label>
+                      <Input
+                        id="company_email"
+                        type="email"
+                        {...register('company_email')}
+                        placeholder="contato@suaoficina.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company_website">Website</Label>
+                    <Input
+                      id="company_website"
+                      {...register('company_website')}
+                      placeholder="https://www.suaoficina.com"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => reset(settings)}
+                  disabled={!isDirty || updateSettings.isPending}
+                >
+                  Cancelar
+                </Button>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="company_logo_url">URL do Logo</Label>
-                  <Input
-                    id="company_logo_url"
-                    {...register('company_logo_url')}
-                    placeholder="https://exemplo.com/logo.png"
-                  />
-                </div>
+                <Button
+                  type="submit"
+                  disabled={!isDirty || updateSettings.isPending}
+                  className="flex items-center gap-2"
+                >
+                  {updateSettings.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Salvar Configurações
+                </Button>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="system_description">Descrição do Sistema</Label>
-                <Textarea
-                  id="system_description"
-                  {...register('system_description')}
-                  placeholder="Descreva brevemente o propósito do sistema"
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          {/* Mobile App Settings */}
-          <MobileAppSettings register={register} />
-
-          <Separator />
-
-          {/* Company Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Dados da Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company_name">Nome da Empresa</Label>
-                  <Input
-                    id="company_name"
-                    {...register('company_name')}
-                    placeholder="Nome da sua oficina"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="company_cnpj">CNPJ</Label>
-                  <Input
-                    id="company_cnpj"
-                    {...register('company_cnpj')}
-                    placeholder="00.000.000/0000-00"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company_address">Endereço</Label>
-                <Textarea
-                  id="company_address"
-                  {...register('company_address')}
-                  placeholder="Endereço completo da empresa"
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company_phone">Telefone</Label>
-                  <Input
-                    id="company_phone"
-                    {...register('company_phone')}
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="company_email">E-mail</Label>
-                  <Input
-                    id="company_email"
-                    type="email"
-                    {...register('company_email')}
-                    placeholder="contato@suaoficina.com"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company_website">Website</Label>
-                <Input
-                  id="company_website"
-                  {...register('company_website')}
-                  placeholder="https://www.suaoficina.com"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => reset(settings)}
-              disabled={!isDirty || updateSettings.isPending}
-            >
-              Cancelar
-            </Button>
-            
-            <Button
-              type="submit"
-              disabled={!isDirty || updateSettings.isPending}
-              className="flex items-center gap-2"
-            >
-              {updateSettings.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              Salvar Configurações
-            </Button>
+            </form>
           </div>
-        </form>
+
+          {/* Preview Panel */}
+          <div className="space-y-6">
+            <MobileAppPreview settings={settings} />
+          </div>
+        </div>
       </div>
     </div>
   );
