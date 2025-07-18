@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -99,7 +100,7 @@ All colors MUST be HSL.
 
 /* Mobile-first responsive utilities for optimal Apple and Android experience */
 @layer utilities {
-  /* Mobile font sizing - smaller fonts for better mobile UX */
+  /* Mobile font sizing - melhorado para mecânicos */
   .mobile-text-xs { font-size: 0.65rem; line-height: 0.875rem; }
   .mobile-text-sm { font-size: 0.75rem; line-height: 1rem; }
   .mobile-text-base { font-size: 0.8rem; line-height: 1.125rem; }
@@ -108,12 +109,12 @@ All colors MUST be HSL.
   .mobile-text-2xl { font-size: 1.125rem; line-height: 1.5rem; }
   .mobile-text-3xl { font-size: 1.25rem; line-height: 1.625rem; }
   
-  /* Mobile component sizing */
+  /* Mobile component sizing - otimizado para mecânicos */
   .mobile-btn-sm { 
-    @apply h-7 px-2 text-xs min-w-7;
+    @apply h-8 px-3 text-xs min-w-8 touch-target;
   }
   .mobile-btn { 
-    @apply h-8 px-3 text-xs min-w-8;
+    @apply h-9 px-4 text-sm min-w-9 touch-target;
   }
   .mobile-card-padding { 
     @apply p-3;
@@ -122,25 +123,25 @@ All colors MUST be HSL.
     @apply h-12;
   }
   .mobile-input {
-    @apply h-8 px-2 text-xs;
+    @apply h-9 px-3 text-sm touch-target;
   }
   .mobile-select {
-    @apply h-8 px-2 text-xs;
+    @apply h-9 px-3 text-sm touch-target;
   }
   .mobile-textarea {
-    @apply p-2 text-xs min-h-16;
+    @apply p-3 text-sm min-h-20 touch-target;
   }
   .mobile-badge {
-    @apply px-1.5 py-0.5 text-xs;
+    @apply px-2 py-1 text-xs touch-target;
   }
   .mobile-dialog {
-    @apply p-4 max-w-xs mx-auto;
+    @apply p-4 max-w-sm mx-auto;
   }
   .mobile-form-spacing {
-    @apply space-y-3;
+    @apply space-y-4;
   }
 
-  /* Touch-friendly sizing */
+  /* Touch-friendly sizing - melhorado */
   .touch-target {
     @apply min-h-11 min-w-11;
   }
@@ -160,6 +161,11 @@ All colors MUST be HSL.
   
   .safe-right {
     padding-right: env(safe-area-inset-right);
+  }
+
+  /* Padding bottom seguro para evitar sobreposição */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
   /* Smooth scrolling for mobile */
@@ -226,12 +232,35 @@ All colors MUST be HSL.
   .mobile-justify-start {
     @apply justify-start;
   }
+
+  /* Text truncation utilities */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 
 /* iOS specific styles */
 @supports (-webkit-touch-callout: none) {
   .ios-bounce-fix {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
   /* Fix for iOS viewport units */
@@ -239,12 +268,23 @@ All colors MUST be HSL.
     height: 100vh;
     height: -webkit-fill-available;
   }
+
+  /* iOS safe area improvements */
+  .ios-safe-area {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 /* Android specific styles */
 @media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm) {
   .android-scroll-fix {
     overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+
+  .android-touch-fix {
+    touch-action: manipulation;
   }
 }
 
@@ -260,6 +300,28 @@ All colors MUST be HSL.
   .mobile\:h-8 { height: 2rem; }
   .mobile\:h-10 { height: 2.5rem; }
   .mobile\:min-h-16 { min-height: 4rem; }
+  
+  /* Mechanic-specific mobile styles */
+  .mechanic-mobile\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .mechanic-mobile\:p-3 { padding: 0.75rem; }
+  .mechanic-mobile\:gap-2 { gap: 0.5rem; }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 374px) {
+  .xs\:text-xs { font-size: 0.65rem; }
+  .xs\:p-2 { padding: 0.5rem; }
+  .xs\:gap-1 { gap: 0.25rem; }
+}
+
+/* Small devices breakpoint */
+@media (min-width: 375px) {
+  .xs\:inline { display: inline; }
+  .xs\:flex-row { flex-direction: row; }
+  .xs\:w-auto { width: auto; }
+  .xs\:flex-initial { flex: initial; }
+  .xs\:flex-1 { flex: 1; }
+  .xs\:gap-4 { gap: 1rem; }
 }
 
 /* Desktop zoom utilities for admin dashboard */
@@ -274,5 +336,28 @@ All colors MUST be HSL.
       transform: scale(0.9);
       transform-origin: 0 0;
     }
+  }
+}
+
+/* Mechanic-specific optimizations */
+@layer utilities {
+  .mechanic-layout {
+    @apply h-screen-mobile safe-top safe-bottom overflow-hidden;
+  }
+  
+  .mechanic-header {
+    @apply sticky top-0 z-40 backdrop-blur-sm bg-card/95;
+  }
+  
+  .mechanic-content {
+    @apply overflow-auto smooth-scroll pb-safe;
+  }
+  
+  .mechanic-card {
+    @apply touch-highlight-none rounded-lg border bg-card;
+  }
+  
+  .mechanic-button {
+    @apply touch-target tap-highlight-none active:scale-95 transition-transform;
   }
 }
