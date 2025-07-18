@@ -25,6 +25,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
   const checkedItems = items.filter((item: any) => item.checked).length;
   const isAdmin = profile?.role === 'admin';
   const isMechanic = profile?.role === 'mechanic';
+  const canDownloadPDF = isAdmin || isMechanic;
 
   const handleCompleteChecklist = async () => {
     try {
@@ -167,6 +168,11 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
     }
   };
 
+  console.log('Profile role:', profile?.role);
+  console.log('Can download PDF:', canDownloadPDF);
+  console.log('Is mechanic:', isMechanic);
+  console.log('Is admin:', isAdmin);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -190,7 +196,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
             </Badge>
             
             {/* PDF Download Button - Available for mechanics and admins */}
-            {(isMechanic || isAdmin) && (
+            {canDownloadPDF && (
               <Button 
                 onClick={() => generatePDF(false)}
                 variant="outline"
