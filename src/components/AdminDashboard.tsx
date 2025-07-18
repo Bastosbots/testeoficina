@@ -26,22 +26,22 @@ const AdminDashboard = () => {
   const pendingBudgets = budgets.filter(b => b.status === 'Pendente');
 
   const handleViewChecklist = (checklistId: string) => {
-    console.log('Viewing checklist:', checklistId);
-    navigate(`/all-checklists?view=${checklistId}`);
+    console.log('Navigating to view checklist:', checklistId);
+    navigate(`/checklists?view=${checklistId}`);
   };
 
   const handleEditChecklist = (checklistId: string) => {
-    console.log('Editing checklist:', checklistId);
-    navigate(`/all-checklists?edit=${checklistId}`);
+    console.log('Navigating to edit checklist:', checklistId);
+    navigate(`/checklists?edit=${checklistId}`);
   };
 
   const handleViewBudget = (budgetId: string) => {
-    console.log('Viewing budget:', budgetId);
+    console.log('Navigating to view budget:', budgetId);
     navigate(`/budgets?view=${budgetId}`);
   };
 
   const handleEditBudget = (budgetId: string) => {
-    console.log('Editing budget:', budgetId);
+    console.log('Navigating to edit budget:', budgetId);
     navigate(`/budgets?edit=${budgetId}`);
   };
 
