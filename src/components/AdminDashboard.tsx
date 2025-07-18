@@ -67,23 +67,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const getVehicleColor = (vehicleName: string) => {
-    // Simple color mapping based on vehicle name
-    const colors = [
-      'text-blue-600',
-      'text-green-600', 
-      'text-purple-600',
-      'text-red-600',
-      'text-yellow-600',
-      'text-pink-600',
-      'text-indigo-600',
-      'text-cyan-600'
-    ];
-    
-    const hash = vehicleName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[hash % colors.length];
-  };
-
   return (
     <div className="space-y-6 p-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -199,7 +182,7 @@ const AdminDashboard = () => {
               {checklists.filter(c => c.status === 'Em Andamento').slice(0, 5).map((checklist) => (
                 <TableRow key={checklist.id}>
                   <TableCell>
-                    <span className={`font-medium ${getVehicleColor(checklist.vehicle_name)}`}>
+                    <span className="font-medium">
                       {checklist.vehicle_name}
                     </span>
                   </TableCell>
