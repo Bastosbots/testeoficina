@@ -43,7 +43,7 @@ export const useBudgets = () => {
         .from('budgets')
         .select(`
           *,
-          mechanic:profiles!budgets_mechanic_id_fkey(full_name)
+          mechanic:profiles(full_name)
         `)
         .order('created_at', { ascending: false });
 
