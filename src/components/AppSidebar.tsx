@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, Download } from 'lucide-react';
 import {
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useCapacitor, triggerInstallPrompt } from '@/hooks/useCapacitor';
+import { InstallDialog } from '@/components/InstallDialog';
 import { toast } from 'sonner';
 
 const navigation = [
@@ -69,6 +70,7 @@ export function AppSidebar() {
   const { signOut, profile } = useAuth();
   const { data: settings } = useSystemSettings();
   const { isInstalled, canInstall, platform, isNative, deferredPrompt } = useCapacitor();
+  const [showInstallDialog, setShowInstallDialog] = useState(false);
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
@@ -113,7 +115,7 @@ export function AppSidebar() {
   };
 
   const handleInstallApp = async () => {
-    console.log('Install button clicked, platform:', platform, 'isNative:', isNative, 'deferredPrompt:', !!deferredPrompt);
+    console.log('🎯 Install button clicked, platform:', platform, 'isNative:', isNative, 'deferredPrompt:', !!deferredPrompt);
     
     try {
       // Import Capacitor modules dynamically
@@ -132,92 +134,41 @@ export function AppSidebar() {
         return;
       }
 
-      // Try to use the centralized install function
-      const installed = await triggerInstallPrompt();
-      
-      if (installed) {
-        toast.success('Aplicativo instalado com sucesso!');
-        return;
-      }
-
-      // Fallback: Show platform-specific instructions if no prompt available
-      const userAgent = window.navigator.userAgent;
-      const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-      const isAndroid = /Android/.test(userAgent);
-      const isChrome = /Chrome/.test(userAgent);
-      const isSamsung = /SamsungBrowser/.test(userAgent);
-      const isFirefox = /Firefox/.test(userAgent);
-      const isEdge = /Edg/.test(userAgent);
-      
-      console.log('No beforeinstallprompt available, showing platform instructions', {
-        isIOS, isAndroid, isChrome, isSamsung, isFirefox, isEdge, userAgent
-      });
-      
-      if (isIOS) {
-        toast.info(
-          'Para instalar no iOS: Toque no botão "Compartilhar" (⬆️) no Safari e selecione "Adicionar à Tela Inicial"',
-          { duration: 8000 }
-        );
-      } else if (isAndroid) {
-        if (isChrome) {
-          toast.info(
-            'Para instalar no Android Chrome: Toque no menu (⋮) e selecione "Adicionar à tela inicial" ou "Instalar app"',
-            { duration: 8000 }
-          );
-        } else if (isSamsung) {
-          toast.info(
-            'Para instalar no Samsung Internet: Toque no menu e selecione "Adicionar página a" > "Tela inicial"',
-            { duration: 8000 }
-          );
-        } else if (isFirefox) {
-          toast.info(
-            'Para instalar no Firefox: Toque no menu e selecione "Instalar" ou "Adicionar à tela inicial"',
-            { duration: 8000 }
-          );
-        } else {
-          toast.info(
-            'Para instalar no Android: Use o Chrome ou Samsung Internet e procure pela opção "Adicionar à tela inicial"',
-            { duration: 8000 }
-          );
-        }
-      } else {
-        if (isChrome || isEdge) {
-          toast.info(
-            'Para instalar: Clique no ícone de instalação na barra de endereços ou use o menu do navegador',
-            { duration: 6000 }
-          );
-        } else {
-          toast.info(
-            'Para instalar: Use o Chrome, Edge ou outro navegador compatível com PWA',
-            { duration: 6000 }
-          );
-        }
-      }
+      // Show install dialog
+      setShowInstallDialog(true);
     } catch (error) {
       console.error('Error loading Capacitor:', error);
-      // Fallback to web installation instructions
-      toast.info(
-        'Para instalar: Use o menu do seu navegador e procure pela opção "Instalar app" ou "Adicionar à tela inicial"',
-        { duration: 6000 }
-      );
+      setShowInstallDialog(true);
+    }
+  };
+
+  const handleInstallFromDialog = async () => {
+    if (deferredPrompt) {
+      const installed = await triggerInstallPrompt();
+      if (installed) {
+        toast.success('Aplicativo instalado com sucesso!');
+      } else {
+        toast.info('Instalação cancelada');
+      }
+    } else {
+      toast.info('Siga as instruções para instalar o aplicativo');
     }
   };
 
   return (
-    <Sidebar className={`${state === 'collapsed' ? 'w-16' : 'w-64'} mobile-dropdown safe-top`}>
-      <div className="flex items-center justify-between mobile-card-padding lg:p-4 border-b border-border touch-target">
-        {state !== 'collapsed' && (
-          <div className="flex flex-col">
-            <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground">{systemName}</h2>
-            <p className="mobile-text-xs lg:text-xs text-muted-foreground">{systemDescription}</p>
-          </div>
-        )}
-        <SidebarTrigger className="ml-auto touch-target" />
-      </div>
+    <>
+      <Sidebar className={`${state === 'collapsed' ? 'w-16' : 'w-64'} mobile-dropdown safe-top`}>
+        <div className="flex items-center justify-between mobile-card-padding lg:p-4 border-b border-border touch-target">
+          {state !== 'collapsed' && (
+            <div className="flex flex-col">
+              <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground">{systemName}</h2>
+              <p className="mobile-text-xs lg:text-xs text-muted-foreground">{systemDescription}</p>
+            </div>
+          )}
+          <SidebarTrigger className="ml-auto touch-target" />
+        </div>
 
-      <SidebarContent>
-        {/* User Info */}
-        {state !== 'collapsed' && (
+        <SidebarContent>
           <div className="mobile-card-padding lg:p-4 border-b border-border">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center mobile-text-xs lg:text-sm font-medium">
@@ -233,69 +184,18 @@ export function AppSidebar() {
               </div>
             </div>
           </div>
-        )}
 
-        {/* Navigation */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigation.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() => navigate(item.url)}
-                    className={`w-full justify-start touch-target ${
-                      isActive(item.url) 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {state !== 'collapsed' && (
-                      <div className="flex flex-col items-start ml-2">
-                        <span className="mobile-text-sm lg:text-sm font-medium">{item.title}</span>
-                        <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">{item.description}</span>
-                      </div>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-              
-              {/* Install App Button - Show for non-admin users when app is not installed */}
-              {profile?.role !== 'admin' && !isInstalled && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={handleInstallApp}
-                    className="w-full justify-start touch-target hover:bg-muted text-primary"
-                  >
-                    <Download className="h-4 w-4 flex-shrink-0" />
-                    {state !== 'collapsed' && (
-                      <div className="flex flex-col items-start ml-2">
-                        <span className="mobile-text-sm lg:text-sm font-medium">Instalar App</span>
-                        <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">
-                          {deferredPrompt ? 'Clique para instalar' : 'Adicionar à tela inicial'}
-                        </span>
-                      </div>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Admin Navigation */}
-        {profile?.role === 'admin' && (
+          {/* Navigation */}
           <SidebarGroup>
-            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminNavigation.map((item) => (
+                {navigation.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      onClick={() => handleNavigation(item)}
+                      onClick={() => navigate(item.url)}
                       className={`w-full justify-start touch-target ${
-                        !item.external && isActive(item.url) 
+                        isActive(item.url) 
                           ? 'bg-primary text-primary-foreground' 
                           : 'hover:bg-muted'
                       }`}
@@ -310,22 +210,80 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+                
+                {/* Install App Button - Show for non-admin users when app is not installed */}
+                {profile?.role !== 'admin' && !isInstalled && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={handleInstallApp}
+                      className="w-full justify-start touch-target hover:bg-muted text-primary"
+                    >
+                      <Download className="h-4 w-4 flex-shrink-0" />
+                      {state !== 'collapsed' && (
+                        <div className="flex flex-col items-start ml-2">
+                          <span className="mobile-text-sm lg:text-sm font-medium">Instalar App</span>
+                          <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">
+                            {deferredPrompt ? 'Clique para instalar' : 'Adicionar à tela inicial'}
+                          </span>
+                        </div>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
 
-        <div className="mt-auto p-4 border-t border-border safe-bottom">
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 touch-target"
-          >
-            <LogOut className="h-4 w-4 flex-shrink-0" />
-            {state !== 'collapsed' && <span className="ml-2">Sair do Sistema</span>}
-          </Button>
-        </div>
-      </SidebarContent>
-    </Sidebar>
+          {profile?.role === 'admin' && (
+            <SidebarGroup>
+              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminNavigation.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        onClick={() => handleNavigation(item)}
+                        className={`w-full justify-start touch-target ${
+                          !item.external && isActive(item.url) 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'hover:bg-muted'
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        {state !== 'collapsed' && (
+                          <div className="flex flex-col items-start ml-2">
+                            <span className="mobile-text-sm lg:text-sm font-medium">{item.title}</span>
+                            <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">{item.description}</span>
+                          </div>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
+          <div className="mt-auto p-4 border-t border-border safe-bottom">
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 touch-target"
+            >
+              <LogOut className="h-4 w-4 flex-shrink-0" />
+              {state !== 'collapsed' && <span className="ml-2">Sair do Sistema</span>}
+            </Button>
+          </div>
+        </SidebarContent>
+      </Sidebar>
+
+      <InstallDialog
+        open={showInstallDialog}
+        onOpenChange={setShowInstallDialog}
+        onInstall={handleInstallFromDialog}
+        platform={platform}
+        hasPrompt={!!deferredPrompt}
+      />
+    </>
   );
 }

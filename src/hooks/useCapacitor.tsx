@@ -75,15 +75,9 @@ export const useCapacitor = (): CapacitorInfo => {
       }
     };
 
-    const isIOSSafari = () => {
-      const userAgent = window.navigator.userAgent;
-      const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-      const isSafari = /Safari/.test(userAgent) && !/Chrome|CriOS|FxiOS/.test(userAgent);
-      return isIOS && isSafari;
-    };
-
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('beforeinstallprompt event captured:', e);
+      console.log('🚀 beforeinstallprompt event captured!', e);
+      
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       
@@ -92,7 +86,7 @@ export const useCapacitor = (): CapacitorInfo => {
       
       // Update state immediately with the new prompt
       setCapacitorInfo(prev => {
-        console.log('Updating state with deferredPrompt');
+        console.log('📱 Updating state with deferredPrompt');
         return {
           ...prev,
           canInstall: !prev.isInstalled,
@@ -102,7 +96,7 @@ export const useCapacitor = (): CapacitorInfo => {
     };
 
     const handleAppInstalled = () => {
-      console.log('PWA was installed successfully');
+      console.log('✅ PWA was installed successfully');
       (window as any).deferredInstallPrompt = null;
       setCapacitorInfo(prev => ({
         ...prev,
@@ -112,20 +106,41 @@ export const useCapacitor = (): CapacitorInfo => {
       }));
     };
 
-    // Listen for the beforeinstallprompt event
+    // Listen for the beforeinstallprompt event IMMEDIATELY
+    console.log('🔧 Setting up beforeinstallprompt listener');
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
     
-    // Check periodically if the deferredPrompt is available
+    // Check if the event was already fired before our listener was added
+    if ((window as any).deferredInstallPrompt) {
+      console.log('🔍 Found existing deferredInstallPrompt');
+      setCapacitorInfo(prev => ({
+        ...prev,
+        deferredPrompt: (window as any).deferredInstallPrompt,
+        canInstall: !prev.isInstalled
+      }));
+    }
+    
+    // Check periodically if the deferredPrompt becomes available
+    let checkCount = 0;
+    const maxChecks = 30; // Check for 30 seconds
+    
     const checkPromptInterval = setInterval(() => {
+      checkCount++;
       const currentPrompt = (window as any).deferredInstallPrompt;
+      
       if (currentPrompt && !capacitorInfo.deferredPrompt) {
-        console.log('Found deferredInstallPrompt in interval check');
+        console.log('⏰ Found deferredInstallPrompt in interval check', checkCount);
         setCapacitorInfo(prev => ({
           ...prev,
           deferredPrompt: currentPrompt,
           canInstall: !prev.isInstalled
         }));
+      }
+      
+      if (checkCount >= maxChecks) {
+        console.log('⌛ Stopping prompt check after', maxChecks, 'attempts');
+        clearInterval(checkPromptInterval);
       }
     }, 1000);
     
@@ -146,27 +161,33 @@ export const useCapacitor = (): CapacitorInfo => {
 export const triggerInstallPrompt = async (): Promise<boolean> => {
   const deferredPrompt = (window as any).deferredInstallPrompt;
   
+  console.log('🎯 triggerInstallPrompt called, prompt available:', !!deferredPrompt);
+  
   if (!deferredPrompt) {
-    console.log('No deferred install prompt available');
+    console.log('❌ No deferred install prompt available');
     return false;
   }
 
   try {
-    console.log('Triggering install prompt');
+    console.log('🚀 Triggering install prompt');
+    
     // Show the install prompt
     const result = await deferredPrompt.prompt();
-    console.log('Install prompt result:', result);
+    console.log('📋 Install prompt result:', result);
     
     // Wait for the user to respond to the prompt
     const choiceResult = await deferredPrompt.userChoice;
-    console.log('User choice result:', choiceResult);
+    console.log('👤 User choice result:', choiceResult);
     
     // Clear the deferredPrompt
     (window as any).deferredInstallPrompt = null;
     
-    return choiceResult.outcome === 'accepted';
+    const accepted = choiceResult.outcome === 'accepted';
+    console.log('✅ Installation', accepted ? 'accepted' : 'dismissed');
+    
+    return accepted;
   } catch (error) {
-    console.error('Error during installation:', error);
+    console.error('❌ Error during installation:', error);
     return false;
   }
 };
