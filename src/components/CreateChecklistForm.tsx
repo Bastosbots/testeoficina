@@ -122,12 +122,6 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
     }
   };
 
-  const handleImageUploaded = async () => {
-    // Auto salvar quando imagens são enviadas
-    console.log('Auto-saving checklist after image upload...');
-    await handleSave();
-  };
-
   const getStatusColor = (checked: boolean) => {
     return checked ? 'text-green-600' : 'text-slate-400';
   };
@@ -327,7 +321,6 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                 onFilesUploaded={setImageUrls}
                 currentFileUrls={imageUrls}
                 onFilesRemoved={() => setImageUrls([])}
-                onImageUploaded={handleImageUploaded}
               />
             </div>
 
