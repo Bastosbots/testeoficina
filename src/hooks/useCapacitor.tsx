@@ -79,13 +79,13 @@ export const useCapacitor = (): CapacitorInfo => {
     };
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('beforeinstallprompt event fired');
+      console.log('beforeinstallprompt event captured');
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Save the event so it can be triggered later
       (window as any).deferredInstallPrompt = e;
       
-      // Update canInstall state
+      // Update canInstall state immediately
       setCapacitorInfo(prev => ({
         ...prev,
         canInstall: !prev.isInstalled
@@ -93,7 +93,7 @@ export const useCapacitor = (): CapacitorInfo => {
     };
 
     const handleAppInstalled = () => {
-      console.log('PWA was installed');
+      console.log('PWA was installed successfully');
       (window as any).deferredInstallPrompt = null;
       setCapacitorInfo(prev => ({
         ...prev,
@@ -102,15 +102,28 @@ export const useCapacitor = (): CapacitorInfo => {
       }));
     };
 
+    // Listen for the beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
+    
     checkCapacitor();
+
+    // Also check periodically for the install prompt
+    const checkInterval = setInterval(() => {
+      if ((window as any).deferredInstallPrompt && !capacitorInfo.isInstalled) {
+        setCapacitorInfo(prev => ({
+          ...prev,
+          canInstall: true
+        }));
+      }
+    }, 1000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearInterval(checkInterval);
     };
-  }, []);
+  }, [capacitorInfo.isInstalled]);
 
   return capacitorInfo;
 };

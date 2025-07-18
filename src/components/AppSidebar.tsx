@@ -103,66 +103,88 @@ export function AppSidebar() {
     }
   };
 
-  const handleInstallApp = () => {
+  const handleInstallApp = async () => {
     console.log('Install button clicked, platform:', platform);
     
     // Check if beforeinstallprompt event is available (Android/Chrome)
     const deferredPrompt = (window as any).deferredInstallPrompt;
     
     if (deferredPrompt) {
-      console.log('Using beforeinstallprompt');
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
+      console.log('Using beforeinstallprompt for direct installation');
+      try {
+        // Show the install prompt
+        const result = await deferredPrompt.prompt();
+        console.log('Install prompt result:', result);
+        
+        // Wait for the user to respond to the prompt
+        const choiceResult = await deferredPrompt.userChoice;
         console.log('User choice result:', choiceResult);
+        
         if (choiceResult.outcome === 'accepted') {
           toast.success('Aplicativo instalado com sucesso!');
         } else {
-          toast.info('Instalação cancelada');
+          toast.info('Instalação cancelada pelo usuário');
         }
+        
+        // Clear the deferredPrompt
         (window as any).deferredInstallPrompt = null;
-      }).catch((error: any) => {
+      } catch (error) {
         console.error('Error during installation:', error);
         toast.error('Erro durante a instalação');
-      });
+      }
     } else {
-      // Platform-specific instructions
+      // Fallback for browsers that don't support beforeinstallprompt
       const userAgent = window.navigator.userAgent;
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       const isAndroid = /Android/.test(userAgent);
       const isChrome = /Chrome/.test(userAgent);
       const isSamsung = /SamsungBrowser/.test(userAgent);
+      const isFirefox = /Firefox/.test(userAgent);
+      const isEdge = /Edg/.test(userAgent);
       
-      console.log('No beforeinstallprompt, showing platform instructions', {
-        isIOS, isAndroid, isChrome, isSamsung, userAgent
+      console.log('No beforeinstallprompt available, showing platform instructions', {
+        isIOS, isAndroid, isChrome, isSamsung, isFirefox, isEdge, userAgent
       });
       
       if (isIOS) {
         toast.info(
           'Para instalar no iOS: Toque no botão "Compartilhar" (⬆️) no Safari e selecione "Adicionar à Tela Inicial"',
-          { duration: 6000 }
+          { duration: 8000 }
         );
       } else if (isAndroid) {
         if (isChrome) {
           toast.info(
-            'Para instalar no Android: Toque no menu (⋮) do Chrome e selecione "Adicionar à tela inicial" ou "Instalar app"',
-            { duration: 6000 }
+            'Para instalar no Android Chrome: Toque no menu (⋮) e selecione "Adicionar à tela inicial" ou "Instalar app"',
+            { duration: 8000 }
           );
         } else if (isSamsung) {
           toast.info(
             'Para instalar no Samsung Internet: Toque no menu e selecione "Adicionar página a" > "Tela inicial"',
+            { duration: 8000 }
+          );
+        } else if (isFirefox) {
+          toast.info(
+            'Para instalar no Firefox: Toque no menu e selecione "Instalar" ou "Adicionar à tela inicial"',
+            { duration: 8000 }
+          );
+        } else {
+          toast.info(
+            'Para instalar no Android: Use o Chrome ou Samsung Internet e procure pela opção "Adicionar à tela inicial"',
+            { duration: 8000 }
+          );
+        }
+      } else {
+        if (isChrome || isEdge) {
+          toast.info(
+            'Para instalar: Clique no ícone de instalação na barra de endereços ou use o menu do navegador',
             { duration: 6000 }
           );
         } else {
           toast.info(
-            'Para instalar: Abra no Chrome ou Samsung Internet e use a opção "Adicionar à tela inicial"',
+            'Para instalar: Use o Chrome, Edge ou outro navegador compatível com PWA',
             { duration: 6000 }
           );
         }
-      } else {
-        toast.info(
-          'Para instalar: Use o menu do seu navegador e procure pela opção "Instalar app" ou "Adicionar à tela inicial"',
-          { duration: 5000 }
-        );
       }
     }
   };
