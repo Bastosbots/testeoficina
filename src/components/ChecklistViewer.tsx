@@ -2,8 +2,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useChecklistItems } from "@/hooks/useChecklistItems";
+import { useUpdateChecklist } from "@/hooks/useChecklists";
+import { useAuth } from "@/hooks/useAuth";
 import ChecklistProgress from "./checklist/ChecklistProgress";
 import ChecklistItems from "./checklist/ChecklistItems";
 import ChecklistInfo from "./checklist/ChecklistInfo";
@@ -15,9 +17,24 @@ interface ChecklistViewerProps {
 
 const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
   const { data: items = [] } = useChecklistItems(checklist.id);
+  const updateChecklistMutation = useUpdateChecklist();
+  const { profile } = useAuth();
 
   const totalItems = items.length;
   const checkedItems = items.filter((item: any) => item.checked).length;
+  const isAdmin = profile?.role === 'admin';
+
+  const handleCompleteChecklist = async () => {
+    try {
+      await updateChecklistMutation.mutateAsync({
+        id: checklist.id,
+        status: 'Concluído',
+        completed_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error completing checklist:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,6 +57,17 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
             <Badge variant={checklist.completed_at ? "default" : "secondary"} className="mobile-text-xs lg:text-sm px-2 lg:px-4 py-1 lg:py-2">
               {checklist.completed_at ? 'Concluído' : 'Pendente'}
             </Badge>
+            {/* Only show complete button for admins and when status is "Em Andamento" */}
+            {isAdmin && checklist.status === 'Em Andamento' && (
+              <Button 
+                onClick={handleCompleteChecklist}
+                disabled={updateChecklistMutation.isPending}
+                className="mobile-btn lg:h-10 lg:px-4 flex items-center gap-1 lg:gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Check className="h-3 w-3 lg:h-4 lg:w-4" />
+                <span className="mobile-text-xs lg:text-sm">Concluir</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>

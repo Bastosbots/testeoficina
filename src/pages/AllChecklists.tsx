@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, Plus, ClipboardCheck, Search, Filter, X, Clock, CheckCircle, AlertCircle, Pause } from "lucide-react";
-import { useChecklists } from "@/hooks/useChecklists";
+import { Eye, Edit, Plus, ClipboardCheck, Search, Filter, X, Clock, CheckCircle, AlertCircle, Pause, Check } from "lucide-react";
+import { useChecklists, useUpdateChecklist } from "@/hooks/useChecklists";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -20,6 +20,7 @@ const AllChecklists = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: allChecklists = [], isLoading } = useChecklists();
   const { profile, user } = useAuth();
+  const updateChecklistMutation = useUpdateChecklist();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -100,6 +101,18 @@ const AllChecklists = () => {
   const handleSave = () => {
     // Navigate back after saving checklist
     handleBack();
+  };
+
+  const handleCompleteChecklist = async (checklistId: string) => {
+    try {
+      await updateChecklistMutation.mutateAsync({
+        id: checklistId,
+        status: 'Concluído',
+        completed_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error completing checklist:', error);
+    }
   };
 
   const clearFilters = () => {
@@ -263,7 +276,6 @@ const AllChecklists = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="Pendente">Pendente</SelectItem>
                 <SelectItem value="Em Andamento">Em Andamento</SelectItem>
                 <SelectItem value="Concluído">Concluído</SelectItem>
                 <SelectItem value="Cancelado">Cancelado</SelectItem>
@@ -375,6 +387,19 @@ const AllChecklists = () => {
                         >
                           <Edit className={isAdmin ? 'h-3 w-3' : 'h-4 w-4'} />
                         </Button>
+                        {/* Only show complete button for admins and when status is "Em Andamento" */}
+                        {isAdmin && checklist.status === 'Em Andamento' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleCompleteChecklist(checklist.id)}
+                            title="Concluir checklist"
+                            className={`${isAdmin ? 'h-6 w-6 p-0' : 'h-8 w-8 p-0'} text-green-600 hover:text-green-700 hover:bg-green-50`}
+                            disabled={updateChecklistMutation.isPending}
+                          >
+                            <Check className={isAdmin ? 'h-3 w-3' : 'h-4 w-4'} />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
