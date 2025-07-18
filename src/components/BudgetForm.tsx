@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -256,11 +255,9 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
               <CardHeader className="pb-3 sm:pb-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <CardTitle className="text-base sm:text-lg">Dados do Veículo (Opcional)</CardTitle>
-                  {!budget && (
-                    <div className="w-full sm:w-auto">
-                      <VehicleSelector onVehicleSelect={handleVehicleSelect} />
-                    </div>
-                  )}
+                  <div className="w-full sm:w-auto">
+                    <VehicleSelector onVehicleSelect={handleVehicleSelect} />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
