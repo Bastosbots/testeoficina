@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,7 +12,7 @@ import ServicesTable from "./pages/ServicesTable";
 import SystemSettings from "./pages/SystemSettings";
 import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
-import Layout from "./components/Layout";
+import { Layout } from "./components/Layout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
