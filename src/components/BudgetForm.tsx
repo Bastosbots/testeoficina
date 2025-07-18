@@ -42,7 +42,7 @@ interface BudgetFormProps {
 }
 
 const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const createBudget = useCreateBudget();
   const createBudgetItems = useCreateBudgetItems();
   const updateBudget = useUpdateBudget();
@@ -51,6 +51,8 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
   
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
+
+  const isAdmin = profile?.role === 'admin';
 
   const form = useForm<BudgetFormData>({
     resolver: zodResolver(budgetSchema),
@@ -113,6 +115,15 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
     const newServices = [...services];
     newServices[index].quantity = quantity;
     newServices[index].total_price = quantity * newServices[index].unit_price;
+    setServices(newServices);
+  };
+
+  const updateServiceUnitPrice = (index: number, unitPrice: number) => {
+    if (unitPrice < 0) return;
+    
+    const newServices = [...services];
+    newServices[index].unit_price = unitPrice;
+    newServices[index].total_price = newServices[index].quantity * unitPrice;
     setServices(newServices);
   };
 
@@ -338,9 +349,12 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
                         <Label className="text-xs sm:text-sm">Preço Unitário</Label>
                         <Input
                           type="number"
+                          min="0"
+                          step="0.01"
                           value={service.unit_price.toFixed(2)}
-                          readOnly
-                          className="bg-muted text-sm"
+                          onChange={(e) => updateServiceUnitPrice(index, parseFloat(e.target.value) || 0)}
+                          readOnly={!isAdmin}
+                          className={`text-sm ${!isAdmin ? 'bg-muted' : ''}`}
                         />
                       </div>
                       
