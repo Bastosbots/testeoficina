@@ -152,7 +152,7 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
         {/* Progress Bar */}
         <Card className="mb-3 lg:mb-6">
           <CardContent className="mobile-card-padding lg:p-4">
-            <div className="flex items-center justify-between mb-2 lg:mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2 lg:mb-3">
               <span className="mobile-text-sm lg:text-base font-medium text-foreground">Progresso do Checklist</span>
               <span className="mobile-text-sm lg:text-base text-muted-foreground">
                 {items.filter(item => item.checked).length}/{items.length} itens ({Math.round(items.length > 0 ? (items.filter(item => item.checked).length / items.length) * 100 : 0)}%)
