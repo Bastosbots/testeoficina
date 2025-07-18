@@ -5,6 +5,7 @@ interface CapacitorInfo {
   isNative: boolean;
   platform: 'web' | 'ios' | 'android';
   isInstalled: boolean;
+  canInstall: boolean;
 }
 
 // Extend the Navigator interface to include the standalone property
@@ -21,7 +22,8 @@ export const useCapacitor = (): CapacitorInfo => {
   const [capacitorInfo, setCapacitorInfo] = useState<CapacitorInfo>({
     isNative: false,
     platform: 'web',
-    isInstalled: false
+    isInstalled: false,
+    canInstall: false
   });
 
   useEffect(() => {
@@ -38,36 +40,75 @@ export const useCapacitor = (): CapacitorInfo => {
                            window.matchMedia('(display-mode: standalone)').matches ||
                            isNative;
 
+        // Check if can install (has beforeinstallprompt or is iOS Safari)
+        const canInstall = !isInstalled && (
+          !!(window as any).deferredInstallPrompt || 
+          isIOSSafari()
+        );
+
         setCapacitorInfo({
           isNative,
           platform,
-          isInstalled
+          isInstalled,
+          canInstall
         });
       } catch (error) {
         // Capacitor not available, running as regular web app
         const isInstalled = (window.navigator.standalone === true) || 
                            window.matchMedia('(display-mode: standalone)').matches;
         
+        const canInstall = !isInstalled && (
+          !!(window as any).deferredInstallPrompt || 
+          isIOSSafari()
+        );
+        
         setCapacitorInfo({
           isNative: false,
           platform: 'web',
-          isInstalled
+          isInstalled,
+          canInstall
         });
       }
     };
 
+    const isIOSSafari = () => {
+      const userAgent = window.navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+      const isSafari = /Safari/.test(userAgent) && !/Chrome|CriOS|FxiOS/.test(userAgent);
+      return isIOS && isSafari;
+    };
+
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('beforeinstallprompt event fired');
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Save the event so it can be triggered later
       (window as any).deferredInstallPrompt = e;
+      
+      // Update canInstall state
+      setCapacitorInfo(prev => ({
+        ...prev,
+        canInstall: !prev.isInstalled
+      }));
+    };
+
+    const handleAppInstalled = () => {
+      console.log('PWA was installed');
+      (window as any).deferredInstallPrompt = null;
+      setCapacitorInfo(prev => ({
+        ...prev,
+        isInstalled: true,
+        canInstall: false
+      }));
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
     checkCapacitor();
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 

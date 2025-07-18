@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, Download } from 'lucide-react';
@@ -68,7 +69,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const { data: settings } = useSystemSettings();
-  const { isInstalled } = useCapacitor();
+  const { isInstalled, canInstall, platform } = useCapacitor();
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
@@ -103,20 +104,66 @@ export function AppSidebar() {
   };
 
   const handleInstallApp = () => {
-    // Check if beforeinstallprompt event is available
+    console.log('Install button clicked, platform:', platform);
+    
+    // Check if beforeinstallprompt event is available (Android/Chrome)
     const deferredPrompt = (window as any).deferredInstallPrompt;
     
     if (deferredPrompt) {
+      console.log('Using beforeinstallprompt');
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult: any) => {
+        console.log('User choice result:', choiceResult);
         if (choiceResult.outcome === 'accepted') {
           toast.success('Aplicativo instalado com sucesso!');
+        } else {
+          toast.info('Instalação cancelada');
         }
         (window as any).deferredInstallPrompt = null;
+      }).catch((error: any) => {
+        console.error('Error during installation:', error);
+        toast.error('Erro durante a instalação');
       });
     } else {
-      // For iOS or other browsers without beforeinstallprompt
-      toast.info('Para instalar: toque em "Compartilhar" e selecione "Adicionar à Tela Inicial"');
+      // Platform-specific instructions
+      const userAgent = window.navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+      const isAndroid = /Android/.test(userAgent);
+      const isChrome = /Chrome/.test(userAgent);
+      const isSamsung = /SamsungBrowser/.test(userAgent);
+      
+      console.log('No beforeinstallprompt, showing platform instructions', {
+        isIOS, isAndroid, isChrome, isSamsung, userAgent
+      });
+      
+      if (isIOS) {
+        toast.info(
+          'Para instalar no iOS: Toque no botão "Compartilhar" (⬆️) no Safari e selecione "Adicionar à Tela Inicial"',
+          { duration: 6000 }
+        );
+      } else if (isAndroid) {
+        if (isChrome) {
+          toast.info(
+            'Para instalar no Android: Toque no menu (⋮) do Chrome e selecione "Adicionar à tela inicial" ou "Instalar app"',
+            { duration: 6000 }
+          );
+        } else if (isSamsung) {
+          toast.info(
+            'Para instalar no Samsung Internet: Toque no menu e selecione "Adicionar página a" > "Tela inicial"',
+            { duration: 6000 }
+          );
+        } else {
+          toast.info(
+            'Para instalar: Abra no Chrome ou Samsung Internet e use a opção "Adicionar à tela inicial"',
+            { duration: 6000 }
+          );
+        }
+      } else {
+        toast.info(
+          'Para instalar: Use o menu do seu navegador e procure pela opção "Instalar app" ou "Adicionar à tela inicial"',
+          { duration: 5000 }
+        );
+      }
     }
   };
 
@@ -178,8 +225,8 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               
-              {/* Install App Button - Only for mechanics and if not installed */}
-              {profile?.role !== 'admin' && !isInstalled && (
+              {/* Install App Button - Only for mechanics and if not installed but can install */}
+              {profile?.role !== 'admin' && !isInstalled && canInstall && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleInstallApp}
