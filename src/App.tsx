@@ -1,25 +1,43 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import { Layout } from "@/components/Layout";
-import Dashboard from "@/pages/Dashboard";
-import AllChecklists from "@/pages/AllChecklists";
-import ServicesTable from "@/pages/ServicesTable";
-import SystemSettings from "@/pages/SystemSettings";
-import Budgets from "@/pages/Budgets";
-import Auth from "@/pages/Auth";
-import Signup from "@/pages/Signup";
-import Register from "@/pages/Register";
-import NotFound from "@/pages/NotFound";
-import InstallPrompt from "@/components/InstallPrompt";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import Auth from "./pages/Auth";
+import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import AllChecklists from "./pages/AllChecklists";
+import Budgets from "./pages/Budgets";
+import ServicesTable from "./pages/ServicesTable";
+import SystemSettings from "./pages/SystemSettings";
+import UserManagement from "./pages/UserManagement";
+import NotFound from "./pages/NotFound";
+import Layout from "./components/Layout";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-// Protected Route component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
+
+const AppContent = () => {
   const { user, profile, loading } = useAuth();
 
   if (loading) {
@@ -37,54 +55,20 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Auth />;
   }
 
-  return <Layout>{children}</Layout>;
-}
-
-function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <div className="min-h-screen">
-            <Routes>
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/checklists" element={
-                <ProtectedRoute>
-                  <AllChecklists />
-                </ProtectedRoute>
-              } />
-              <Route path="/services" element={
-                <ProtectedRoute>
-                  <ServicesTable />
-                </ProtectedRoute>
-              } />
-              <Route path="/budgets" element={
-                <ProtectedRoute>
-                  <Budgets />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <SystemSettings />
-                </ProtectedRoute>
-              } />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/register/:token" element={<Register />} />
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
-            <InstallPrompt />
-          </div>
-          <Toaster />
-        </Router>
-      </AuthProvider>
-    </QueryClientProvider>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/checklists" element={<AllChecklists />} />
+        <Route path="/budgets" element={<Budgets />} />
+        <Route path="/services" element={<ServicesTable />} />
+        <Route path="/system-settings" element={<SystemSettings />} />
+        <Route path="/user-management" element={<UserManagement />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Layout>
   );
-}
+};
 
 export default App;

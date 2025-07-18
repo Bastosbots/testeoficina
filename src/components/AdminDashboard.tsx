@@ -1,16 +1,15 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Users, ClipboardCheck, Calculator, Settings, Shield, Clock, AlertCircle, Eye, Edit } from "lucide-react";
+import { Users, ClipboardCheck, Calculator, Settings, Shield, Clock, AlertCircle, Eye, Edit, UserCog } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useChecklists } from "@/hooks/useChecklists";
 import { useBudgets } from "@/hooks/useBudgets";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
-import UserManagement from "./UserManagement";
-import SecurityAuditLog from "./SecurityAuditLog";
 import BudgetStatus from "./BudgetStatus";
 
 const AdminDashboard = () => {
@@ -45,13 +44,28 @@ const AdminDashboard = () => {
     navigate(`/budgets?edit=${budgetId}`);
   };
 
+  const handleUserManagement = () => {
+    navigate('/user-management');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Shield className="h-4 w-4" />
-          Acesso Administrativo
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={handleUserManagement}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <UserCog className="h-4 w-4" />
+            Usuários
+          </Button>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4" />
+            Acesso Administrativo
+          </div>
         </div>
       </div>
 
@@ -260,12 +274,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* User Management */}
-      <UserManagement />
-
-      {/* Security Audit Log */}
-      <SecurityAuditLog />
     </div>
   );
 };
