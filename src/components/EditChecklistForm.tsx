@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { toast } from "sonner";
@@ -148,6 +149,18 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
       </header>
 
       <div className="mobile-card-padding lg:p-6">
+        {/* Progress Bar */}
+        <Card className="mb-3 lg:mb-6">
+          <CardContent className="mobile-card-padding lg:p-4">
+            <div className="flex items-center justify-between mb-2 lg:mb-3">
+              <span className="mobile-text-sm lg:text-base font-medium text-foreground">Progresso do Checklist</span>
+              <span className="mobile-text-sm lg:text-base text-muted-foreground">
+                {items.filter(item => item.checked).length}/{items.length} itens ({Math.round(items.length > 0 ? (items.filter(item => item.checked).length / items.length) * 100 : 0)}%)
+              </span>
+            </div>
+            <Progress value={items.length > 0 ? (items.filter(item => item.checked).length / items.length) * 100 : 0} className="h-2 lg:h-3" />
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-6">
           {/* Informações Básicas */}

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, 
@@ -160,16 +161,11 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         {/* Progress Bar */}
         <Card className="mb-3 lg:mb-6">
           <CardContent className="mobile-card-padding lg:p-4">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 lg:mb-3">
               <span className="mobile-text-sm lg:text-base font-medium text-foreground">Progresso do Checklist</span>
               <span className="mobile-text-sm lg:text-base text-muted-foreground">{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2 lg:h-3">
-              <div 
-                className="bg-primary h-2 lg:h-3 rounded-full transition-all duration-300" 
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+            <Progress value={progress} className="h-2 lg:h-3" />
           </CardContent>
         </Card>
 

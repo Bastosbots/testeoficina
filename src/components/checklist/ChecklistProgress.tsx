@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 interface ChecklistProgressProps {
   checkedItems: number;
@@ -19,12 +20,7 @@ const ChecklistProgress = ({ checkedItems, totalItems }: ChecklistProgressProps)
             {checkedItems}/{totalItems} itens ({Math.round(progress)}%)
           </span>
         </div>
-        <div className="w-full bg-muted rounded-full h-2 lg:h-3">
-          <div 
-            className="bg-primary h-2 lg:h-3 rounded-full transition-all duration-300" 
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <Progress value={progress} className="h-2 lg:h-3" />
       </CardContent>
     </Card>
   );
