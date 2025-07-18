@@ -60,7 +60,6 @@ export const LogoUpload: React.FC<LogoUploadProps> = ({ isAdmin = false }) => {
           id: settings.id,
           company_logo_url: publicUrl
         });
-        toast.success('Logo atualizada com sucesso!');
       }
     } catch (error) {
       console.error('Erro ao fazer upload:', error);

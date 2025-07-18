@@ -62,9 +62,16 @@ const SystemSettings = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!settings?.id) {
+      toast.error('Configurações não encontradas');
+      return;
+    }
+    
     try {
-      await updateSettingsMutation.mutateAsync(formData);
-      toast.success('Configurações atualizadas com sucesso!');
+      await updateSettingsMutation.mutateAsync({
+        id: settings.id,
+        ...formData
+      });
     } catch (error) {
       console.error('Error updating settings:', error);
       toast.error('Erro ao atualizar configurações');

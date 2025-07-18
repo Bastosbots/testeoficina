@@ -43,10 +43,17 @@ export const useUpdateSystemSettings = () => {
   
   return useMutation({
     mutationFn: async (settings: Partial<SystemSettings>) => {
+      // Remover o ID dos dados de atualização
+      const { id, ...updateData } = settings;
+      
+      if (!id) {
+        throw new Error('ID não fornecido para atualização');
+      }
+      
       const { data, error } = await supabase
         .from('system_settings')
-        .update(settings)
-        .eq('id', settings.id)
+        .update(updateData)
+        .eq('id', id)
         .select()
         .single();
       
