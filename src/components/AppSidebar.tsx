@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
@@ -11,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -63,7 +61,7 @@ const adminNavigation = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
@@ -108,7 +106,14 @@ export function AppSidebar() {
             <p className="mobile-text-xs lg:text-xs text-muted-foreground">{systemDescription}</p>
           </div>
         )}
-        <SidebarTrigger className="ml-auto touch-target" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="ml-auto touch-target h-7 w-7"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
       </div>
 
       <SidebarContent>
