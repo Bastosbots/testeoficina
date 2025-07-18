@@ -80,7 +80,7 @@ const AdminDashboard = () => {
       >
         <UserCog className="h-4 w-4" />
         Usuários
-      </Button>
+      </Button><br></br>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
