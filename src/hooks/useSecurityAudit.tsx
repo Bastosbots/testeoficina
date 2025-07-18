@@ -14,18 +14,23 @@ export const useSecurityAudit = () => {
         throw new Error('Access denied: Admin role required');
       }
 
-      // Query the security_audit_log table directly using SQL
-      const { data, error } = await supabase
-        .rpc('get_security_audit_logs')
-        .limit(100);
-      
-      if (error) {
-        // Fallback to empty array if function doesn't exist yet
-        console.warn('Security audit logs not available:', error);
+      try {
+        // Query the security_audit_log table directly using SQL
+        const { data, error } = await supabase
+          .rpc('get_security_audit_logs' as any)
+          .limit(100);
+        
+        if (error) {
+          // Fallback to empty array if function doesn't exist yet
+          console.warn('Security audit logs not available:', error);
+          return [];
+        }
+        
+        return (data as SecurityAuditLog[]) || [];
+      } catch (err) {
+        console.warn('Security audit logs not available:', err);
         return [];
       }
-      
-      return data || [];
     },
     enabled: profile?.role === 'admin',
   });
@@ -35,7 +40,7 @@ export const useLogSecurityEvent = () => {
   return async (action: string, resource: string, details?: any) => {
     try {
       // Try to call the log_security_event function
-      const { error } = await supabase.rpc('log_security_event', {
+      const { error } = await supabase.rpc('log_security_event' as any, {
         p_action: action,
         p_resource: resource,
         p_details: details ? JSON.stringify(details) : null

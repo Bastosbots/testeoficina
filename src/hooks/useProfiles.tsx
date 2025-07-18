@@ -60,7 +60,7 @@ export const useUpdateUserData = () => {
 
       // Try to use the new secure update function, with fallback to direct update
       try {
-        const { error } = await supabase.rpc('update_user_profile', {
+        const { error } = await supabase.rpc('update_user_profile' as any, {
           p_user_id: userId,
           p_full_name: fullName || null,
           p_username: username || null
@@ -174,7 +174,7 @@ export const useUpdateProfile = () => {
       // Update username using secure function if changed and available
       if (username !== currentProfile.username) {
         try {
-          const { error } = await supabase.rpc('update_user_profile', {
+          const { error } = await supabase.rpc('update_user_profile' as any, {
             p_user_id: id,
             p_username: username
           });
