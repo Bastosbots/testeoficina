@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,26 +39,42 @@ export const useBudgets = () => {
   // Setup realtime subscription using the centralized hook
   useRealtime({
     table: 'budgets',
-    queryKey: ['budgets']
+    queryKey: ['budgets'],
+    channelName: 'budgets-realtime'
+  });
+
+  // Also listen to budget_items changes to refresh budgets list
+  useRealtime({
+    table: 'budget_items',
+    queryKey: ['budgets'],
+    channelName: 'budget-items-for-budgets'
   });
 
   return useQuery({
     queryKey: ['budgets'],
     queryFn: async () => {
+      console.log('Fetching budgets data...');
+      
       // First get all budgets
       const { data: budgets, error: budgetsError } = await supabase
         .from('budgets')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (budgetsError) throw budgetsError;
+      if (budgetsError) {
+        console.error('Error fetching budgets:', budgetsError);
+        throw budgetsError;
+      }
 
       // Then get all mechanics
       const { data: mechanics, error: mechanicsError } = await supabase
         .from('profiles')
         .select('id, full_name');
 
-      if (mechanicsError) throw mechanicsError;
+      if (mechanicsError) {
+        console.error('Error fetching mechanics:', mechanicsError);
+        throw mechanicsError;
+      }
 
       // Combine the data
       const budgetsWithMechanics = budgets?.map(budget => ({
@@ -67,8 +82,11 @@ export const useBudgets = () => {
         mechanic: mechanics?.find(m => m.id === budget.mechanic_id) || null
       })) || [];
 
+      console.log('Budgets fetched successfully:', budgetsWithMechanics.length, 'budgets');
       return budgetsWithMechanics as Budget[];
     },
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 };
 
@@ -95,6 +113,8 @@ export const useBudgetItems = (budgetId: string) => {
       if (error) throw error;
       return data as BudgetItem[];
     },
+    enabled: !!budgetId,
+    staleTime: 0,
   });
 };
 
@@ -128,7 +148,7 @@ export const useCreateBudget = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalidate queries to ensure immediate UI update
+      // Invalidate multiple queries to ensure immediate UI update
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
       toast.success('Orçamento criado com sucesso!');
@@ -158,7 +178,7 @@ export const useUpdateBudget = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalidate queries to ensure immediate UI update
+      // Invalidate multiple queries to ensure immediate UI update
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
       toast.success('Orçamento atualizado com sucesso!');
@@ -188,8 +208,9 @@ export const useCreateBudgetItems = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalidate queries to ensure immediate UI update
+      // Invalidate multiple queries to ensure immediate UI update
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['budget-items'] });
       toast.success('Itens do orçamento adicionados com sucesso!');
       console.log('Budget items created successfully, queries invalidated');
     },
@@ -238,7 +259,7 @@ export const useUpdateBudgetItems = () => {
       return [];
     },
     onSuccess: () => {
-      // Invalidate queries to ensure immediate UI update
+      // Invalidate multiple queries to ensure immediate UI update
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['budget-items'] });
       toast.success('Itens do orçamento atualizados com sucesso!');

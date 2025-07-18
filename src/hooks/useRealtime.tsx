@@ -30,10 +30,24 @@ export const useRealtime = ({ table, queryKey, filter, channelName }: UseRealtim
         },
         (payload) => {
           console.log(`Change detected in ${table}:`, payload);
+          // Invalidate multiple related queries to ensure all data is updated
           queryClient.invalidateQueries({ queryKey });
+          
+          // Also invalidate any queries that might be related to budgets
+          if (table === 'budgets') {
+            queryClient.invalidateQueries({ queryKey: ['budgets'] });
+            queryClient.invalidateQueries({ queryKey: ['budget-items'] });
+          }
+          
+          if (table === 'budget_items') {
+            queryClient.invalidateQueries({ queryKey: ['budgets'] });
+            queryClient.invalidateQueries({ queryKey: ['budget-items'] });
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Realtime subscription status for ${table}:`, status);
+      });
 
     return () => {
       console.log(`Cleaning up realtime subscription for ${table}`);
