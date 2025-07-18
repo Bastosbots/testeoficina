@@ -143,7 +143,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
     // Header text
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('✓', colPositions[0] + 6, tableY + 5);
+    doc.text('Verificado', colPositions[0] + 6, tableY + 5);
     doc.text('Item', colPositions[1] + 2, tableY + 5);
     doc.text('Categoria', colPositions[2] + 2, tableY + 5);
     doc.text('Observação', colPositions[3] + 2, tableY + 5);
@@ -168,7 +168,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
       });
 
       // Row data
-      doc.text(item.checked ? '✓' : '', colPositions[0] + 6, rowY + 5);
+      doc.text(item.checked ? 'Sim' : '', colPositions[0] + 6, rowY + 5);
       doc.text(item.item_name.substring(0, 25), colPositions[1] + 2, rowY + 5);
       doc.text(item.category.substring(0, 15), colPositions[2] + 2, rowY + 5);
       doc.text((item.observation || '').substring(0, 25), colPositions[3] + 2, rowY + 5);
