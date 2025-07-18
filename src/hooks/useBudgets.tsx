@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,16 +38,28 @@ export const useBudgets = () => {
   return useQuery({
     queryKey: ['budgets'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all budgets
+      const { data: budgets, error: budgetsError } = await supabase
         .from('budgets')
-        .select(`
-          *,
-          mechanic:profiles(full_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Budget[];
+      if (budgetsError) throw budgetsError;
+
+      // Then get all mechanics
+      const { data: mechanics, error: mechanicsError } = await supabase
+        .from('profiles')
+        .select('id, full_name');
+
+      if (mechanicsError) throw mechanicsError;
+
+      // Combine the data
+      const budgetsWithMechanics = budgets?.map(budget => ({
+        ...budget,
+        mechanic: mechanics?.find(m => m.id === budget.mechanic_id) || null
+      })) || [];
+
+      return budgetsWithMechanics as Budget[];
     },
   });
 };
