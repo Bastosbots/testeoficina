@@ -105,7 +105,7 @@ export function AppSidebar() {
         {state !== 'collapsed' && (
           <div className="flex items-center gap-3">
             {logoUrl && (
-              <div className="w-32 h-16 lg:w-10 lg:h-10 flex-shrink-0">
+              <div className="w-8 h-8 lg:w-32 lg:h-32 flex-shrink-0">
                 <img
                   src={logoUrl}
                   alt="Logo da empresa"
