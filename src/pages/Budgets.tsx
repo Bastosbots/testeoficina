@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,13 +10,35 @@ import { useAuth } from '@/hooks/useAuth';
 import BudgetForm from '@/components/BudgetForm';
 import BudgetViewer from '@/components/BudgetViewer';
 import BudgetStatus from '@/components/BudgetStatus';
+import { useSearchParams } from 'react-router-dom';
 
 const Budgets = () => {
   const { data: budgets = [], isLoading, refetch } = useBudgets();
   const { profile } = useAuth();
-  const [activeView, setActiveView] = useState<'list' | 'new' | 'view'>('list');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeView, setActiveView] = useState<'list' | 'new' | 'view' | 'edit'>('list');
   const [selectedBudget, setSelectedBudget] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Handle URL parameters
+  useEffect(() => {
+    const viewId = searchParams.get('view');
+    const editId = searchParams.get('edit');
+
+    if (viewId) {
+      const budget = budgets.find(b => b.id === viewId);
+      if (budget) {
+        setSelectedBudget(budget);
+        setActiveView('view');
+      }
+    } else if (editId) {
+      const budget = budgets.find(b => b.id === editId);
+      if (budget) {
+        setSelectedBudget(budget);
+        setActiveView('edit');
+      }
+    }
+  }, [searchParams, budgets]);
 
   const filteredBudgets = budgets.filter(budget =>
     budget.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,20 +59,30 @@ const Budgets = () => {
   const handleViewBudget = (budget: any) => {
     setSelectedBudget(budget);
     setActiveView('view');
+    setSearchParams({ view: budget.id });
+  };
+
+  const handleEditBudget = (budget: any) => {
+    setSelectedBudget(budget);
+    setActiveView('edit');
+    setSearchParams({ edit: budget.id });
   };
 
   const handleBackToList = () => {
     setActiveView('list');
     setSelectedBudget(null);
+    setSearchParams({});
     refetch();
   };
 
   const handleNewBudget = () => {
     setActiveView('new');
+    setSearchParams({});
   };
 
   const handleBudgetComplete = () => {
     setActiveView('list');
+    setSearchParams({});
     refetch();
   };
 
@@ -72,6 +104,16 @@ const Budgets = () => {
       <BudgetViewer
         budget={selectedBudget}
         onBack={handleBackToList}
+      />
+    );
+  }
+
+  if (activeView === 'edit' && selectedBudget) {
+    return (
+      <BudgetForm
+        budget={selectedBudget}
+        onBack={handleBackToList}
+        onComplete={handleBudgetComplete}
       />
     );
   }

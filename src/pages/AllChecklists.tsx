@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,15 +10,43 @@ import { useAuth } from '@/hooks/useAuth';
 import ChecklistViewer from '@/components/ChecklistViewer';
 import EditChecklistForm from '@/components/EditChecklistForm';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 const AllChecklists = () => {
   const { data: checklists = [] } = useChecklists();
   const { profile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [activeView, setActiveView] = useState<'list' | 'view' | 'edit'>('list');
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
+
+  // Handle URL parameters
+  useEffect(() => {
+    const viewId = searchParams.get('view');
+    const editId = searchParams.get('edit');
+
+    if (viewId) {
+      const checklist = checklists.find(c => c.id === viewId);
+      if (checklist) {
+        setSelectedChecklist(checklist);
+        setActiveView('view');
+      }
+    } else if (editId) {
+      const checklist = checklists.find(c => c.id === editId);
+      if (checklist) {
+        // Verificar se o usuário pode editar
+        if (profile?.role !== 'admin' && checklist.mechanic_id !== profile?.id) {
+          toast.error('Você só pode editar seus próprios checklists');
+          setSearchParams({});
+          return;
+        }
+        setSelectedChecklist(checklist);
+        setActiveView('edit');
+      }
+    }
+  }, [searchParams, checklists, profile]);
 
   // Filtrar checklists baseado na busca e filtros
   const filteredChecklists = checklists.filter(checklist => {
@@ -41,6 +68,7 @@ const AllChecklists = () => {
   const handleViewChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
     setActiveView('view');
+    setSearchParams({ view: checklist.id });
   };
 
   const handleEditChecklist = (checklist: any) => {
@@ -51,11 +79,13 @@ const AllChecklists = () => {
     }
     setSelectedChecklist(checklist);
     setActiveView('edit');
+    setSearchParams({ edit: checklist.id });
   };
 
   const handleBackToList = () => {
     setActiveView('list');
     setSelectedChecklist(null);
+    setSearchParams({});
   };
 
   const getStatusBadge = (status: string) => {
