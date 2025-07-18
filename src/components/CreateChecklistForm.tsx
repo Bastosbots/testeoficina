@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useCreateChecklist } from "@/hooks/useChecklists";
 import { useAuth } from "@/hooks/useAuth";
 import { FileUpload } from "./FileUpload";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CreateChecklistFormProps {
   onBack: () => void;
@@ -78,16 +79,9 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
       return;
     }
 
-    // Validar dados do veículo
-    if (!vehicleData.vehicleName || !vehicleData.plate || !vehicleData.customerName) {
-      toast.error('Preencha todos os dados obrigatórios do veículo!');
-      return;
-    }
-
-    const checkedItems = items.filter(item => item.checked);
-    
-    if (checkedItems.length === 0) {
-      toast.error('Selecione pelo menos um item do checklist!');
+    // Validar dados do veículo (nome do cliente agora é opcional)
+    if (!vehicleData.vehicleName || !vehicleData.plate) {
+      toast.error('Preencha o nome do veículo e a placa!');
       return;
     }
 
@@ -96,7 +90,7 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
         mechanic_id: user.id,
         vehicle_name: vehicleData.vehicleName,
         plate: vehicleData.plate,
-        customer_name: vehicleData.customerName,
+        customer_name: vehicleData.customerName || 'Cliente não informado',
         priority: vehicleData.priority,
         status: 'Em Andamento',
         general_observations: generalObservations || null,
@@ -106,7 +100,34 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
 
       console.log('Saving checklist:', { checklistData });
 
-      await createChecklistMutation.mutateAsync(checklistData);
+      // Criar o checklist primeiro
+      const createdChecklist = await createChecklistMutation.mutateAsync(checklistData);
+      
+      // Salvar os itens marcados do checklist
+      const checkedItems = items.filter(item => item.checked);
+      
+      if (checkedItems.length > 0) {
+        console.log('Saving checklist items:', { checkedItems });
+        
+        // Usar a função do banco para salvar os itens
+        const itemsData = checkedItems.map(item => ({
+          name: item.name,
+          category: item.category,
+          checked: item.checked,
+          observation: item.observation || ''
+        }));
+
+        const { error: itemsError } = await supabase.rpc('save_checklist_items', {
+          p_checklist_id: createdChecklist.id,
+          p_items: itemsData
+        });
+
+        if (itemsError) {
+          console.error('Error saving checklist items:', itemsError);
+          toast.error('Erro ao salvar itens do checklist');
+          return;
+        }
+      }
 
       onComplete();
     } catch (error) {
@@ -253,14 +274,13 @@ const CreateChecklistForm = ({ onBack, onComplete }: CreateChecklistFormProps) =
                   />
                 </div>
                 <div className="space-y-1 lg:space-y-2">
-                  <Label htmlFor="customer-name" className="mobile-text-xs lg:text-sm">Nome do Cliente *</Label>
+                  <Label htmlFor="customer-name" className="mobile-text-xs lg:text-sm">Nome do Cliente (opcional)</Label>
                   <Input
                     id="customer-name"
                     value={vehicleData.customerName}
                     onChange={(e) => setVehicleData(prev => ({ ...prev, customerName: e.target.value }))}
                     placeholder="João da Silva"
                     className="mobile-input lg:h-10"
-                    required
                   />
                 </div>
                 <div className="space-y-1 lg:space-y-2">
