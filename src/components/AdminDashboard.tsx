@@ -1,562 +1,93 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  LogOut, 
-  FileText, 
-  Users, 
-  Eye,
-  UserPlus,
-  ArrowLeft,
-  CheckCircle,
-  X
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { useChecklists, useUpdateChecklist } from '@/hooks/useChecklists';
-import ChecklistViewer from './ChecklistViewer';
-import BudgetViewer from './BudgetViewer';
-import UserManagement from './UserManagement';
-import InviteTokenManager from './InviteTokenManager';
-import { useBudgets, useUpdateBudget } from '@/hooks/useBudgets';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, ClipboardCheck, Calculator, Settings, Shield } from "lucide-react";
+import { useProfiles } from "@/hooks/useProfiles";
+import { useChecklists } from "@/hooks/useChecklists";
+import { useBudgets } from "@/hooks/useBudgets";
+import UserManagement from "./UserManagement";
+import SecurityAuditLog from "./SecurityAuditLog";
 
 const AdminDashboard = () => {
-  const { data: checklists, isLoading: checklistsLoading } = useChecklists();
-  const { data: budgets, isLoading: budgetsLoading } = useBudgets();
-  const { signOut } = useAuth();
-  const updateChecklist = useUpdateChecklist();
-  const updateBudget = useUpdateBudget();
-  const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
-  const [selectedBudget, setSelectedBudget] = useState<any>(null);
-  const [showUserManagement, setShowUserManagement] = useState(false);
-  const [showInviteTokens, setShowInviteTokens] = useState(false);
-  const [checklistViewerOpen, setChecklistViewerOpen] = useState(false);
-  const [budgetViewerOpen, setBudgetViewerOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [activeView, setActiveView] = useState<'checklists' | 'budgets'>('checklists');
+  const { data: profiles = [] } = useProfiles();
+  const { data: checklists = [] } = useChecklists();
+  const { data: budgets = [] } = useBudgets();
 
-  if (checklistsLoading || budgetsLoading) {
-    return (
-      <div className="lg:zoom-90 flex items-center justify-center min-h-screen bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  const stats = {
-    totalChecklists: checklists?.length || 0,
-    completed: checklists?.filter(c => (c as any).status === 'Concluído').length || 0,
-    inProgress: checklists?.filter(c => (c as any).status === 'Em Andamento').length || 0,
-    cancelled: checklists?.filter(c => (c as any).status === 'Cancelado').length || 0
-  };
-
-  const handleViewChecklist = (checklist: any) => {
-    setSelectedChecklist(checklist);
-    setChecklistViewerOpen(true);
-  };
-
-  const handleViewBudget = (budget: any) => {
-    setSelectedBudget(budget);
-    setBudgetViewerOpen(true);
-  };
-
-  const handleCompleteChecklist = async (checklistId: string) => {
-    try {
-      await updateChecklist.mutateAsync({
-        id: checklistId,
-        updateData: { 
-          status: 'Concluído',
-          completed_at: new Date().toISOString()
-        }
-      });
-      toast.success('Checklist concluído com sucesso!');
-    } catch (error) {
-      console.error('Erro ao concluir checklist:', error);
-      toast.error('Erro ao concluir checklist');
-    }
-  };
-
-  const handleApproveBudget = async (budgetId: string) => {
-    try {
-      await updateBudget.mutateAsync({
-        id: budgetId,
-        status: 'Aprovado'
-      });
-      toast.success('Orçamento aprovado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao aprovar orçamento:', error);
-      toast.error('Erro ao aprovar orçamento');
-    }
-  };
-
-  const handleRejectBudget = async (budgetId: string) => {
-    try {
-      await updateBudget.mutateAsync({
-        id: budgetId,
-        status: 'Rejeitado'
-      });
-      toast.success('Orçamento rejeitado');
-    } catch (error) {
-      console.error('Erro ao rejeitar orçamento:', error);
-      toast.error('Erro ao rejeitar orçamento');
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success('Logout realizado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      toast.error('Erro ao fazer logout');
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Concluído':
-        return 'bg-green-500 text-white border-green-500';
-      case 'Em Andamento':
-        return 'bg-blue-500 text-white border-blue-500';
-      case 'Pendente':
-        return 'bg-yellow-500 text-white border-yellow-500';
-      case 'Cancelado':
-        return 'bg-red-500 text-white border-red-500';
-      default:
-        return 'bg-muted text-muted-foreground border-muted';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Alta':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Média':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Baixa':
-        return 'bg-green-100 text-green-800 border-green-200';
-      default:
-        return 'bg-muted text-muted-foreground border-muted';
-    }
-  };
-
-  // Filtrar checklists - por padrão mostrar apenas "Em Andamento"
-  const getDefaultChecklistFilter = () => {
-    if (filterStatus === 'all') {
-      return checklists?.filter(checklist => (checklist as any).status === 'Em Andamento') || [];
-    }
-    return checklists?.filter(checklist => {
-      const matchesSearch = searchTerm === '' || 
-        (checklist as any).customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (checklist as any).vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (checklist as any).plate?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = filterStatus === 'all' || (checklist as any).status === filterStatus;
-      
-      return matchesSearch && matchesStatus;
-    }) || [];
-  };
-
-  // Filtrar orçamentos - por padrão mostrar apenas "Pendente"
-  const getDefaultBudgetFilter = () => {
-    if (filterStatus === 'all') {
-      return budgets?.filter(budget => budget.status === 'Pendente') || [];
-    }
-    return budgets?.filter(budget => {
-      const matchesSearch = searchTerm === '' || 
-        budget.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        budget.vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        budget.vehicle_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        budget.budget_number?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = filterStatus === 'all' || budget.status === filterStatus;
-      
-      return matchesSearch && matchesStatus;
-    }) || [];
-  };
-
-  const filteredChecklists = getDefaultChecklistFilter();
-  const filteredBudgets = getDefaultBudgetFilter();
-
-  // Render ChecklistViewer as a separate page
-  if (checklistViewerOpen && selectedChecklist) {
-    return (
-      <ChecklistViewer
-        checklist={selectedChecklist}
-        onBack={() => {
-          setChecklistViewerOpen(false);
-          setSelectedChecklist(null);
-        }}
-      />
-    );
-  }
-
-  // Render BudgetViewer as a separate page
-  if (budgetViewerOpen && selectedBudget) {
-    return (
-      <BudgetViewer
-        budget={selectedBudget}
-        onBack={() => {
-          setBudgetViewerOpen(false);
-          setSelectedBudget(null);
-        }}
-      />
-    );
-  }
-
-  if (showUserManagement) {
-    return (
-      <div className="lg:zoom-90 min-h-screen bg-background">
-        <div className="bg-card shadow-sm border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowUserManagement(false)}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
-              </Button>
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          <UserManagement />
-        </div>
-      </div>
-    );
-  }
-
-  if (showInviteTokens) {
-    return (
-      <div className="lg:zoom-90 min-h-screen bg-background">
-        <div className="bg-card shadow-sm border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowInviteTokens(false)}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Voltar
-              </Button>
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          <InviteTokenManager />
-        </div>
-      </div>
-    );
-  }
+  const totalMechanics = profiles.filter(p => p.role === 'mechanic').length;
+  const completedChecklists = checklists.filter(c => c.status === 'Concluído').length;
+  const pendingChecklists = checklists.filter(c => c.status === 'Em Andamento').length;
+  const totalBudgets = budgets.length;
 
   return (
-    <div className="lg:zoom-90 min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Painel Administrativo</h1>
-              <p className="text-sm text-muted-foreground">Visão geral completa do sistema</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowInviteTokens(true)}
-                className="flex items-center gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                Tokens de Convite
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowUserManagement(true)}
-                className="flex items-center gap-2"
-              >
-                <Users className="h-4 w-4" />
-                Usuários
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sair
-              </Button>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Shield className="h-4 w-4" />
+          Acesso Administrativo
         </div>
       </div>
 
-      <div className="p-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Checklists</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalChecklists}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Concluídos</CardTitle>
-              <FileText className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Em Andamento</CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
-              <FileText className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="mb-6">
-          <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
-            <Button
-              variant={activeView === 'checklists' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveView('checklists')}
-              className="flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              Checklists Em Andamento
-            </Button>
-            <Button
-              variant={activeView === 'budgets' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveView('budgets')}
-              className="flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              Orçamentos Pendentes
-            </Button>
-          </div>
-        </div>
-
-        {/* Main Content */}
+      {/* Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {activeView === 'checklists' ? 'Checklists Em Andamento' : 'Orçamentos Pendentes'}
-            </CardTitle>
-            <CardDescription>
-              {activeView === 'checklists' 
-                ? 'Checklists que estão sendo executados no momento'
-                : 'Orçamentos aguardando aprovação ou resposta'
-              }
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Mecânicos</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {/* Filters */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Input
-                  placeholder={activeView === 'checklists' 
-                    ? "Buscar por cliente, veículo ou placa..." 
-                    : "Buscar por cliente, veículo, placa ou número do orçamento..."
-                  }
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full lg:w-[200px]">
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {activeView === 'checklists' ? 'Apenas Em Andamento' : 'Apenas Pendentes'}
-                  </SelectItem>
-                  <SelectItem value="Pendente">Pendente</SelectItem>
-                  <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-                  <SelectItem value="Concluído">Concluído</SelectItem>
-                  <SelectItem value="Cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="text-2xl font-bold">{totalMechanics}</div>
+            <p className="text-xs text-muted-foreground">
+              +{profiles.length - totalMechanics} admin(s)
+            </p>
+          </CardContent>
+        </Card>
 
-            {/* Content Table */}
-            <div className="rounded-md border border-border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Veículo</TableHead>
-                    <TableHead>Placa</TableHead>
-                    <TableHead>Status</TableHead>
-                    {activeView === 'checklists' && <TableHead>Prioridade</TableHead>}
-                    {activeView === 'budgets' && <TableHead>Número</TableHead>}
-                    {activeView === 'budgets' && <TableHead>Valor Final</TableHead>}
-                    <TableHead>Data</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeView === 'checklists' ? (
-                    filteredChecklists?.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          Nenhum checklist em andamento encontrado
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredChecklists?.map((checklist: any) => (
-                        <TableRow key={checklist.id}>
-                          <TableCell className="font-medium">{checklist.customer_name}</TableCell>
-                          <TableCell>{checklist.vehicle_name}</TableCell>
-                          <TableCell className="font-mono">{checklist.plate}</TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(checklist.status)}>
-                              {checklist.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={getPriorityColor(checklist.priority)}>
-                              {checklist.priority}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(checklist.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewChecklist(checklist)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {checklist.status === 'Em Andamento' && (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => handleCompleteChecklist(checklist.id)}
-                                  disabled={updateChecklist.isPending}
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                  Concluir
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )
-                  ) : (
-                    filteredBudgets?.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                          Nenhum orçamento pendente encontrado
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredBudgets?.map((budget) => (
-                        <TableRow key={budget.id}>
-                          <TableCell className="font-medium">{budget.customer_name}</TableCell>
-                          <TableCell>{budget.vehicle_name || '-'}</TableCell>
-                          <TableCell className="font-mono">{budget.vehicle_plate || '-'}</TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(budget.status)}>
-                              {budget.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-mono">{budget.budget_number}</TableCell>
-                          <TableCell className="font-medium">
-                            {new Intl.NumberFormat('pt-BR', { 
-                              style: 'currency', 
-                              currency: 'BRL' 
-                            }).format(budget.final_amount)}
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(budget.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex gap-2 justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewBudget(budget)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {budget.status === 'Pendente' && (
-                                <>
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => handleApproveBudget(budget.id)}
-                                    disabled={updateBudget.isPending}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                    Aprovar
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => handleRejectBudget(budget.id)}
-                                    disabled={updateBudget.isPending}
-                                  >
-                                    <X className="h-4 w-4" />
-                                    Rejeitar
-                                  </Button>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Checklists Concluídos</CardTitle>
+            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{completedChecklists}</div>
+            <p className="text-xs text-muted-foreground">
+              {pendingChecklists} em andamento
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Orçamentos</CardTitle>
+            <Calculator className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalBudgets}</div>
+            <p className="text-xs text-muted-foreground">
+              Total de orçamentos criados
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sistema</CardTitle>
+            <Settings className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">Ativo</div>
+            <p className="text-xs text-muted-foreground">
+              Todos os sistemas operacionais
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* User Management */}
+      <UserManagement />
+
+      {/* Security Audit Log */}
+      <SecurityAuditLog />
     </div>
   );
 };

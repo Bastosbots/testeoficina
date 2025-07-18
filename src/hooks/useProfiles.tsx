@@ -1,7 +1,9 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLogSecurityEvent } from '@/hooks/useSecurityAudit';
 
 export const useProfiles = () => {
   const queryClient = useQueryClient();
@@ -45,34 +47,45 @@ export const useProfiles = () => {
 
 export const useUpdateUserData = () => {
   const queryClient = useQueryClient();
+  const logSecurityEvent = useLogSecurityEvent();
   
   return useMutation({
     mutationFn: async ({ userId, fullName, username }: { userId: string, fullName?: string, username?: string }) => {
-      console.log('Updating user data:', userId, { fullName, username });
+      console.log('Updating user data via secure function:', userId, { fullName, username });
       
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
         throw new Error('Usuário não autenticado');
       }
 
-      const { data, error } = await supabase.functions.invoke('update-user-data', {
-        body: { userId, fullName, username },
-        headers: {
-          Authorization: `Bearer ${session.session.access_token}`,
-        },
+      // Use the new secure update function
+      const { error } = await supabase.rpc('update_user_profile', {
+        p_user_id: userId,
+        p_full_name: fullName || null,
+        p_username: username || null
       });
 
       if (error) {
-        console.error('Erro ao chamar função:', error);
+        console.error('Erro ao chamar função segura:', error);
+        
+        // Log security event for failed attempts
+        await logSecurityEvent('profile_update_failed', 'profiles', {
+          target_user_id: userId,
+          attempted_changes: { fullName, username },
+          error: error.message
+        });
+        
         throw new Error(error.message || 'Erro ao alterar dados do usuário');
       }
 
-      if (data.error) {
-        console.error('Erro na função:', data.error);
-        throw new Error(data.error);
-      }
+      // Log successful admin action
+      await logSecurityEvent('admin_action', 'profiles', {
+        action: 'profile_update',
+        target_user_id: userId,
+        changes: { fullName, username }
+      });
 
-      return data;
+      return { success: true };
     },
     onSuccess: () => {
       console.log('Dados do usuário alterados com sucesso');
@@ -88,13 +101,13 @@ export const useUpdateUserData = () => {
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
-  const updateUserDataMutation = useUpdateUserData();
+  const logSecurityEvent = useLogSecurityEvent();
   
   return useMutation({
     mutationFn: async ({ id, username, role }: { id: string, username: string, role: string }) => {
       console.log('Updating profile with ID:', id, 'Data:', { username, role });
       
-      // Primeiro, buscar os dados atuais do usuário para comparar
+      // First, get current profile data for comparison
       const { data: currentProfile } = await supabase
         .from('profiles')
         .select('username, role')
@@ -105,7 +118,7 @@ export const useUpdateProfile = () => {
         throw new Error('Usuário não encontrado');
       }
 
-      // Verificar se o username já existe em outro usuário
+      // Check if username already exists for another user
       const { data: usernameCheck } = await supabase
         .from('profiles')
         .select('id')
@@ -114,19 +127,38 @@ export const useUpdateProfile = () => {
         .maybeSingle();
 
       if (usernameCheck) {
+        await logSecurityEvent('admin_action_failed', 'profiles', {
+          action: 'profile_update',
+          target_user_id: id,
+          error: 'Username already exists',
+          attempted_username: username
+        });
         throw new Error('Nome de usuário já está em uso');
       }
 
-      // Se o username mudou, usar a função para sincronizar com o Auth
+      // Track what's being changed
+      const changes: any = {};
+      if (username !== currentProfile.username) changes.username = username;
+      if (role !== currentProfile.role) changes.role = role;
+
+      // Update username using secure function if changed
       if (username !== currentProfile.username) {
-        console.log('Username changed, updating via edge function');
-        await updateUserDataMutation.mutateAsync({
-          userId: id,
-          username: username
+        const { error } = await supabase.rpc('update_user_profile', {
+          p_user_id: id,
+          p_username: username
         });
+
+        if (error) {
+          await logSecurityEvent('admin_action_failed', 'profiles', {
+            action: 'username_update',
+            target_user_id: id,
+            error: error.message
+          });
+          throw new Error(`Erro ao atualizar username: ${error.message}`);
+        }
       }
 
-      // Atualizar o role no perfil se necessário
+      // Update role directly (only admins can do this due to RLS policy)
       if (role !== currentProfile.role) {
         const { data, error } = await supabase
           .from('profiles')
@@ -139,17 +171,31 @@ export const useUpdateProfile = () => {
         
         if (error) {
           console.error('Update role error:', error);
+          
+          // Log potential privilege escalation attempt
+          await logSecurityEvent('privilege_escalation_attempt', 'profiles', {
+            target_user_id: id,
+            attempted_role: role,
+            current_role: currentProfile.role,
+            error: error.message
+          });
+          
           throw new Error(`Erro ao atualizar role: ${error.message}`);
         }
         
         if (!data || data.length === 0) {
           throw new Error('Nenhuma linha foi atualizada. Usuário não encontrado.');
         }
-        
-        return data[0];
       }
 
-      // Se só o username mudou, buscar os dados atualizados
+      // Log successful admin action
+      await logSecurityEvent('admin_action', 'profiles', {
+        action: 'profile_update',
+        target_user_id: id,
+        changes: changes
+      });
+
+      // Get updated profile data
       const { data: updatedProfile } = await supabase
         .from('profiles')
         .select('*')
@@ -171,6 +217,8 @@ export const useUpdateProfile = () => {
 };
 
 export const useUpdatePassword = () => {
+  const logSecurityEvent = useLogSecurityEvent();
+  
   return useMutation({
     mutationFn: async ({ userId, newPassword }: { userId: string, newPassword: string }) => {
       console.log('Updating password for user:', userId);
@@ -189,13 +237,33 @@ export const useUpdatePassword = () => {
 
       if (error) {
         console.error('Erro ao chamar função:', error);
+        
+        await logSecurityEvent('admin_action_failed', 'auth', {
+          action: 'password_update',
+          target_user_id: userId,
+          error: error.message
+        });
+        
         throw new Error(error.message || 'Erro ao alterar senha');
       }
 
       if (data.error) {
         console.error('Erro na função:', data.error);
+        
+        await logSecurityEvent('admin_action_failed', 'auth', {
+          action: 'password_update',
+          target_user_id: userId,
+          error: data.error
+        });
+        
         throw new Error(data.error);
       }
+
+      // Log successful password change
+      await logSecurityEvent('admin_action', 'auth', {
+        action: 'password_update',
+        target_user_id: userId
+      });
 
       return data;
     },
