@@ -356,6 +356,12 @@ export type Database = {
       }
       system_settings: {
         Row: {
+          app_background_color: string | null
+          app_description: string | null
+          app_icon_url: string | null
+          app_id: string | null
+          app_name: string | null
+          app_theme_color: string | null
           company_address: string | null
           company_cnpj: string | null
           company_email: string | null
@@ -370,6 +376,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          app_background_color?: string | null
+          app_description?: string | null
+          app_icon_url?: string | null
+          app_id?: string | null
+          app_name?: string | null
+          app_theme_color?: string | null
           company_address?: string | null
           company_cnpj?: string | null
           company_email?: string | null
@@ -384,6 +396,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          app_background_color?: string | null
+          app_description?: string | null
+          app_icon_url?: string | null
+          app_id?: string | null
+          app_name?: string | null
+          app_theme_color?: string | null
           company_address?: string | null
           company_cnpj?: string | null
           company_email?: string | null
