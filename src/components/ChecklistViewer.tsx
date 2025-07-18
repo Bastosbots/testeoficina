@@ -10,7 +10,6 @@ import ChecklistProgress from "./checklist/ChecklistProgress";
 import ChecklistItems from "./checklist/ChecklistItems";
 import ChecklistInfo from "./checklist/ChecklistInfo";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface ChecklistViewerProps {
   checklist: any;
@@ -38,116 +37,186 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
     }
   };
 
-  const generatePDF = async (shouldPrint = false) => {
-    try {
-      // Create a temporary element for PDF generation
-      const tempElement = document.createElement('div');
-      tempElement.style.position = 'absolute';
-      tempElement.style.left = '-9999px';
-      tempElement.style.width = '210mm';
-      tempElement.style.backgroundColor = 'white';
-      tempElement.style.padding = '20px';
-      tempElement.style.fontFamily = 'Arial, sans-serif';
-      
-      // PDF content
-      tempElement.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 24px; color: #333; margin-bottom: 10px;">Checklist de Veículo</h1>
-          <div style="border-bottom: 2px solid #333; margin: 20px 0;"></div>
-        </div>
-        
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; color: #333; margin-bottom: 15px;">Informações do Veículo</h2>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-            <div><strong>Cliente:</strong> ${checklist.customer_name}</div>
-            <div><strong>Veículo:</strong> ${checklist.vehicle_name}</div>
-            <div><strong>Placa:</strong> ${checklist.plate}</div>
-            <div><strong>Status:</strong> ${checklist.status}</div>
-          </div>
-          <div style="margin-bottom: 15px;">
-            <strong>Data de Criação:</strong> ${new Date(checklist.created_at).toLocaleDateString('pt-BR')}
-          </div>
-          ${checklist.completed_at ? `<div><strong>Data de Conclusão:</strong> ${new Date(checklist.completed_at).toLocaleDateString('pt-BR')}</div>` : ''}
-        </div>
+  const generatePDF = (shouldPrint = false) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 15;
+    let yPosition = 20;
 
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; color: #333; margin-bottom: 15px;">Progresso</h2>
-          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px;">
-            <div style="margin-bottom: 10px;"><strong>Itens Verificados:</strong> ${checkedItems} de ${totalItems}</div>
-            <div style="background: #e5e7eb; height: 10px; border-radius: 5px; overflow: hidden;">
-              <div style="background: #10b981; height: 100%; width: ${totalItems > 0 ? (checkedItems / totalItems) * 100 : 0}%; transition: width 0.3s;"></div>
-            </div>
-            <div style="margin-top: 5px; font-size: 14px;">${totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0}% concluído</div>
-          </div>
-        </div>
+    // Company header (centered)
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    const companyName = 'Checklist de Veículo';
+    doc.text(companyName, pageWidth/2, yPosition, { align: 'center' });
+    
+    yPosition += 15;
 
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 18px; color: #333; margin-bottom: 15px;">Itens do Checklist</h2>
-          ${items.map((item: any) => `
-            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #333; border-radius: 3px; margin-right: 10px; text-align: center; line-height: 12px; background: ${item.checked ? '#10b981' : 'white'}; color: white;">
-                  ${item.checked ? '✓' : ''}
-                </span>
-                <strong>${item.item_name}</strong>
-                <span style="margin-left: 10px; padding: 2px 8px; background: #f3f4f6; border-radius: 4px; font-size: 12px;">${item.category}</span>
-              </div>
-              ${item.observation ? `<div style="margin-left: 26px; color: #666; font-size: 14px;"><strong>Observação:</strong> ${item.observation}</div>` : ''}
-            </div>
-          `).join('')}
-        </div>
+    // Title CHECKLIST (centered and bold)
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CHECKLIST DE INSPEÇÃO', pageWidth/2, yPosition, { align: 'center' });
+    
+    yPosition += 15;
 
-        ${checklist.general_observations ? `
-          <div style="margin-bottom: 20px;">
-            <h2 style="font-size: 18px; color: #333; margin-bottom: 15px;">Observações Gerais</h2>
-            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; background: #f9fafb;">
-              ${checklist.general_observations}
-            </div>
-          </div>
-        ` : ''}
+    // Two column layout for client and vehicle info
+    const leftColX = margin;
+    const rightColX = pageWidth/2 + 10;
+    
+    // Client section (left)
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cliente:', leftColX, yPosition);
+    yPosition += 8;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Nome: ${checklist.customer_name}`, leftColX, yPosition);
+    yPosition += 6;
+    
+    const clientEndY = yPosition + 10;
 
-        <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
-          Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
-        </div>
-      `;
+    // Vehicle section (right) - reset yPosition for right column
+    let rightYPosition = yPosition - 14; // Start at same level as "Cliente:"
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Veículo:', rightColX, rightYPosition);
+    rightYPosition += 8;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Modelo: ${checklist.vehicle_name}`, rightColX, rightYPosition);
+    rightYPosition += 6;
+    doc.text(`Placa: ${checklist.plate}`, rightColX, rightYPosition);
+    rightYPosition += 6;
+    doc.text(`Status: ${checklist.status}`, rightColX, rightYPosition);
+    rightYPosition += 6;
 
-      document.body.appendChild(tempElement);
+    // Move to next section after both columns
+    yPosition = Math.max(clientEndY, rightYPosition + 10);
 
-      // Generate canvas from the element
-      const canvas = await html2canvas(tempElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
-      });
+    // Progress section
+    doc.setFont('helvetica', 'bold');
+    doc.text('Progresso da Inspeção:', leftColX, yPosition);
+    yPosition += 10;
 
-      // Remove temporary element
-      document.body.removeChild(tempElement);
+    // Progress table with borders
+    const progressY = yPosition;
+    const progressHeight = 8;
+    const progressWidth = pageWidth - 2 * margin;
 
-      // Create PDF
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
+    // Progress background and borders
+    doc.setFillColor(240, 240, 240);
+    doc.rect(leftColX, progressY, progressWidth, progressHeight, 'F');
+    
+    doc.setLineWidth(0.3);
+    doc.rect(leftColX, progressY, progressWidth, progressHeight);
 
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+    // Progress text
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    const progressText = `Itens Verificados: ${checkedItems} de ${totalItems} (${totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0}% concluído)`;
+    doc.text(progressText, leftColX + 2, progressY + 5);
 
-      const fileName = `checklist-${checklist.plate}-${new Date().toISOString().split('T')[0]}.pdf`;
+    yPosition = progressY + progressHeight + 15;
 
-      if (shouldPrint) {
-        // Open print dialog
-        pdf.autoPrint();
-        window.open(pdf.output('bloburl'), '_blank');
-      } else {
-        // Download PDF
-        pdf.save(fileName);
+    // Items table
+    doc.setFont('helvetica', 'bold');
+    doc.text('Itens de Inspeção:', leftColX, yPosition);
+    yPosition += 10;
+
+    // Table headers with borders
+    const tableY = yPosition;
+    const tableHeight = 8;
+    const colWidths = [15, 60, 35, 65];
+    const colPositions = [leftColX, leftColX + colWidths[0], leftColX + colWidths[0] + colWidths[1], leftColX + colWidths[0] + colWidths[1] + colWidths[2]];
+    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+
+    // Header background and borders
+    doc.setFillColor(240, 240, 240);
+    doc.rect(leftColX, tableY, tableWidth, tableHeight, 'F');
+    
+    doc.setLineWidth(0.3);
+    doc.rect(leftColX, tableY, tableWidth, tableHeight);
+    colPositions.slice(1).forEach(pos => {
+      doc.line(pos, tableY, pos, tableY + tableHeight);
+    });
+
+    // Header text
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('✓', colPositions[0] + 6, tableY + 5);
+    doc.text('Item', colPositions[1] + 2, tableY + 5);
+    doc.text('Categoria', colPositions[2] + 2, tableY + 5);
+    doc.text('Observação', colPositions[3] + 2, tableY + 5);
+
+    yPosition = tableY + tableHeight;
+
+    // Item rows
+    doc.setFont('helvetica', 'normal');
+    items.forEach((item: any) => {
+      // Check if we need a new page
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = 20;
       }
-    } catch (error) {
-      console.error('Error generating PDF:', error);
+
+      const rowY = yPosition;
+      
+      // Row borders
+      doc.rect(leftColX, rowY, tableWidth, tableHeight);
+      colPositions.slice(1).forEach(pos => {
+        doc.line(pos, rowY, pos, rowY + tableHeight);
+      });
+
+      // Row data
+      doc.text(item.checked ? '✓' : '', colPositions[0] + 6, rowY + 5);
+      doc.text(item.item_name.substring(0, 25), colPositions[1] + 2, rowY + 5);
+      doc.text(item.category.substring(0, 15), colPositions[2] + 2, rowY + 5);
+      doc.text((item.observation || '').substring(0, 25), colPositions[3] + 2, rowY + 5);
+      
+      yPosition += tableHeight;
+    });
+
+    yPosition += 10;
+
+    // General observations section
+    if (checklist.general_observations && yPosition < pageHeight - 40) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Observações Gerais:', leftColX, yPosition);
+      yPosition += 8;
+      
+      doc.setFont('helvetica', 'normal');
+      const splitObservations = doc.splitTextToSize(checklist.general_observations, pageWidth - 2 * margin);
+      
+      // Add border around observations
+      const obsHeight = splitObservations.length * 5 + 6;
+      doc.setFillColor(250, 250, 250);
+      doc.rect(leftColX, yPosition - 2, tableWidth, obsHeight, 'F');
+      doc.rect(leftColX, yPosition - 2, tableWidth, obsHeight);
+      
+      doc.text(splitObservations, leftColX + 2, yPosition + 3);
+      yPosition += obsHeight + 10;
+    }
+
+    // Footer with date and checklist info
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Checklist: ${checklist.vehicle_name} - ${checklist.plate}`, leftColX, pageHeight - 15);
+    doc.text(`Data: ${new Date(checklist.created_at).toLocaleDateString('pt-BR')}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
+    
+    if (checklist.completed_at) {
+      doc.text(`Concluído em: ${new Date(checklist.completed_at).toLocaleDateString('pt-BR')}`, pageWidth/2, pageHeight - 15, { align: 'center' });
+    }
+
+    // Generate filename
+    const fileName = `checklist-${checklist.plate}-${new Date().toISOString().split('T')[0]}.pdf`;
+
+    if (shouldPrint) {
+      // Open print dialog
+      doc.autoPrint();
+      window.open(doc.output('bloburl'), '_blank');
+    } else {
+      // Download PDF
+      doc.save(fileName);
     }
   };
 
