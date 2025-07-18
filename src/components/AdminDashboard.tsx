@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -70,10 +69,10 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
         <div className="flex items-center gap-4">
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm"
             onClick={handleUserManagement}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-2 transition-all duration-200 hover:bg-primary hover:text-primary-foreground hover:border-primary"
           >
             <UserCog className="h-4 w-4" />
             Usuários
