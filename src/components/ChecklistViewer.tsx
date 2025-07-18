@@ -143,7 +143,7 @@ const ChecklistViewer = ({ checklist, onBack }: ChecklistViewerProps) => {
     // Header text
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('Verificado', colPositions[0] + 6, tableY + 5);
+    doc.text('Check', colPositions[0] + 6, tableY + 5);
     doc.text('Item', colPositions[1] + 2, tableY + 5);
     doc.text('Categoria', colPositions[2] + 2, tableY + 5);
     doc.text('Observação', colPositions[3] + 2, tableY + 5);
