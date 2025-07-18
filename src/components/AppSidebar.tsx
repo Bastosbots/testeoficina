@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink } from 'lucide-react';
+import { Home, FileText, Settings, LogOut, Menu, Cog, DollarSign, ExternalLink, Download } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { useCapacitor } from '@/hooks/useCapacitor';
 import { toast } from 'sonner';
 
 const navigation = [
@@ -67,6 +68,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const { data: settings } = useSystemSettings();
+  const { isInstalled } = useCapacitor();
   
   const systemName = settings?.system_name || 'Oficina Check';
   const systemDescription = settings?.system_description || 'Sistema de Gestão';
@@ -97,6 +99,24 @@ export function AppSidebar() {
       toast.error('Erro ao fazer logout');
       // Em caso de erro, redirecionar mesmo assim
       window.location.href = '/auth';
+    }
+  };
+
+  const handleInstallApp = () => {
+    // Check if beforeinstallprompt event is available
+    const deferredPrompt = (window as any).deferredInstallPrompt;
+    
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          toast.success('Aplicativo instalado com sucesso!');
+        }
+        (window as any).deferredInstallPrompt = null;
+      });
+    } else {
+      // For iOS or other browsers without beforeinstallprompt
+      toast.info('Para instalar: toque em "Compartilhar" e selecione "Adicionar à Tela Inicial"');
     }
   };
 
@@ -157,6 +177,24 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {/* Install App Button - Only for mechanics and if not installed */}
+              {profile?.role !== 'admin' && !isInstalled && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={handleInstallApp}
+                    className="w-full justify-start touch-target hover:bg-muted text-primary"
+                  >
+                    <Download className="h-4 w-4 flex-shrink-0" />
+                    {state !== 'collapsed' && (
+                      <div className="flex flex-col items-start ml-2">
+                        <span className="mobile-text-sm lg:text-sm font-medium">Instalar App</span>
+                        <span className="mobile-text-xs lg:text-xs opacity-70 hidden lg:block">Adicionar à tela inicial</span>
+                      </div>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

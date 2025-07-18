@@ -12,6 +12,9 @@ declare global {
   interface Navigator {
     standalone?: boolean;
   }
+  interface Window {
+    deferredInstallPrompt?: any;
+  }
 }
 
 export const useCapacitor = (): CapacitorInfo => {
@@ -53,7 +56,19 @@ export const useCapacitor = (): CapacitorInfo => {
       }
     };
 
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Save the event so it can be triggered later
+      (window as any).deferredInstallPrompt = e;
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     checkCapacitor();
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
 
   return capacitorInfo;
