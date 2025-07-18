@@ -104,17 +104,9 @@ export function AppSidebar() {
       <div className="flex items-center justify-between mobile-card-padding lg:p-4 border-b border-border touch-target">
         {state !== 'collapsed' && (
           <div className="flex items-center gap-3">
-            {logoUrl && (
-              <div className="w-8 h-8 lg:w-32 lg:h-32 flex-shrink-0">
-                <img
-                  src={logoUrl}
-                  alt="Logo da empresa"
-                  className="w-full h-full object-contain rounded"
-                />
-              </div>
-            )}
+
             <div className="flex flex-col min-w-0">
-              <br></br>
+              <h2 className="mobile-text-lg lg:text-lg font-semibold text-foreground truncate">{systemName}</h2>
               <p className="mobile-text-xs lg:text-xs text-muted-foreground truncate">{systemDescription}</p>
             </div>
           </div>
