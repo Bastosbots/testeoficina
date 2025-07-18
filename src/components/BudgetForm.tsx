@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Minus, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useCreateBudget, useCreateBudgetItems, useUpdateBudget, useBudgetItems } from '@/hooks/useBudgets';
+import { useCreateBudget, useCreateBudgetItems, useUpdateBudget, useUpdateBudgetItems, useBudgetItems } from '@/hooks/useBudgets';
 import { Service } from '@/hooks/useServices';
 import { toast } from 'sonner';
 import VehicleSelector from './VehicleSelector';
@@ -46,6 +47,7 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
   const createBudget = useCreateBudget();
   const createBudgetItems = useCreateBudgetItems();
   const updateBudget = useUpdateBudget();
+  const updateBudgetItems = useUpdateBudgetItems();
   const { data: existingBudgetItems = [] } = useBudgetItems(budget?.id || '');
   
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -74,6 +76,7 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
         total_price: item.total_price,
       }));
       setServices(loadedServices);
+      console.log('Loaded existing budget items:', loadedServices);
     }
   }, [budget, existingBudgetItems]);
 
@@ -135,6 +138,8 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
       const finalAmount = totalAmount - discountAmount;
 
       if (budget) {
+        console.log('Updating existing budget with services:', services);
+        
         // Update existing budget
         const updatedBudgetData = {
           id: budget.id,
@@ -148,7 +153,23 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
         };
 
         await updateBudget.mutateAsync(updatedBudgetData);
-        toast.success('Orçamento atualizado com sucesso!');
+
+        // Update budget items
+        const budgetItems = services.map(service => ({
+          service_id: service.service_id,
+          service_name: service.service_name,
+          service_category: service.service_category,
+          quantity: service.quantity,
+          unit_price: service.unit_price,
+          total_price: service.total_price,
+        }));
+
+        await updateBudgetItems.mutateAsync({
+          budgetId: budget.id,
+          items: budgetItems
+        });
+
+        toast.success('Orçamento e itens atualizados com sucesso!');
       } else {
         // Create new budget
         const budgetData = {
@@ -416,10 +437,10 @@ const BudgetForm = ({ budget, onBack, onComplete }: BudgetFormProps) => {
               </Button>
               <Button
                 type="submit"
-                disabled={createBudget.isPending || createBudgetItems.isPending || updateBudget.isPending}
+                disabled={createBudget.isPending || createBudgetItems.isPending || updateBudget.isPending || updateBudgetItems.isPending}
                 className="flex-1 h-10 sm:h-12"
               >
-                {createBudget.isPending || createBudgetItems.isPending || updateBudget.isPending 
+                {createBudget.isPending || createBudgetItems.isPending || updateBudget.isPending || updateBudgetItems.isPending
                   ? 'Salvando...' 
                   : budget ? 'Atualizar Orçamento' : 'Criar Orçamento'
                 }

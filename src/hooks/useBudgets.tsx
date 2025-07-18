@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -196,6 +197,57 @@ export const useCreateBudgetItems = () => {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast.error(`Erro ao adicionar itens ao orçamento: ${errorMessage}`);
       console.error('Error creating budget items:', error);
+    },
+  });
+};
+
+export const useUpdateBudgetItems = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ budgetId, items }: { budgetId: string; items: Omit<BudgetItem, 'id' | 'created_at' | 'budget_id'>[] }) => {
+      // Primeiro, deletar todos os itens existentes do orçamento
+      const { error: deleteError } = await supabase
+        .from('budget_items')
+        .delete()
+        .eq('budget_id', budgetId);
+
+      if (deleteError) {
+        throw new Error(`Erro ao remover itens antigos: ${deleteError.message}`);
+      }
+
+      // Depois inserir os novos itens
+      if (items.length > 0) {
+        const itemsToInsert = items.map(item => ({
+          ...item,
+          budget_id: budgetId
+        }));
+
+        const { data, error: insertError } = await supabase
+          .from('budget_items')
+          .insert(itemsToInsert)
+          .select();
+
+        if (insertError) {
+          throw new Error(`Erro ao inserir novos itens: ${insertError.message}`);
+        }
+
+        return data;
+      }
+
+      return [];
+    },
+    onSuccess: () => {
+      // Invalidate queries to ensure immediate UI update
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['budget-items'] });
+      toast.success('Itens do orçamento atualizados com sucesso!');
+      console.log('Budget items updated successfully, queries invalidated');
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error(`Erro ao atualizar itens do orçamento: ${errorMessage}`);
+      console.error('Error updating budget items:', error);
     },
   });
 };
