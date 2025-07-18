@@ -59,18 +59,13 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
     }
   };
 
-  const uploadFiles = async () => {
-    if (selectedFiles.length === 0) return;
+  const uploadFileWithRetry = async (file: File, maxRetries = 3): Promise<string> => {
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `checklist-image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExtension}`;
     
-    setIsUploading(true);
-    const uploadedUrls: string[] = [];
-    
-    try {
-      for (const file of selectedFiles) {
-        const fileExtension = file.name.split('.').pop();
-        const fileName = `checklist-image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExtension}`;
-        
-        console.log('Uploading file:', fileName, 'Size:', file.size, 'Type:', file.type);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Uploading file (attempt ${attempt}/${maxRetries}):`, fileName, 'Size:', file.size, 'Type:', file.type);
         
         const { data, error } = await supabase.storage
           .from('checklist-videos')
@@ -80,8 +75,13 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
           });
         
         if (error) {
-          console.error('Upload error:', error);
-          throw new Error(`Erro ao enviar ${file.name}: ${error.message}`);
+          console.error(`Upload error (attempt ${attempt}):`, error);
+          if (attempt === maxRetries) {
+            throw new Error(`Erro ao enviar ${file.name}: ${error.message}`);
+          }
+          // Aguardar antes de tentar novamente
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          continue;
         }
         
         console.log('Upload successful:', data);
@@ -90,17 +90,64 @@ export const FileUpload = ({ onFilesUploaded, currentFileUrls = [], onFilesRemov
           .from('checklist-videos')
           .getPublicUrl(data.path);
         
-        uploadedUrls.push(urlData.publicUrl);
+        return urlData.publicUrl;
+      } catch (error: any) {
+        console.error(`Upload attempt ${attempt} failed:`, error);
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        // Aguardar antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+    
+    throw new Error(`Falha ao enviar ${file.name} após ${maxRetries} tentativas`);
+  };
+
+  const uploadFiles = async () => {
+    if (selectedFiles.length === 0) return;
+    
+    setIsUploading(true);
+    const uploadedUrls: string[] = [];
+    let successCount = 0;
+    let errorCount = 0;
+    
+    try {
+      // Upload sequencial para evitar sobrecarregar a conexão no mobile
+      for (const file of selectedFiles) {
+        try {
+          const url = await uploadFileWithRetry(file);
+          uploadedUrls.push(url);
+          successCount++;
+          
+          // Pequena pausa entre uploads para melhorar estabilidade no mobile
+          if (successCount < selectedFiles.length) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (error: any) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          errorCount++;
+          toast.error(`Erro ao enviar ${file.name}: ${error.message}`);
+        }
       }
 
-      const allUrls = [...currentFileUrls, ...uploadedUrls];
-      onFilesUploaded(allUrls);
-      setSelectedFiles([]);
-      toast.success(`${uploadedUrls.length} imagem(ns) enviada(s) com sucesso!`);
+      if (uploadedUrls.length > 0) {
+        const allUrls = [...currentFileUrls, ...uploadedUrls];
+        onFilesUploaded(allUrls);
+        setSelectedFiles([]);
+        
+        if (errorCount === 0) {
+          toast.success(`${uploadedUrls.length} imagem(ns) enviada(s) com sucesso!`);
+        } else {
+          toast.success(`${uploadedUrls.length} imagem(ns) enviada(s). ${errorCount} falharam.`);
+        }
+      } else {
+        toast.error('Nenhuma imagem foi enviada com sucesso');
+      }
       
     } catch (error: any) {
-      console.error('Erro completo ao fazer upload:', error);
-      toast.error(error.message || 'Erro ao enviar as imagens');
+      console.error('Erro geral no upload:', error);
+      toast.error('Erro geral no envio das imagens. Verifique sua conexão.');
     } finally {
       setIsUploading(false);
     }
