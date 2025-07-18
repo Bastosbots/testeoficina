@@ -82,6 +82,7 @@ export const useCreateChecklist = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['checklists'] });
       toast.success('Checklist criado com sucesso!');
     },
     onError: (error) => {
@@ -107,6 +108,9 @@ export const useUpdateChecklist = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidate all related queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ['checklists'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
       toast.success('Checklist atualizado com sucesso!');
     },
     onError: (error) => {
@@ -129,6 +133,7 @@ export const useDeleteChecklist = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['checklists'] });
       toast.success('Checklist excluído com sucesso!');
     },
     onError: (error) => {

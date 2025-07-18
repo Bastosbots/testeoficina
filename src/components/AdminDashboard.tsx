@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,7 +15,7 @@ import { toast } from "sonner";
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { data: profiles = [] } = useProfiles();
-  const { data: checklists = [] } = useChecklists();
+  const { data: checklists = [], refetch: refetchChecklists } = useChecklists();
   const { data: budgets = [] } = useBudgets();
   const updateChecklistMutation = useUpdateChecklist();
 
@@ -41,8 +40,12 @@ const AdminDashboard = () => {
       console.log('Completing checklist:', checklistId);
       await updateChecklistMutation.mutateAsync({
         id: checklistId,
-        status: 'Concluído'
+        status: 'Concluído',
+        completed_at: new Date().toISOString()
       });
+      
+      // Force refetch to ensure immediate UI update
+      await refetchChecklists();
       toast.success('Checklist concluído com sucesso!');
     } catch (error) {
       console.error('Error completing checklist:', error);
@@ -85,7 +88,6 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -140,7 +142,6 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Priority Cards - Em Andamento e Pendente */}
       <div className="grid gap-3 md:grid-cols-2">
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -169,7 +170,6 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Checklists Em Andamento */}
       {inProgressChecklists.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
@@ -240,7 +240,6 @@ const AdminDashboard = () => {
         </Card>
       )}
 
-      {/* Orçamentos Pendentes */}
       {pendingBudgets.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
