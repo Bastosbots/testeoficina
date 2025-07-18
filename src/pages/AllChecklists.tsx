@@ -53,9 +53,9 @@ const AllChecklists = () => {
   // Get unique mechanics for filter
   const mechanics = useMemo(() => {
     const uniqueMechanics = checklists.reduce((acc, checklist) => {
-      if (checklist.mechanic && !acc.find(m => m.id === checklist.mechanic.id)) {
+      if (checklist.mechanic && !acc.find(m => m.mechanic_id === checklist.mechanic_id)) {
         acc.push({
-          id: checklist.mechanic_id,
+          mechanic_id: checklist.mechanic_id,
           full_name: checklist.mechanic.full_name
         });
       }
@@ -265,7 +265,7 @@ const AllChecklists = () => {
               <SelectContent>
                 <SelectItem value="all">Todos os Mecânicos</SelectItem>
                 {mechanics.map((mechanic) => (
-                  <SelectItem key={mechanic.id} value={mechanic.id}>
+                  <SelectItem key={mechanic.mechanic_id} value={mechanic.mechanic_id}>
                     {mechanic.full_name}
                   </SelectItem>
                 ))}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,10 +26,8 @@ const MechanicDashboard = () => {
     try {
       await updateChecklistMutation.mutateAsync({
         id: checklist.id,
-        updateData: {
-          status: 'Concluído',
-          completed_at: new Date().toISOString()
-        }
+        status: 'Concluído',
+        completed_at: new Date().toISOString()
       });
       toast.success('Checklist concluído com sucesso!');
     } catch (error) {

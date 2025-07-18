@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,10 +89,8 @@ const EditChecklistForm = ({ checklist, onBack, onSave }: EditChecklistFormProps
 
       await updateChecklistMutation.mutateAsync({
         id: checklist.id,
-        updateData: {
-          ...formData,
-          video_url: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null
-        },
+        ...formData,
+        video_url: imageUrls.length > 0 ? JSON.stringify(imageUrls) : null,
         items: itemsForUpdate
       });
 
